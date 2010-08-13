@@ -5,7 +5,7 @@ include config.mk
 
 TMPLIBDIR = libfizmotmp
 
-all: libfizmo.a src/cell_interface/libcellif.a libfizmo.mk
+all: libfizmo.a src/cell_interface/libcellif.a libfizmo.mk libcellif.mk
 
 libfizmo.a: src/tools/libtools.a src/interpreter/libinterpreter.a
 	mkdir -p $(TMPLIBDIR) ; \
@@ -34,7 +34,7 @@ install: libfizmo.a src/cell_interface/libcellif.a libfizmo.mk libcellif.mk
 	for l in `cd src/locales ; ls -d ??_??`; \
 	do \
 	  mkdir -p $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
-	  cp src/locales/$$l/* $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
+	  cp src/locales/$$l/*.txt $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
 	done
 
 clean::
@@ -44,7 +44,7 @@ clean::
 	cd src/locales ; make clean
 
 distclean:: clean
-	rm -f libfizmo.a ;
+	rm -f libfizmo.a libfizmo.mk libcellif.mk
 	cd src/interpreter ; make distclean
 	cd src/tools ; make distclean
 	cd src/cell_interface ; make distclean
