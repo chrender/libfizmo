@@ -184,7 +184,7 @@ static void output_buffer(WORDWRAP *wrapper, z_ucs *buffer_start,
 
 static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 {
-  z_ucs *index = NULL, *ptr, *hyphenated_word, *last_hyphen;
+  z_ucs *index = NULL, *ptr, *hyphenated_word, *last_hyphen, *word_start;
   z_ucs *word_end_without_split_chars, *word_end_with_split_chars;
   z_ucs buf, buf2, buf3;
   long len, chars_sent = 0;
@@ -278,7 +278,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       // position of the last dot.
       word_end_with_split_chars = word_end_without_split_chars;
       while ((ptr = z_ucs_chr(
-              word_split_chars, word_end_with_split_chars[1])) != NULL)
+              word_split_chars, *word_end_with_split_chars)) != NULL)
         word_end_with_split_chars++;
       // Now we've stored the end of the word in "word_end_without_split_chars".
 
@@ -286,8 +286,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       // of the actual last word (we might have hit a minus representing
       // a n- or m-dash--like this--or an elipsis like "..."). So we'll
       // rewind further if necessary.
-
-      TRACE_LOG("examining word end: \"%c\".\n", *word_end_without_split_chars);
+      TRACE_LOG("examining split end:\"%c\".\n", *word_end_without_split_chars);
       //while (word_end_without_split_chars - 1 > input + wrapper->line_length)
       while (word_end_without_split_chars > input)
       {
@@ -299,30 +298,6 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
         word_end_without_split_chars--;
       }
 
-      /*
-      TRACE_LOG("%p / %p\n", word_end_without_split_chars,
-          word_end_with_split_chars);
-
-      TRACE_LOG("%c / %c\n", *word_end_without_split_chars,
-          word_end_without_split_chars[1]);
-
-      TRACE_LOG("%p / %p\n",
-          word_end_without_split_chars, input + wrapper->line_length);
-
-      if (
-          (word_end_without_split_chars == word_end_with_split_chars)
-          &&
-          (*word_end_without_split_chars == Z_UCS_MINUS)
-          &&
-          (word_end_without_split_chars < input + wrapper->line_length)
-         )
-      {
-        // We've hit a minus in the middle of a word, like "far-off".
-        TRACE_LOG("minus in word.\n");
-        index = word_end_without_split_chars+1;
-        last_hyphen = NULL;
-      }
-      */
       if (
           (word_end_without_split_chars != word_end_with_split_chars)
           &&
@@ -339,10 +314,84 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       }
       else
       {
+        word_start = NULL;
+
+        /*
+        TRACE_LOG("examining split end:\"%c\".\n",
+            *word_end_without_split_chars);
+        while (word_end_without_split_chars > input)
+        {
+          TRACE_LOG("Checking for split-char: %c/%d.\n",
+              *word_end_without_split_chars, *word_end_without_split_chars);
+          if (z_ucs_chr(
+                word_split_chars, *(word_end_without_split_chars - 1)) == NULL)
+            break;
+          word_end_without_split_chars--;
+        }
+        */
+
+        // In case we've now found a word end, check for dashes before it.
+        // Example: "first-class car", where the word end we've now found is
+        // between "first-class" and "car".
+        word_start = word_end_without_split_chars - 1;
+        while (word_start > input)
+        {
+          TRACE_LOG("examining word end: \"%c\".\n", *word_start);
+          if (word_start == Z_UCS_MINUS)
+          {
+            if (input + wrapper->line_length > word_start)
+            {
+              // Found a dash to break on
+              word_start++;
+              break;
+            }
+          }
+          else if ((ptr = z_ucs_chr(word_split_chars, *word_start)) != NULL)
+          {
+            // In case we've found a non-dash separator, we've found the
+            // start of the word.
+            word_start++;
+            break;
+          }
+          word_start--;
+        }
+
+        if ((ptr = z_ucs_rchr(word_start, Z_UCS_SPACE)) == NULL)
+          break;
+
+        TRACE_LOG("word-start: %c\n", *word_start);
+
+        TRACE_LOG("%p / %p\n", word_end_without_split_chars,
+            word_end_with_split_chars);
+
+        TRACE_LOG("%c / %c\n", *word_end_without_split_chars,
+            *word_end_with_split_chars);
+
+        TRACE_LOG("%p / %p\n",
+            word_end_without_split_chars, input + wrapper->line_length);
+
+        /*
+           if (
+           (word_end_without_split_chars == word_end_with_split_chars + 1)
+           &&
+           (*word_end_without_split_chars == Z_UCS_MINUS)
+           &&
+           (word_end_without_split_chars < input + wrapper->line_length)
+           )
+           {
+        // We've hit a minus in the middle of a word, like "far-off".
+        TRACE_LOG("minus in word.\n");
+        index = word_end_without_split_chars+1;
+        last_hyphen = NULL;
+        }
+        */
+
         last_hyphen = NULL;
 
         if (word_end_with_split_chars > input + wrapper->line_length)
         {
+          // We only have to hyphenate in case the line is still too long.
+
           buf = *word_end_without_split_chars;
           *word_end_without_split_chars = 0;
 
@@ -350,11 +399,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
           TRACE_LOG_Z_UCS(input);
           TRACE_LOG("\".\n");
 
-          // We only have to hyphenate in case the line is still too long.
-
-          if ((index = z_ucs_rchr(input, Z_UCS_SPACE)) == NULL)
-            break;
-          index++;
+          index = word_start;
 
           if ((hyphenated_word = hyphenate(index)) == NULL)
           {
@@ -388,8 +433,11 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
             index = last_hyphen + 1;
           }
-          else
+          else if ( (word_start != input) && (*(word_start-1) != Z_UCS_MINUS) )
+          {
+            TRACE_LOG("No hyphen found.\n");
             index--;
+          }
         }
         else
         {
