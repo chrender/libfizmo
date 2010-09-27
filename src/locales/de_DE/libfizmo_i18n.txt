@@ -77,7 +77,8 @@ Signal \{0d} abgefangen, Interpreter wird abgebrochen.
 Division durch Null nicht möglich.
 Opcode JE mit nur einem Operand ist nicht gültig.
 Funktionsaufruf time() lieferte -1.
-Ubekannte Konfigurationsoption „\{0s}“.
+Unbekannte Konfigurationsoption „\{0s}“.
+Ungültiger Wert „\{0s}“ for Parameters „\{1s}“.
 Mehr
 Punkte
 Züge

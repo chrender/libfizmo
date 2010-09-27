@@ -114,12 +114,13 @@
 #define i18n_libfizmo_OPCODE_JE_WITH_ONLY_1_OPERAND_IS_ILLEGAL 77
 #define i18n_libfizmo_FUNCTION_CALL_TIME_RETURNED_NEG_1 78
 #define i18n_libfizmo_UNKNOWN_CONFIGURATION_OPTION_P0S 79
+#define i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S 80
 
 // cell-interface-locales:
-#define i18n_libfizmo_MORE_PROMPT 80
-#define i18n_libfizmo_SCORE 81
-#define i18n_libfizmo_TURNS 82
-#define i18n_libfizmo_LIBCELLINTERFACE_VERRSION_P0S 83
+#define i18n_libfizmo_MORE_PROMPT 81
+#define i18n_libfizmo_SCORE 82
+#define i18n_libfizmo_TURNS 83
+#define i18n_libfizmo_LIBCELLINTERFACE_VERRSION_P0S 84
 
 extern z_ucs libfizmo_module_name[];
 extern z_ucs default_locale_name[];
