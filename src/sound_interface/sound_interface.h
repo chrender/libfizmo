@@ -50,6 +50,8 @@ struct z_sound_interface
   void (*finish_sound)(int sound_nr);
   void (*keyboard_input_has_occurred)();
   uint16_t (*get_next_sound_end_routine)();
+  char* (*get_interface_name)();
+  char* (*get_interface_version)();
 };
 
 #endif /* sound_interface_h_INCLUDED */
