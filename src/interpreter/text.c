@@ -1392,6 +1392,15 @@ static bool process_interpreter_command()
         FIZMO_VERSION);
     (void)streams_latin1_output("\n");
 
+    if (active_sound_interface != NULL)
+    {
+      streams_latin1_output(active_sound_interface->get_interface_name());
+      streams_latin1_output(" ");
+      streams_latin1_output("version ");
+      streams_latin1_output(active_sound_interface->get_interface_version());
+      streams_latin1_output("\n");
+    }
+
     i18n_translate(
         libfizmo_module_name,
         i18n_libfizmo_STORY_RELEASE_NUMBER,
