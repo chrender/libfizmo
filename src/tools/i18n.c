@@ -366,28 +366,17 @@ static void delete_locale_module(locale_module *module)
 }
 
 
-static locale_module *create_locale_module(z_ucs *locale_name,
-    z_ucs *module_name)
+static char *get_path_for_locale(z_ucs *locale_name)
 {
   DIR *dir;
   char *search_path;
   z_ucs *search_path_zucs, *path_ptr, *colon_index, *zucs_ptr;
   z_ucs *zucs_buf = NULL;
-  locale_module *result = NULL;
   size_t bufsize = 0, len, dirname_len;
-  char *dirname, *ptr;
   struct dirent *dir_entry;
-  char *locale_name_utf8, *module_name_utf8, *locale_dir_name = NULL;
-  stringmap *module_map;
+  char *dirname;
+  char *locale_name_utf8, *locale_dir_name = NULL;
 
-  TRACE_LOG("Creating module '");
-  TRACE_LOG_Z_UCS(module_name);
-  TRACE_LOG("' for locale '");
-  TRACE_LOG_Z_UCS(locale_name);
-  TRACE_LOG("'.\n");
-
-  // The named locale was not found. We'll try to find the given module
-  // for the requested locale using the search path.
   search_path
     = locale_search_path == NULL
     ? default_search_path
@@ -507,14 +496,36 @@ static locale_module *create_locale_module(z_ucs *locale_name,
   // close-resource:
   free(zucs_buf);
 
-  if (locale_dir_name == NULL)
+  //TRACE_LOG("res:'");
+  //TRACE_LOG_Z_UCS(locale_dir_name);
+  //TRACE_LOG("\n");
+
+  return locale_dir_name;
+}
+
+
+static locale_module *create_locale_module(z_ucs *locale_name,
+    z_ucs *module_name)
+{
+  DIR *dir;
+  locale_module *result = NULL;
+  char *ptr;
+  struct dirent *dir_entry;
+  char *module_name_utf8, *locale_dir_name = NULL;
+  stringmap *module_map;
+
+  TRACE_LOG("Creating module '");
+  TRACE_LOG_Z_UCS(module_name);
+  TRACE_LOG("' for locale '");
+  TRACE_LOG_Z_UCS(locale_name);
+  TRACE_LOG("'.\n");
+
+  if ((locale_dir_name = get_path_for_locale(locale_name)) == NULL)
   {
     // No directory containing an entry named equal to local name was foudn.
     TRACE_LOG("locale_dir_name is NULL.\n");
     return NULL;
   }
-
-  // The only remaining open resource is now "locale_dir_name".
 
   // open-resource:
   module_name_utf8 = dup_zucs_string_to_utf8_string(module_name);
@@ -1181,7 +1192,13 @@ z_ucs *get_current_locale_name()
 
 int set_current_locale_name(z_ucs *new_locale_name)
 {
+  char *locale_dir_name = NULL;
   z_ucs *locale_dup;
+
+  if ((locale_dir_name = get_path_for_locale(new_locale_name)) == NULL)
+    return -1;
+
+  free(locale_dir_name);
 
   if ((locale_dup = z_ucs_dup(new_locale_name)) == NULL)
     return -1;
