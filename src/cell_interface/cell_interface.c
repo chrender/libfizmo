@@ -682,8 +682,11 @@ static short color_name_to_z_colour(char *colour_name)
 
 static int parse_config_parameter(char *key, char *value)
 {
-  //short color;
-  int int_value;
+  long long_value;
+  char *last;
+
+  TRACE_LOG("cell-if parsing config param key \"%s\", value \"%s\".\n",
+      key, value != NULL ? value : "(null)");
 
   if (strcasecmp(key, "background-color") == 0)
   {
@@ -701,34 +704,48 @@ static int parse_config_parameter(char *key, char *value)
   }
   else if (strcasecmp(key, "dont-use-colors") == 0)
   {
-    if ( (value != NULL) && (strcmp(value, "") != 0) )
+    if (value == NULL)
+      return -1;
+    else if ((strcasecmp(value, "true")==0) || (strcasecmp(value, "yes")==0))
+    {
       using_colors = false;
-
-    return 0;
+      return 0;
+    }
+    else
+      return -1;
   }
   else if (strcasecmp(key, "enable-colors") == 0)
   {
-    if ( (value != NULL) && (strcmp(value, "") != 0) )
+    if (value == NULL)
+      return -1;
+    else if ((strcasecmp(value, "true")==0) || (strcasecmp(value, "yes")==0))
+    {
       using_colors = screen_cell_interface->is_colour_available();
-
-    return 0;
+      return 0;
+    }
+    else
+      return -1;
   }
   else if (strcasecmp(key, "left-margin") == 0)
   {
-    int_value = atoi(value);
-
-    if (int_value > 0)
-      set_custom_left_cell_margin(int_value);
-
+    if (value == NULL)
+      return -1;
+    long_value = strtol(value, &last, 10);
+    if (value + strlen(value) != last)
+      return -1;
+    if (long_value > 0)
+      set_custom_left_cell_margin(long_value);
     return 0;
   }
   else if (strcasecmp(key, "right-margin") == 0)
   {
-    int_value = atoi(value);
-
-    if (int_value > 0)
-      set_custom_right_cell_margin(int_value);
-
+    if (value == NULL)
+      return -1;
+    long_value = strtol(value, &last, 10);
+    if (value + strlen(value) != last)
+      return -1;
+    if (long_value > 0)
+      set_custom_right_cell_margin(long_value);
     return 0;
   }
   else
