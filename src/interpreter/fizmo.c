@@ -1105,7 +1105,11 @@ void fizmo_register_screen_interface(struct z_screen_interface
     *screen_interface)
 {
   if (active_interface == NULL)
+  {
     active_interface = screen_interface;
+    register_i18n_stream_output_function(streams_z_ucs_output);
+    register_i18n_abort_function(abort_interpreter);
+  }
 }
 
 
@@ -1123,6 +1127,8 @@ static int parse_fizmo_config_file(char *filename)
   char value[MAX_CONFIG_OPTION_LENGTH];
   int c, i;
   FILE *config_file;
+  z_ucs *zucs_string;
+  int result;
 
   TRACE_LOG("Parsing config file \"%s\".\n", filename);
 
@@ -1163,7 +1169,17 @@ static int parse_fizmo_config_file(char *filename)
         if (strcasecmp(key, "language") == 0)
         {
           TRACE_LOG("locale parameter: \"%s\".\n", value);
-          //set_configuration_value("locale", value, "fizmo");
+          zucs_string = dup_utf8_string_to_zucs_string(value);
+          result = set_current_locale_name(zucs_string);
+          free(zucs_string);
+
+          if (result != 0)
+            i18n_translate_and_exit(
+                libfizmo_module_name,
+                i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S,
+                -0x0101,
+                key,
+                value);
         }
         else if (
             (strcasecmp(key, "savegame-path") == 0)
@@ -1189,10 +1205,22 @@ static int parse_fizmo_config_file(char *filename)
           {
             TRACE_LOG("key/value forwarded to interface: \"%s\", \"%s\".\n",
                 key, value);
-            active_interface->parse_config_parameter(key, value);
-          }
 
-          // Ignore wrong config values.
+            result = active_interface->parse_config_parameter(key, value);
+            if (result == -1)
+            {
+              i18n_translate_and_exit(
+                  libfizmo_module_name,
+                  i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S,
+                  -0x0101,
+                  key,
+                  value);
+            }
+            else if (result == -2)
+            {
+              // Ignore wrong config values.
+            }   
+          }
         }
       }
     }
