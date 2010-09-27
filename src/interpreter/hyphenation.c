@@ -425,7 +425,12 @@ z_ucs *hyphenate(z_ucs *word_to_hyphenate)
 
   *(result_ptr++) = *word_to_hyphenate;
 
-  for (i=2; i<word_to_hyphenate_len-1; i++)
+  // Process all inter-letter positions. From the TeXbook, page 453:
+  // "[...] except that plain TeX blocks hyphens after the very first
+  // letter or before the last or second-last letter of a word." Thus,
+  // we'll simply process entirely the same range here to avoid strange
+  // hyphenations.
+  for (i=1; i<word_to_hyphenate_len-1; i++)
   {
 #ifdef ENABLE_TRACING
     buf = word_buf[i+2];
@@ -484,11 +489,16 @@ z_ucs *hyphenate(z_ucs *word_to_hyphenate)
         process_index++;
     }
 
-    *(result_ptr++) = word_buf[i];
-    if ((max_score & 1) != 0)
+    TRACE_LOG("Finished for position %d (%c).\n", i, word_buf[i]);
+
+    if (i > 1)
     {
-      *(result_ptr++) = Z_UCS_SOFT_HYPEN;
-      TRACE_LOG("Found hyph point.\n");
+      *(result_ptr++) = word_buf[i];
+      if ((max_score & 1) != 0)
+      {
+        *(result_ptr++) = Z_UCS_SOFT_HYPEN;
+        TRACE_LOG("Found hyph point.\n");
+      }
     }
   }
 
