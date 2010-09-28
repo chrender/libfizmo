@@ -403,12 +403,18 @@ z_ucs *hyphenate(z_ucs *word_to_hyphenate)
       return NULL;
     }
 
-  if ((word_buf = malloc(
-          sizeof(z_ucs) * (word_to_hyphenate_len + 3))) == NULL)
-    return NULL;
-
   if ((result_buf = malloc(
           sizeof(z_ucs) * (word_to_hyphenate_len * 2 + 1))) == NULL)
+    return NULL;
+
+  if (z_ucs_len(word_to_hyphenate) < 4)
+  {
+    z_ucs_cpy(result_buf, word_to_hyphenate);
+    return result_buf;
+  }
+
+  if ((word_buf = malloc(
+          sizeof(z_ucs) * (word_to_hyphenate_len + 3))) == NULL)
     return NULL;
 
   *word_buf = '.';
@@ -430,7 +436,7 @@ z_ucs *hyphenate(z_ucs *word_to_hyphenate)
   // letter or before the last or second-last letter of a word." Thus,
   // we'll simply process entirely the same range here to avoid strange
   // hyphenations.
-  for (i=1; i<word_to_hyphenate_len-1; i++)
+  for (i=1; i<word_to_hyphenate_len-2; i++)
   {
 #ifdef ENABLE_TRACING
     buf = word_buf[i+2];
@@ -504,6 +510,7 @@ z_ucs *hyphenate(z_ucs *word_to_hyphenate)
 
   *(result_ptr++) = word_buf[i];
   *(result_ptr++) = word_buf[i+1];
+  *(result_ptr++) = word_buf[i+2];
   *result_ptr = 0;
 
   TRACE_LOG("Result: \"");
