@@ -52,7 +52,8 @@
 
 
 static z_ucs word_split_chars[] = {
-  Z_UCS_SPACE, Z_UCS_MINUS, Z_UCS_NEWLINE, Z_UCS_DOT, (z_ucs)',', 0 };
+  Z_UCS_SPACE, Z_UCS_MINUS, Z_UCS_NEWLINE, Z_UCS_DOT, (z_ucs)',',
+  (z_ucs)'"', 0 };
 
 
 /*
@@ -200,6 +201,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
   for (;;)
   {
+    TRACE_LOG("Processing flush.\n");
+
     if (*input != 0)
     {
       TRACE_LOG("flush wordwrap-buffer: \"");
@@ -337,7 +340,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
         while (word_start > input)
         {
           TRACE_LOG("examining word end: \"%c\".\n", *word_start);
-          if (word_start == Z_UCS_MINUS)
+          if (*word_start == Z_UCS_MINUS)
           {
             if (input + wrapper->line_length > word_start)
             {
@@ -356,8 +359,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
           word_start--;
         }
 
-        if ((ptr = z_ucs_rchr(word_start, Z_UCS_SPACE)) == NULL)
-          break;
+        // FIXME: Do we need a space left from here?
 
         TRACE_LOG("word-start: %c\n", *word_start);
 
