@@ -78,6 +78,7 @@ struct z_window
 
   // Attributes for internal use:
   int window_number;
+  int nof_consecutive_lines_output; // line counter for [more]
 
   z_colour output_foreground_colour;
   z_colour output_background_colour;
@@ -97,6 +98,7 @@ static int custom_left_margin = 0;
 static int custom_right_margin = 0;
 //z_ucs *current_prompt_line = NULL;
 static bool using_colors = false;
+static bool disable_more_prompt = false;
 static z_ucs *ncursesw_if_more_prompt;
 static z_ucs *ncursesw_if_score_string;
 static z_ucs *ncursesw_if_turns_string;
@@ -117,6 +119,7 @@ static bool refresh_count_mode;
 static int refresh_lines_to_skip;
 static int refresh_lines_to_output;
 static int last_split_window_size = 0;
+bool winch_found = false;
 
 // This flag is set to true when an read_line is currently underway. It's
 // used by screen refresh functions like "new_cell_screen_size".
@@ -365,12 +368,23 @@ static void update_output_text_style(int window_number)
 }
 
 
+static void flush_all_buffered_windows()
+{
+  int i;
+
+  for (i=0; i<nof_active_z_windows; i++)
+    if (bool_equal(z_windows[i]->buffering_active, true))
+      wordwrap_flush_output(z_windows[i]->wordwrapper);
+}
+
+
 void z_ucs_output_window_target(z_ucs *z_ucs_output,
     void *window_number_as_void)
 {
   int window_number = *((int*)window_number_as_void);
-  z_ucs buf;
-  z_ucs *ptr;
+  z_ucs buf, input, event_type;
+  z_ucs *linebreak;
+  int space_on_line, i;
 
   if (*z_ucs_output == 0)
     return;
@@ -378,74 +392,152 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
   update_output_colours(window_number);
   update_output_text_style(window_number);
 
-  while ((ptr = z_ucs_chr(z_ucs_output, Z_UCS_NEWLINE)) != NULL)
+  refresh_cursor(window_number);
+
+  while (*z_ucs_output != 0)
   {
+    TRACE_LOG("Output queue: \"");
+    TRACE_LOG_Z_UCS(z_ucs_output);
+    TRACE_LOG("\".\n");
+
+    space_on_line = z_windows[window_number]->xsize
+      -  z_windows[window_number]->rightmargin
+      - (z_windows[window_number]->xcursorpos - 1);
+    linebreak = z_ucs_chr(z_ucs_output, Z_UCS_NEWLINE);
+    if ( (linebreak == NULL) || (linebreak - z_ucs_output > space_on_line) )
+    {
+      // Either no newline found or remaining line is too long. Check if
+      // the rest of the line fits onto screen.
+      linebreak 
+        = (signed)z_ucs_len(z_ucs_output) > space_on_line
+        ? z_ucs_output + space_on_line
+        : NULL;
+    }
+
+    if (linebreak != NULL)
+    {
+      buf = *linebreak;
+      *linebreak = 0;
+    }
+    else
+      buf = 0;
+
+    TRACE_LOG("buf: %d\n", buf);
+
     TRACE_LOG("Output at %d/%d:\"",
         z_windows[window_number]->xcursorpos,
         z_windows[window_number]->ycursorpos);
-    TRACE_LOG_Z_UCS(ptr);
+    TRACE_LOG_Z_UCS(z_ucs_output);
     TRACE_LOG("\".\n");
-
-    buf = *ptr;
-    *ptr = 0;
 
     screen_cell_interface->z_ucs_output(z_ucs_output);
 
-    TRACE_LOG("ysize:%d, xsize%d\n",
-        z_windows[window_number]->ysize,
-        z_windows[window_number]->xsize);
+    if (linebreak != NULL)
+    {
+      // At the end of the line
+      if (z_windows[window_number]->ycursorpos
+          == z_windows[window_number]->ysize)
+        screen_cell_interface->copy_area(
+            z_windows[window_number]->ypos,
+            z_windows[window_number]->xpos,
+            z_windows[window_number]->ypos+1,
+            z_windows[window_number]->xpos,
+            z_windows[window_number]->ysize-1,
+            z_windows[window_number]->xsize);
+      else
+        z_windows[window_number]->ycursorpos++;
 
-    TRACE_LOG("ycursorpos:%d, xcursorpos:%d.\n",
-        z_windows[window_number]->ycursorpos,
-        z_windows[window_number]->xcursorpos);
+      z_windows[window_number]->xcursorpos
+        = 1 + z_windows[window_number]->leftmargin;
 
-    if (z_windows[window_number]->ycursorpos
-        == z_windows[window_number]->ysize)
-      screen_cell_interface->copy_area(
-          z_windows[window_number]->ypos,
-          z_windows[window_number]->xpos,
-          z_windows[window_number]->ypos+1,
-          z_windows[window_number]->xpos,
-          z_windows[window_number]->ysize-1,
-          z_windows[window_number]->xsize);
+      refresh_cursor(window_number);
+      screen_cell_interface->clear_to_eol();
+
+      *linebreak = buf;
+      z_ucs_output = linebreak;
+      if (*z_ucs_output == Z_UCS_NEWLINE)
+        z_ucs_output++;
+
+      z_windows[window_number]->nof_consecutive_lines_output++;
+
+      TRACE_LOG("consecutive lines: %d.\n",
+          z_windows[window_number]->nof_consecutive_lines_output);
+
+      // FIXME: Implement height 255
+      if (
+          (z_windows[window_number]->nof_consecutive_lines_output
+           == z_windows[window_number]->ysize - 1)
+          &&
+          (disable_more_prompt == false)
+          &&
+          (winch_found == false)
+         )
+      {
+        TRACE_LOG("Displaying more prompt.\n");
+
+        // Loop below will result in recursive "z_ucs_output_window_target"
+        // call. Dangerous?
+        for (i=0; i<nof_active_z_windows; i++)
+          if (
+              (i != window_number)
+              &&
+              (bool_equal(z_windows[i]->buffering_active, true))
+             )
+            wordwrap_flush_output(z_windows[i]->wordwrapper);
+
+        screen_cell_interface->z_ucs_output(ncursesw_if_more_prompt);
+        screen_cell_interface->update_screen();
+        refresh_cursor(window_number);
+
+        // FIXME: Check for sound interrupt?
+        do
+        {
+          event_type = screen_cell_interface->get_next_event(&input, 0);
+
+          if (event_type == EVENT_WAS_TIMEOUT)
+          {
+            TRACE_LOG("timeout.\n");
+          }
+        }
+        while (
+            (event_type != EVENT_WAS_WINCH)
+            &&
+            (event_type != EVENT_WAS_INPUT)
+            &&
+            (event_type != EVENT_WAS_CODE_BACKSPACE)
+            &&
+            (event_type != EVENT_WAS_CODE_CURSOR_LEFT)
+            &&
+            (event_type != EVENT_WAS_CODE_CURSOR_RIGHT)
+            );
+
+        z_windows[window_number]->xcursorpos
+          = z_windows[window_number]->leftmargin + 1;
+        refresh_cursor(window_number);
+        screen_cell_interface->clear_to_eol();
+
+        if (event_type == EVENT_WAS_WINCH)
+        {
+          winch_found = true;
+          // The more prompt was "interrupted" by a window screen size
+          // change. We'll now have to initiate a redraw. Since a redraw
+          // is always based on the history, which is not synced to the
+          // output this function receives, we'll now forget about the
+          // current output and then initiate a redraw from before the
+          // next input.
+          break;
+        }
+
+        z_windows[window_number]->nof_consecutive_lines_output = 0;
+        TRACE_LOG("more prompt finished: %d.\n", event_type);
+      }
+    }
     else
-      z_windows[window_number]->ycursorpos++;
-
-    z_windows[window_number]->xcursorpos
-      = 1 + z_windows[window_number]->leftmargin;
-
-    refresh_cursor(window_number);
-    screen_cell_interface->clear_to_eol();
-
-    *ptr = buf;
-    z_ucs_output = ptr + 1;
-
-    TRACE_LOG("i-ysize:%d, xsize%d\n",
-        z_windows[window_number]->ysize,
-        z_windows[window_number]->xsize);
-
-    TRACE_LOG("i-ycursorpos:%d, xcursorpos:%d.\n",
-        z_windows[window_number]->ycursorpos,
-        z_windows[window_number]->xcursorpos);
-
+    {
+      z_windows[active_z_window_id]->xcursorpos += z_ucs_len(z_ucs_output);
+      break;
+    }
   }
-
-  TRACE_LOG("Output at %d/%d:\"",
-      z_windows[window_number]->xcursorpos,
-      z_windows[window_number]->ycursorpos);
-  TRACE_LOG_Z_UCS(z_ucs_output);
-  TRACE_LOG("\".\n");
-
-  TRACE_LOG("last ysize:%d, xsize%d\n",
-      z_windows[window_number]->ysize,
-      z_windows[window_number]->xsize);
-
-  TRACE_LOG("last ycursorpos:%d, xcursorpos:%d.\n",
-      z_windows[window_number]->ycursorpos,
-      z_windows[window_number]->xcursorpos);
-
-  screen_cell_interface->z_ucs_output(z_ucs_output);
-  z_windows[active_z_window_id]->xcursorpos += z_ucs_len(z_ucs_output);
 }
 
 
@@ -454,6 +546,9 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
 {
   z_ucs *output_end;
   z_ucs buf;
+#ifdef ENABLE_TRACING
+  z_ucs *ptr = z_ucs_output;
+#endif // ENABLE_TRACING
 
   TRACE_LOG("Output to refresh dest: \"");
   TRACE_LOG_Z_UCS(z_ucs_output);
@@ -463,6 +558,16 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
   {
     while ((z_ucs_output = z_ucs_chr(z_ucs_output, Z_UCS_NEWLINE)) != NULL)
     {
+#ifdef ENABLE_TRACING
+      buf = *z_ucs_output;
+      *z_ucs_output = 0;
+      TRACE_LOG("counted line: \"");
+      TRACE_LOG_Z_UCS(ptr);
+      TRACE_LOG("\".\n");
+      *z_ucs_output = buf;
+      ptr = z_ucs_output;
+#endif // ENABLE_TRACING
+
       refresh_newline_counter++;
       z_ucs_output++;
     }
@@ -789,7 +894,7 @@ static void link_interface_to_story(struct z_story *story)
 {
   int bytes_to_allocate;
   //z_ucs *ptr;
-  //int len;
+  int len;
   int i;
 
   screen_cell_interface->link_interface_to_story(story);
@@ -843,6 +948,7 @@ static void link_interface_to_story(struct z_story *story)
     z_windows[i]->xpos = 1;
     z_windows[i]->text_style = Z_STYLE_ROMAN;
     z_windows[i]->output_text_style = Z_STYLE_ROMAN;
+    z_windows[i]->nof_consecutive_lines_output = 0;
 
     if (i == 0)
     {
@@ -945,6 +1051,20 @@ static void link_interface_to_story(struct z_story *story)
         libfizmo_module_name,
         i18n_libfizmo_MORE_PROMPT);
 
+  len = z_ucs_len(ncursesw_if_more_prompt);
+
+  ncursesw_if_more_prompt
+    = (z_ucs*)fizmo_realloc(ncursesw_if_more_prompt, len + 3);
+
+  memmove(
+      ncursesw_if_more_prompt + 1,
+      ncursesw_if_more_prompt,
+      len * sizeof(z_ucs));
+
+  ncursesw_if_more_prompt[0] = '[';
+  ncursesw_if_more_prompt[len+1] = ']';
+  ncursesw_if_more_prompt[len+2] = 0;
+
   ncursesw_if_score_string =
     i18n_translate_to_string(
         libfizmo_module_name,
@@ -1018,16 +1138,6 @@ static int cell_close_interface(z_ucs *error_message)
 
 static void set_buffer_mode(uint8_t UNUSED(new_buffer_mode))
 {
-}
-
-
-static void flush_all_buffered_windows()
-{
-  int i;
-
-  for (i=0; i<nof_active_z_windows; i++)
-    if (bool_equal(z_windows[i]->buffering_active, true))
-      wordwrap_flush_output(z_windows[i]->wordwrapper);
 }
 
 
@@ -1118,6 +1228,8 @@ static void erase_window(int16_t window_number)
 
     z_windows[window_number]->ycursorpos
       = (ver >= 5 ? 1 : z_windows[window_number]->ysize);
+
+    z_windows[window_number]->nof_consecutive_lines_output = 0;
   }
 }
 
@@ -1480,14 +1592,16 @@ static void refresh_screen()
   paragraphs_to_output = 0;
   while (refresh_newline_counter < z_windows[0]->ysize)
   {
-    TRACE_LOG("Current refresh_newline_counter: %d.\n",
-        refresh_newline_counter);
+    TRACE_LOG("Current refresh_newline_counter: %d, paragraphs:\n",
+        refresh_newline_counter, paragraphs_to_output);
 
     if (output_rewind_paragraph(history) < 0)
       break;
 
+    TRACE_LOG("Start paragraph repetition.\n");
     output_repeat_paragraphs(history, 1, false);
     wordwrap_flush_output(refresh_wordwrapper);
+    TRACE_LOG("End paragraph repetition.\n");
     //wordwrap_set_line_index(refresh_wordwrapper, 0);
 
     refresh_newline_counter++;
@@ -1707,6 +1821,16 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
   TRACE_LOG("maxlen:%d, preload: %d.\n", maximum_length, preloaded_input);
 
   flush_all_buffered_windows();
+  for (i=0; i<nof_active_z_windows; i++)
+    z_windows[i]->nof_consecutive_lines_output = 0;
+
+  if (winch_found == true)
+  {
+    new_cell_screen_size(
+        screen_cell_interface->get_screen_height(),
+        screen_cell_interface->get_screen_width());
+    winch_found = false;
+  }
 
   TRACE_LOG("Flush finished.\n");
 
@@ -2037,7 +2161,10 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
     }
     else if (event_type == EVENT_WAS_WINCH)
     {
-      TRACE_LOG("got winch event.\n");
+      TRACE_LOG("timeout.\n");
+      new_cell_screen_size(
+          screen_cell_interface->get_screen_height(),
+          screen_cell_interface->get_screen_width());
     }
     TRACE_LOG("readline-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
 
@@ -2079,8 +2206,19 @@ static int read_char(uint16_t tenth_seconds, uint32_t verification_routine,
   //int i;
   int current_tenth_seconds = 0;
   int timed_routine_retval;
+  int i;
 
   flush_all_buffered_windows();
+  for (i=0; i<nof_active_z_windows; i++)
+    z_windows[i]->nof_consecutive_lines_output = 0;
+
+  if (winch_found == true)
+  {
+    new_cell_screen_size(
+        screen_cell_interface->get_screen_height(),
+        screen_cell_interface->get_screen_width());
+    winch_found = false;
+  }
 
   screen_cell_interface->update_screen();
 
@@ -2172,6 +2310,13 @@ static int read_char(uint16_t tenth_seconds, uint32_t verification_routine,
           }
         }
       }
+    }
+    else if (event_type == EVENT_WAS_WINCH)
+    {
+      TRACE_LOG("timeout.\n");
+      new_cell_screen_size(
+          screen_cell_interface->get_screen_height(),
+          screen_cell_interface->get_screen_width());
     }
   }
 
@@ -2468,9 +2613,14 @@ void set_custom_right_cell_margin(int width)
 void new_cell_screen_size(int newysize, int newxsize)
 {
   int i, dx, dy, status_offset = statusline_window_id > 0 ? 1 : 0;
+  int consecutive_lines_buffer[nof_active_z_windows];
 
   if ( (newysize < 1) || (newxsize < 1) )
     return;
+
+  for (i=0; i<nof_active_z_windows; i++)
+    consecutive_lines_buffer[i] = z_windows[i]->nof_consecutive_lines_output;
+  disable_more_prompt = true;
 
   dx = newxsize - screen_width;
   dy = newysize - screen_height;
@@ -2601,6 +2751,10 @@ void new_cell_screen_size(int newysize, int newxsize)
 
   //wordwrap_output_left_padding(z_windows[i]->wordwrapper);
   refresh_screen();
+
+  for (i=0; i<nof_active_z_windows; i++)
+    z_windows[i]->nof_consecutive_lines_output = consecutive_lines_buffer[i];
+  disable_more_prompt = false;
 }
 
 
