@@ -46,6 +46,7 @@
 #include "../interpreter/text.h"
 #include "../interpreter/history.h"
 #include "../locales/libfizmo_locales.h"
+#include "../interpreter/cmd_hst.h"
 
 #include "../screen_interface/screen_cell_interface.h"
 #include "cell_interface.h"
@@ -499,17 +500,7 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
             TRACE_LOG("timeout.\n");
           }
         }
-        while (
-            (event_type != EVENT_WAS_WINCH)
-            &&
-            (event_type != EVENT_WAS_INPUT)
-            &&
-            (event_type != EVENT_WAS_CODE_BACKSPACE)
-            &&
-            (event_type != EVENT_WAS_CODE_CURSOR_LEFT)
-            &&
-            (event_type != EVENT_WAS_CODE_CURSOR_RIGHT)
-            );
+        while (event_type == EVENT_WAS_TIMEOUT);
 
         z_windows[window_number]->xcursorpos
           = z_windows[window_number]->leftmargin + 1;
@@ -1592,7 +1583,7 @@ static void refresh_screen()
   paragraphs_to_output = 0;
   while (refresh_newline_counter < z_windows[0]->ysize)
   {
-    TRACE_LOG("Current refresh_newline_counter: %d, paragraphs:\n",
+    TRACE_LOG("Current refresh_newline_counter: %d, paragraphs: %d\n",
         refresh_newline_counter, paragraphs_to_output);
 
     if (output_rewind_paragraph(history) < 0)
@@ -1809,6 +1800,8 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
   int input_display_width; // Width of the input line on-screen.
   int input_x, input_y; // Leftmost position of the input line on-screen.
   z_ucs input_buffer[maximum_length + 1];
+  int cmd_history_index = 0, cmd_index;
+  zscii *cmd_history_ptr;
 
   current_input_size = &input_size;
   current_input_scroll_x = &input_scroll_x;
@@ -2153,6 +2146,86 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
         // the input index has to be altered.
         input_index++;
       }
+    }
+    else if (
+        (
+       (event_type == EVENT_WAS_CODE_CURSOR_UP)
+       &&
+       (cmd_history_index < command_history_nof_entries)
+      )
+      ||
+      (
+       (event_type == EVENT_WAS_CODE_CURSOR_DOWN)
+       &&
+       (cmd_history_index != 0)
+      )
+      )
+    {
+      TRACE_LOG("old history index: %d.\n", cmd_history_index);
+
+      cmd_history_index += event_type == EVENT_WAS_CODE_CURSOR_UP ? 1 : -1;
+      if (cmd_history_index - 1 > command_history_newest_entry)
+        cmd_index
+          =  command_history_nof_entries
+          - (cmd_history_index - 1)
+          -  command_history_newest_entry;
+      else
+        cmd_index
+          = command_history_newest_entry - (cmd_history_index - 1);
+
+      cmd_history_ptr
+        = command_history_buffer
+        + command_history_entries[cmd_index];
+
+      if (cmd_history_index > 0)
+      {
+        input_size = strlen((char*)cmd_history_ptr);
+        if (input_size > input_display_width+1)
+        {
+          input_scroll_x = input_size - input_display_width;
+          z_windows[active_z_window_id]->xcursorpos
+            = input_x + input_display_width;
+        }
+        else
+        {
+          input_scroll_x = 0;
+          z_windows[active_z_window_id]->xcursorpos = input_x + input_size;
+        }
+
+        input_index = input_size;
+
+        for (i=0; i<=input_size; i++)
+          input_buffer[i] = zscii_input_char_to_z_ucs(*(cmd_history_ptr++));
+
+        TRACE_LOG("out:%d, %d, %d\n",
+            input_size, input_scroll_x, input_display_width);
+
+        if (input_size - input_scroll_x >= input_display_width+1)
+        {
+          buf = input_buffer[input_scroll_x + input_display_width];
+          input_buffer[input_scroll_x + input_display_width] = 0;
+        }
+        else
+          buf = 0;
+
+        screen_cell_interface->goto_yx(input_y, input_x);
+        screen_cell_interface->z_ucs_output(input_buffer + input_scroll_x);
+        if (buf != 0)
+          input_buffer[input_scroll_x + input_display_width] = buf;
+        screen_cell_interface->clear_to_eol();
+      }
+      else
+      {
+        input_size = 0;
+        input_scroll_x = 0;
+        input_index = 0;
+        z_windows[active_z_window_id]->xcursorpos = input_x;
+        screen_cell_interface->goto_yx(input_y, input_x);
+        screen_cell_interface->clear_to_eol();
+      }
+
+      refresh_cursor(active_z_window_id);
+      screen_cell_interface->update_screen();
     }
     else if (event_type == EVENT_WAS_TIMEOUT)
     {
