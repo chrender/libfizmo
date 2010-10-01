@@ -2,14 +2,14 @@
    From 0.6.8 to 0.7.0
  + 0.7.0 was finished at about ... :)
  - Restructured fizmo: The ncursesw- and console-interface, the sdl-sound
-   interface and the X11-specific have been moved into separate modules
+   interface and the X11-specific code have been moved into separate modules
    named "fizmo-ncursesw", "fizmo-console", "libsndifsdl" and "libdrilbo".
  - Change documentation for the new modules will from this point on can be
    found in the corresponding module package.
  - Implemented Frank Liangs TeX hy-phen-a-tion algorithm into the
    wordwrapper. Patterns were taken from the "Object For Formatting
-   Objects" project at http://offo.sourceforge.net/. Re-implemented the
-   word wrapper on the way.
+   Objects" project at http://offo.sourceforge.net. Re-implemented the
+   word wrapper.
  - Rebuilt locales system. So far, all available locales were directly
    compiled into the binary and stored using a rather inflexible method
    which wasted some memory. Version 0.7.0 now stores the locales on the
