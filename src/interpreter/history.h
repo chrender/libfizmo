@@ -143,8 +143,8 @@ void remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars);
 z_ucs *get_current_line(OUTPUTHISTORY *history);
 history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t);
 int output_rewind_paragraph(history_output *output);
-void output_repeat_paragraphs(history_output *output, int n,
-    bool include_metadata);
+int output_repeat_paragraphs(history_output *output, int n,
+    bool include_metadata, bool advance_history_pointer);
 void destroy_history_output_target(history_output *output);
 
 

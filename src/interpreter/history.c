@@ -334,6 +334,9 @@ static void store_zucs_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
     return;
 
   TRACE_LOG("Trying to store %ld z_ucs-chars in history.\n", (long int)len);
+  TRACE_LOG("store_history: \"");
+  TRACE_LOG_Z_UCS(data);
+  TRACE_LOG("\".\n");
 
   if (len >= h->z_history_maximum_buffer_size)
   {
@@ -1150,8 +1153,8 @@ int output_rewind_paragraph(history_output *output)
 }
 
 
-void output_repeat_paragraphs(history_output *output, int n,
-    bool include_metadata)
+int output_repeat_paragraphs(history_output *output, int n,
+    bool include_metadata, bool advance_history_pointer)
 {
   z_ucs output_buf[REPEAT_PARAGRAPH_BUF_SIZE];
   z_ucs *output_ptr = output->current_paragraph_index;
@@ -1182,7 +1185,7 @@ void output_repeat_paragraphs(history_output *output, int n,
   while (n > 0)
   {
     if (output_ptr == output->history->z_history_buffer_front_index)
-      n = 0;
+      n = -1;
     else if (*output_ptr == '\n')
       n--;
 
@@ -1198,8 +1201,8 @@ void output_repeat_paragraphs(history_output *output, int n,
       TRACE_LOG("Sending %d char(s) of output.\n", buf_index);
       output->target->z_ucs_output(output_buf);
 
-      if (n == 0)
-        return;
+      if (n < 1)
+        break;
 
       buf_index = 0;
 
@@ -1248,6 +1251,16 @@ void output_repeat_paragraphs(history_output *output, int n,
     if ((++output_ptr) > output->history->z_history_buffer_end)
       output_ptr = output->history->z_history_buffer_start;
   }
+
+  if (advance_history_pointer == true)
+  {
+    output->current_paragraph_index = output_ptr;
+    if (output->current_paragraph_index
+        != output->history->z_history_buffer_front_index)
+      output->current_paragraph_index += 1;
+  }
+
+  return n;
 }
 
 
