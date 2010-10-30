@@ -1182,6 +1182,150 @@ int set_i18n_search_path(char *path)
 }
 
 
+char **get_available_locale_names()
+{
+  DIR *dir;
+  char *search_path;
+  z_ucs *search_path_zucs, *path_ptr, *colon_index, *zucs_ptr;
+  z_ucs *zucs_buf = NULL;
+  size_t bufsize = 0, len;
+  struct dirent *dir_entry;
+  char *dirname;
+  char *locale_dir_name = NULL;
+  list *result_list = create_list();
+  char *new_locale_name;
+  int j;
+
+  search_path
+    = locale_search_path == NULL
+    ? default_search_path
+    : locale_search_path;
+
+  search_path_zucs = dup_utf8_string_to_zucs_string(search_path);
+
+  TRACE_LOG("Search path: \"");
+  TRACE_LOG_Z_UCS(search_path_zucs);
+  TRACE_LOG("'.\n");
+
+  path_ptr = search_path_zucs;
+  while (*path_ptr != 0)
+  {
+    colon_index = z_ucs_chr(path_ptr, Z_UCS_COLON);
+
+    len
+      = colon_index == NULL
+      ? z_ucs_len(path_ptr)
+      : (size_t)(colon_index - path_ptr);
+
+    TRACE_LOG("len: %ld\n", (long)len);
+
+    if (len > 0)
+    {
+      if (bufsize < len + 1)
+      {
+        TRACE_LOG("realloc buf for %ld chars / %ld bytes.\n",
+            (long)len + 1, (long)sizeof(z_ucs) * (len + 1));
+
+        // open-resource:
+        if ((zucs_ptr = realloc(zucs_buf, sizeof(z_ucs) * (len + 1))) == NULL)
+        {
+          // exit-point:
+          TRACE_LOG("realloc() returned NULL.\n");
+          free(zucs_buf);
+          free(path_ptr);
+          for (j=0; j<get_list_size(result_list); j++)
+            free(get_list_element(result_list, j));
+          delete_list(result_list);
+          return NULL;
+        }
+
+        bufsize = len + 1;
+        zucs_buf = zucs_ptr;
+      }
+
+      z_ucs_ncpy(zucs_buf, path_ptr, len);
+      zucs_buf[len] = 0;
+
+      // open-resource:
+      if ((dirname = dup_zucs_string_to_utf8_string(zucs_buf)) == NULL)
+      {
+        // exit-point:
+        TRACE_LOG("dup_zucs_string_to_utf8_string() returned NULL.\n");
+        free(zucs_buf);
+        free(path_ptr);
+        for (j=0; j<get_list_size(result_list); j++)
+          free(get_list_element(result_list, j));
+        delete_list(result_list);
+        return NULL;
+      }
+
+      TRACE_LOG("Path: '%s'\n", dirname);
+
+      // open-resource:
+      if ((dir = opendir(dirname)) != NULL)
+      {
+        while ((dir_entry = readdir(dir)) != NULL)
+        {
+          TRACE_LOG("Processing \"%s\".\n", dir_entry->d_name);
+
+          if (
+              (strcmp(".", dir_entry->d_name) != 0)
+              &&
+              (strcmp("..", dir_entry->d_name) != 0)
+             )
+          {
+            for (j=0; j<get_list_size(result_list); j++)
+            {
+              if (strcmp(
+                    (char*)get_list_element(result_list, j),
+                    dir_entry->d_name) == 0)
+                break;
+            }
+
+            if (j == get_list_size(result_list))
+            {
+              if ((new_locale_name = strdup(dir_entry->d_name)) == NULL)
+              {
+                TRACE_LOG("strdup() returned NULL.\n");
+                free(zucs_buf);
+                free(path_ptr);
+                for (j=0; j<get_list_size(result_list); j++)
+                  free(get_list_element(result_list, j));
+                delete_list(result_list);
+                return NULL;
+              }
+              add_list_element(result_list, new_locale_name);
+            }
+          }
+        }
+
+        // close-resource:
+        closedir(dir);
+      }
+
+      // close-resource:
+      free(dirname);
+    }
+
+    if (locale_dir_name != NULL)
+      break;
+
+    path_ptr += len + (colon_index != NULL ? 1 : 0);
+  }
+
+  free(search_path_zucs);
+
+  // close-resource:
+  free(zucs_buf);
+
+  //TRACE_LOG("res:'");
+  //TRACE_LOG_Z_UCS(locale_dir_name);
+  //TRACE_LOG("\n");
+
+  return (char**)delete_list_and_get_null_terminated_ptrs(result_list);
+}
+
+
 z_ucs *get_current_locale_name()
 {
   return current_locale_name != NULL
