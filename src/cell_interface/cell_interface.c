@@ -120,13 +120,26 @@ static bool refresh_count_mode;
 static int refresh_lines_to_skip;
 static int refresh_lines_to_output;
 static int last_split_window_size = 0;
-bool winch_found = false;
+static bool winch_found = false;
+
+// Scrolling upwards:
+// It is always assumed that there's no output to window[0] and it's
+// corresponding outputhistory as long as upscrolling is active. As
+// soon as any output is received or the window size is changed, upscroling
+// is terminated and the screen returns to the bottom of the output -- this
+// aso automatically show the new output which has arrived, which should in
+// most cases result from a interrupt routine.
+static int top_upscroll_line = -1; // != -1 indicates upscroll is active.
+static bool upscroll_hit_top = false;
+static history_output *history; // shared by upscroll and screen-refresh
+static int history_screen_line;
 
 // This flag is set to true when an read_line is currently underway. It's
 // used by screen refresh functions like "new_cell_screen_size".
 static bool input_line_on_screen = false;
 static z_ucs *current_input_buffer = NULL;
 //static int input_buffer_size = 0;
+static z_ucs newline_string[] = { '\n', 0 };
 
 static bool timed_input_active;
 
@@ -417,6 +430,7 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
 
     if (linebreak != NULL)
     {
+      TRACE_LOG("linebreak found.\n");
       buf = *linebreak;
       *linebreak = 0;
     }
@@ -435,6 +449,7 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
 
     if (linebreak != NULL)
     {
+      TRACE_LOG("At end of line.\n");
       // At the end of the line
       if (z_windows[window_number]->ycursorpos
           == z_windows[window_number]->ysize)
@@ -457,7 +472,10 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
       *linebreak = buf;
       z_ucs_output = linebreak;
       if (*z_ucs_output == Z_UCS_NEWLINE)
+      {
+        TRACE_LOG("newline-skip.\n");
         z_ucs_output++;
+      }
 
       z_windows[window_number]->nof_consecutive_lines_output++;
 
@@ -529,6 +547,8 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
       break;
     }
   }
+
+  TRACE_LOG("z_ucs_output_window_target finished.\n");
 }
 
 
@@ -540,6 +560,9 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
 #ifdef ENABLE_TRACING
   z_ucs *ptr = z_ucs_output;
 #endif // ENABLE_TRACING
+
+  update_output_colours(0);
+  update_output_text_style(0);
 
   TRACE_LOG("Output to refresh dest: \"");
   TRACE_LOG_Z_UCS(z_ucs_output);
@@ -572,6 +595,7 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
     // First, try to skip lines above output.
     if (refresh_lines_to_skip > 0)
     {
+      // Skip lines as long as we're supposed to.
       while ( (*z_ucs_output != 0) && (refresh_lines_to_skip > 0) )
         if ((z_ucs_output = z_ucs_chr(z_ucs_output, Z_UCS_NEWLINE)) != NULL)
         {
@@ -588,6 +612,12 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
           break;
     }
 
+    TRACE_LOG("Total output: \"");
+    TRACE_LOG_Z_UCS(z_ucs_output);
+    TRACE_LOG("\".\n");
+
+    // In case we've skipped all lines -- or there are no to skip -- process
+    // regular output.
     if ( (refresh_lines_to_skip == 0) && (refresh_lines_to_output > 0) )
     {
       TRACE_LOG("active window id: %d.\n", active_z_window_id);
@@ -596,8 +626,10 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
 
       output_end = z_ucs_output;
 
+      // Find the last line we're supposed to output.
       while (refresh_lines_to_output > 0)
       {
+        TRACE_LOG("refresh_lines_to_output: %d.", refresh_lines_to_output);
         if ((output_end = z_ucs_chr(output_end, Z_UCS_NEWLINE)) != NULL)
         {
           TRACE_LOG("output_end:%p.\n", output_end);
@@ -610,11 +642,15 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
 
       if (output_end != NULL)
       {
+        TRACE_LOG("Found newline at end of output.\n");
         output_end++;
         buf = *output_end;
         *output_end = 0;
       }
 
+      TRACE_LOG("Sending to output: \"");
+      TRACE_LOG_Z_UCS(z_ucs_output);
+      TRACE_LOG("\".\n");
       z_ucs_output_window_target(
           z_ucs_output,
           (void*)(&z_windows[0]->window_number));
@@ -1442,6 +1478,10 @@ static void history_set_colour(z_colour foreground, z_colour background,
 
 static void history_z_ucs_output(z_ucs *output)
 {
+  TRACE_LOG("history_z_ucs_output: \"");
+  TRACE_LOG_Z_UCS(output);
+  TRACE_LOG("\".\n");
+
   if (bool_equal(z_windows[0]->buffering_active, false))
     z_ucs_output_refresh_destination(output, NULL);
   else
@@ -1542,7 +1582,6 @@ static void refresh_input_line()
 
 static void refresh_screen()
 {
-  history_output *history;
   int start_y, paragraphs_to_output;
   int last_active_z_window_id = -1;
   z_ucs *blockbuf_line;
@@ -1590,7 +1629,7 @@ static void refresh_screen()
       break;
 
     TRACE_LOG("Start paragraph repetition.\n");
-    output_repeat_paragraphs(history, 1, false);
+    output_repeat_paragraphs(history, 1, false, false);
     wordwrap_flush_output(refresh_wordwrapper);
     TRACE_LOG("End paragraph repetition.\n");
     //wordwrap_set_line_index(refresh_wordwrapper, 0);
@@ -1622,7 +1661,7 @@ static void refresh_screen()
 
   TRACE_LOG("Repeating %d paragraphs.\n", paragraphs_to_output);
   TRACE_LOG("#1refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
-  output_repeat_paragraphs(history, paragraphs_to_output, true);
+  output_repeat_paragraphs(history, paragraphs_to_output, true, false);
   TRACE_LOG("#2refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
 
   wordwrap_flush_output(refresh_wordwrapper);
@@ -1791,8 +1830,8 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
   int timeout_millis = -1, event_type, i;
   bool input_in_progress = true;
   z_ucs char_buf[] = { 0, 0 };
-  int original_screen_width = screen_width;
-  int original_screen_height = screen_height;
+  //int original_screen_width = screen_width;
+  //int original_screen_height = screen_height;
 
   int input_size = preloaded_input;
   int input_scroll_x = 0;
@@ -1802,6 +1841,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
   z_ucs input_buffer[maximum_length + 1];
   int cmd_history_index = 0, cmd_index;
   zscii *cmd_history_ptr;
+  int return_code;
 
   current_input_size = &input_size;
   current_input_scroll_x = &input_scroll_x;
@@ -2226,6 +2266,136 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
 
       refresh_cursor(active_z_window_id);
       screen_cell_interface->update_screen();
+    }
+    else if (
+        (
+         (event_type == EVENT_WAS_CODE_PAGE_UP)
+         &&
+         (upscroll_hit_top == false)
+        )
+        ||
+        (
+         (event_type == EVENT_WAS_CODE_PAGE_DOWN)
+         &&
+         (top_upscroll_line != -1)
+        )
+        )
+    {
+      // TODO: Important: destroy_history_output_target(history);
+
+      // While in "upscroll mode", top_upscroll_line designates the current
+      // destination top line, history_screen_line the current paragraph
+      // starting positing on screen when output is formatted for the current
+      // screen width -- which means it says where on-screen the rewinded
+      // output history currently starts at.
+      if (top_upscroll_line == -1)
+      {
+        history = init_history_output(outputhistory[0], &history_target);
+        top_upscroll_line
+          = z_windows[0]->ysize + (z_windows[0]->ysize / 2);
+        history_screen_line = 0;
+      }
+      else if (event_type == EVENT_WAS_CODE_PAGE_UP)
+        top_upscroll_line += z_windows[0]->ysize / 2;
+      else
+        top_upscroll_line -= z_windows[0]->ysize / 2;
+
+      if (top_upscroll_line < z_windows[0]->ysize)
+      {
+        // We're at the output bottom again. We'll simply turn of scrolling
+        // and use the default method to refresh the screen and especially
+        // the input line.
+        top_upscroll_line = -1;
+        refresh_screen();
+      }
+      else
+      {
+        refresh_count_mode = true;
+
+        // We're some way above the input line. We'll now have to find the
+        // next paragraph at the top of the screen or -- if no paragraph top
+        // is aligned with the screen top -- the start of the next paragraph
+        // above the screen.
+
+        if (event_type == EVENT_WAS_CODE_PAGE_UP)
+        {
+          // Scrolling up.
+          TRACE_LOG("Page up.\n");
+          while (history_screen_line < top_upscroll_line)
+          {
+            refresh_newline_counter = 0;
+            if (output_rewind_paragraph(history) < 0)
+              break;
+            TRACE_LOG("Start paragraph repetition.\n");
+            output_repeat_paragraphs(history, 1, false, false);
+            wordwrap_flush_output(refresh_wordwrapper);
+            TRACE_LOG("End paragraph repetition.\n");
+            history_screen_line += refresh_newline_counter + 1;
+          }
+
+          if (history_screen_line < top_upscroll_line)
+          {
+            // We've hit the top of the history.
+            upscroll_hit_top = true;
+            top_upscroll_line = history_screen_line;
+          }
+          else if (history_screen_line > top_upscroll_line)
+          {
+            // Above the desired line.
+            refresh_lines_to_skip = history_screen_line - top_upscroll_line;
+          }
+          else
+          {
+            // Exactly at the desired line.
+            refresh_lines_to_skip = 0;
+          }
+        }
+        else
+        {
+          // Scrolling down.
+          TRACE_LOG("Page down.\n");
+          upscroll_hit_top = false;
+
+          while (history_screen_line > top_upscroll_line)
+          {
+            refresh_newline_counter = 0;
+            TRACE_LOG("Start paragraph repetition.\n");
+            output_repeat_paragraphs(history, 1, false, true);
+            wordwrap_flush_output(refresh_wordwrapper);
+            TRACE_LOG("End paragraph repetition.\n");
+            history_screen_line -= (refresh_newline_counter + 1);
+          }
+        }
+        refresh_count_mode = false;
+
+        //wordwrap_set_line_index(refresh_wordwrapper, 0);
+
+        erase_window(0);
+        refresh_lines_to_output = z_windows[0]->ysize;
+
+        z_windows[0]->xcursorpos = 1 + z_windows[0]->leftmargin;
+        z_windows[0]->ycursorpos = z_windows[0]->ypos;
+        refresh_cursor(0);
+
+        TRACE_LOG("Repeating %d lines.\n", refresh_lines_to_output);
+        TRACE_LOG("refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
+        disable_more_prompt = true;
+        while (refresh_lines_to_output > 0)
+        {
+          TRACE_LOG("%d lines left.\n", refresh_lines_to_output);
+          TRACE_LOG("(repeat paragraph)\n");
+          return_code = output_repeat_paragraphs(history, 1, true, true);
+          TRACE_LOG("(flush output)\n");
+          wordwrap_flush_output(refresh_wordwrapper);
+          TRACE_LOG("(refresh dest)\n");
+          z_ucs_output_refresh_destination(newline_string, NULL); 
+          if (return_code < 0)
+            break;
+        }
+        disable_more_prompt = false;
+        TRACE_LOG("refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
+        screen_cell_interface->update_screen();
+      }
     }
     else if (event_type == EVENT_WAS_TIMEOUT)
     {
