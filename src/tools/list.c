@@ -112,5 +112,21 @@ void **delete_list_and_get_ptrs(list *l)
 }
 
 
+void **delete_list_and_get_null_terminated_ptrs(list *l)
+{
+  void **result = l->elements;
+
+  if (l->space_available > l->nof_elements_stored + 1)
+    if ((result = realloc(l->elements,
+            sizeof(void*) * (l->nof_elements_stored + 1)))
+        == NULL)
+      result = l->elements;
+  result[l->nof_elements_stored] = NULL;
+
+  free(l);
+  return result;
+}
+
+
 #endif /* list_c_INCLUDED */
 
