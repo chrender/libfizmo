@@ -651,6 +651,8 @@ int get_paragraph_y_positions(OUTPUTHISTORY *history, int screen_width,
 // Used to remove preloaded input:
 void remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
 {
+  TRACE_LOG("remove_chars_from_history not yet implemented.\n");
+  exit(-1);
 }
 
 
@@ -813,7 +815,7 @@ z_ucs *get_current_line(OUTPUTHISTORY *h)
 }
 
 
-void destroy_history_output_target(history_output *output)
+void destroy_history_output(history_output *output)
 {
   free(output);
 }
@@ -1168,7 +1170,7 @@ int output_repeat_paragraphs(history_output *output, int n,
 
   // If we're already at the front index, quit.
   if (output_ptr == output->history->z_history_buffer_front_index)
-    return;
+    return 0;
 
   output->target->set_font(
       output->font_at_index);
@@ -1261,6 +1263,72 @@ int output_repeat_paragraphs(history_output *output, int n,
   }
 
   return n;
+}
+
+
+void remember_history_output_position(history_output *output)
+{
+  output->saved_current_paragraph_index =
+    output->current_paragraph_index;
+  output->saved_has_wrapped =
+    output->has_wrapped;
+  output->saved_found_end_of_buffer =
+    output->found_end_of_buffer;
+  output->saved_first_iteration_done =
+    output->first_iteration_done;
+  output->saved_metadata_at_index_evaluated =
+    output->metadata_at_index_evaluated;
+  output->saved_font_at_index =
+    output->font_at_index;
+  output->saved_style_at_index =
+    output->style_at_index;
+  output->saved_foreground_at_index =
+    output->foreground_at_index;
+  output->saved_background_at_index =
+    output->background_at_index;
+  output->saved_last_rewinded_paragraphs_block_index =
+    output->last_rewinded_paragraphs_block_index;
+  output->saved_last_used_metadata_state_font =
+    output->last_used_metadata_state_font;
+  output->saved_last_used_metadata_state_style =
+    output->last_used_metadata_state_style;
+  output->saved_last_used_metadata_state_foreground =
+    output->last_used_metadata_state_foreground;
+  output->saved_last_used_metadata_state_background =
+    output->last_used_metadata_state_background;
+}
+
+
+void restore_history_output_position(history_output *output)
+{
+  output->current_paragraph_index =
+    output->saved_current_paragraph_index;
+  output->has_wrapped =
+    output->saved_has_wrapped;
+  output->found_end_of_buffer =
+    output->saved_found_end_of_buffer;
+  output->first_iteration_done =
+    output->saved_first_iteration_done;
+  output->metadata_at_index_evaluated =
+    output->saved_metadata_at_index_evaluated;
+  output->font_at_index =
+    output->saved_font_at_index;
+  output->style_at_index =
+    output->saved_style_at_index;
+  output->foreground_at_index =
+    output->saved_foreground_at_index;
+  output->background_at_index =
+    output->saved_background_at_index;
+  output->last_rewinded_paragraphs_block_index =
+    output->saved_last_rewinded_paragraphs_block_index;
+  output->last_used_metadata_state_font =
+    output->saved_last_used_metadata_state_font;
+  output->last_used_metadata_state_style =
+    output->saved_last_used_metadata_state_style;
+  output->last_used_metadata_state_foreground =
+    output->saved_last_used_metadata_state_foreground;
+  output->last_used_metadata_state_background =
+    output->saved_last_used_metadata_state_background;
 }
 
 

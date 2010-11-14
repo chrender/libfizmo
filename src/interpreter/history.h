@@ -122,6 +122,22 @@ typedef struct
   z_style last_used_metadata_state_style;
   z_colour last_used_metadata_state_foreground;
   z_colour last_used_metadata_state_background;
+
+  // Storage for state-saving:
+  z_ucs *saved_current_paragraph_index;
+  bool saved_has_wrapped;
+  bool saved_found_end_of_buffer;
+  bool saved_first_iteration_done;
+  bool saved_metadata_at_index_evaluated;
+  z_font saved_font_at_index;
+  z_style saved_style_at_index;
+  z_colour saved_foreground_at_index;
+  z_colour saved_background_at_index;
+  long int saved_last_rewinded_paragraphs_block_index;
+  z_font saved_last_used_metadata_state_font;
+  z_style saved_last_used_metadata_state_style;
+  z_colour saved_last_used_metadata_state_foreground;
+  z_colour saved_last_used_metadata_state_background;
 } history_output;
 
 
@@ -145,7 +161,9 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t);
 int output_rewind_paragraph(history_output *output);
 int output_repeat_paragraphs(history_output *output, int n,
     bool include_metadata, bool advance_history_pointer);
-void destroy_history_output_target(history_output *output);
+void destroy_history_output(history_output *output);
+void remember_history_output_position(history_output *output);
+void restore_history_output_position(history_output *output);
 
 
 /*
