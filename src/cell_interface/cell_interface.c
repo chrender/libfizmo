@@ -132,7 +132,7 @@ static bool winch_found = false;
 static int top_upscroll_line = -1; // != -1 indicates upscroll is active.
 static bool upscroll_hit_top = false;
 static history_output *history; // shared by upscroll and screen-refresh
-static int history_screen_line;
+static int history_screen_line, last_history_screen_line;
 
 // This flag is set to true when an read_line is currently underway. It's
 // used by screen refresh functions like "new_cell_screen_size".
@@ -1659,6 +1659,8 @@ static void refresh_screen()
   z_windows[0]->ycursorpos = z_windows[0]->ypos + start_y;
   refresh_cursor(0);
 
+  disable_more_prompt = true;
+
   TRACE_LOG("Repeating %d paragraphs.\n", paragraphs_to_output);
   TRACE_LOG("#1refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
   output_repeat_paragraphs(history, paragraphs_to_output, true, false);
@@ -1675,7 +1677,7 @@ static void refresh_screen()
     refresh_input_line();
   TRACE_LOG("#5refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
 
-  destroy_history_output_target(history);
+  destroy_history_output(history);
 
   // FIXME: Add color and styles.
   if (z_windows[1]->ysize > 0)
@@ -1810,6 +1812,8 @@ static void refresh_screen()
   if (last_active_z_window_id != -1)
     switch_to_window(last_active_z_window_id);
 
+  disable_more_prompt = false;
+
   TRACE_LOG("refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
 }
 
@@ -1903,369 +1907,10 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
   {
     event_type = screen_cell_interface->get_next_event(&input, timeout_millis);
 
-    if (event_type == EVENT_WAS_INPUT)
+    if (event_type == EVENT_WAS_TIMEOUT)
     {
-      if (input == Z_UCS_NEWLINE)
-      {
-        input_in_progress = false;
-      }
-      else if (input == 12)
-      {
-        TRACE_LOG("Got CTRL-L.\n");
-        screen_cell_interface->redraw_screen_from_scratch();
-      }
-      else if (
-          // Check if we have a valid input char.
-          (unicode_char_to_zscii_input_char(input) != 0xff)
-          &&
-          (
-           // We'll also only add new input if we're either not at the end
-           // of a filled input line ...
-           (input_size < maximum_length)
-           ||
-           // ... or if the cursor is left of the input end.
-           (input_index < input_size)
-          )
-          )
-      {
-        TRACE_LOG("New ZSCII input char %d / z_ucs code %d.\n",
-            unicode_char_to_zscii_input_char(input), input);
-
-        if (input_index < input_size)
-        {
-          // In case we're not appending at the end of the input, we'll
-          // provide space for a new char in the input (and lose the rightmost
-          // char in case the input line is full):
-          memmove(
-              input_buffer + input_index + 1,
-              input_buffer + input_index,
-              sizeof(z_ucs) * (input_size - input_index + 1
-                - (input_size < maximum_length ? 0 : 1)));
-        }
-        else
-        {
-          input_buffer[input_index + 1] = 0;
-        }
-
-        input_buffer[input_index] = input;
-        input_index++;
-
-        TRACE_LOG("fresh input_buffer (length %d): \"", input_index);
-        TRACE_LOG_Z_UCS(input_buffer);
-        TRACE_LOG("\".\n");
-
-        if (input_size < maximum_length)
-          input_size++;
-
-        if (z_windows[active_z_window_id]->xcursorpos -1
-            - z_windows[active_z_window_id]->rightmargin
-            == input_display_width)
-          input_scroll_x++;
-        else
-          z_windows[active_z_window_id]->xcursorpos++;
-
-        buf = 0;
-        TRACE_LOG("out:%d, %d, %d\n",
-            input_size, input_scroll_x, input_display_width);
-
-        if (input_size - input_scroll_x >= input_display_width+1)
-        {
-          buf = input_buffer[input_scroll_x + input_display_width];
-          input_buffer[input_scroll_x + input_display_width] = 0;
-        }
-
-        screen_cell_interface->goto_yx(input_y, input_x);
-        screen_cell_interface->z_ucs_output(input_buffer + input_scroll_x);
-        if (buf != 0)
-          input_buffer[input_scroll_x + input_display_width] = buf;
-
-        refresh_cursor(active_z_window_id);
-        screen_cell_interface->update_screen();
-      }
-    }
-    else if (event_type == EVENT_WAS_CODE_BACKSPACE)
-    {
-      // We only have something to do if the cursor is not at the start of
-      // the input.
-      if (input_index > 0)
-      {
-        // We always have to move all chars from the cursor position onward
-        // one position to the left.
-        memmove(
-            input_buffer + input_index - 1,
-            input_buffer + input_index,
-            sizeof(z_ucs)*(input_size - input_index));
-
-        input_size--;
-        input_index--;
-
-        // Check if the cursor is on the leftmost input column.
-        if (z_windows[active_z_window_id]->xpos
-            + z_windows[active_z_window_id]->xcursorpos - 1
-            == input_x)
-        {
-          // In this case we don't have to do anything to correct the
-          // display, modifying the memory is enough.
-          input_scroll_x--;
-        }
-        else
-        {
-          // If we're at any point right of the leftmost column, we'll first
-          // move everthing right of the cursor on position to the left.
-          TRACE_LOG("Moving %d chars from  %d/%d to %d/%d.\n",
-              input_display_width -
-              ((z_windows[active_z_window_id]->xpos
-                + z_windows[active_z_window_id]->xcursorpos - 1) - input_x),
-              z_windows[active_z_window_id]->xpos
-              + z_windows[active_z_window_id]->xcursorpos - 1,
-              input_y,
-              z_windows[active_z_window_id]->xpos
-              + z_windows[active_z_window_id]->xcursorpos - 2,
-              input_y);
-
-          screen_cell_interface->copy_area(
-              input_y,
-              z_windows[active_z_window_id]->xpos
-              + z_windows[active_z_window_id]->xcursorpos - 2,
-              input_y,
-              z_windows[active_z_window_id]->xpos
-              + z_windows[active_z_window_id]->xcursorpos - 1,
-              1,
-              input_display_width -
-              ((z_windows[active_z_window_id]->xpos
-               + z_windows[active_z_window_id]->xcursorpos - 1) - input_x));
-
-          /*
-          // Check if there's now enough input to fill the whole line.
-          if (input_size - input_scroll_x < input_display_width)
-          {
-            // If there's not enough input, we'll have to fill the column
-            // directly right after the last char with a space.
-            char_buf[0] = Z_UCS_SPACE;
-          }
-          else
-          {
-            // In case there's enough input we'll take the char to fill the
-            // rightmost input column to fill with from the input.
-            char_buf[0] = 'X';
-          }
-          screen_cell_interface->goto_yx(input_y,
-              input_x + input_display_width - 1);
-          screen_cell_interface->z_ucs_output(char_buf);
-          screen_cell_interface->goto_yx(input_y,
-              input_x + input_display_width - 1);
-          */
-
-          z_windows[active_z_window_id]->xcursorpos--;
-          refresh_cursor(active_z_window_id);
-
-          screen_cell_interface->update_screen();
-        }
-
-
-        /*
-        if (z_windows[active_z_window_id]->xpos
-            + z_windows[active_z_window_id]->xcursorpos -1
-            > input_x)
-          z_windows[active_z_window_id]->xcursorpos--;
-
-        // The position of the newly created space (from the copy_area above)
-        // on the screen is stored in pos.
-        pos
-          = z_windows[active_z_window_id]->xpos
-          + z_windows[active_z_window_id]->xcursorpos - 1
-          + (input_size - input_index);
-        maxpos
-          = z_windows[active_z_window_id]->xpos
-          + z_windows[active_z_window_id]->xsize - 1
-          - z_windows[active_z_window_id]->rightmargin;
-        if (pos > maxpos)
-          pos = maxpos;
-
-        screen_cell_interface->goto_yx(input_y, pos);
-        char_buf[0] = 'X';
-        screen_cell_interface->z_ucs_output(char_buf);
-        refresh_cursor(active_z_window_id);
-        */
-      }
-    }
-    else if (event_type == EVENT_WAS_CODE_CURSOR_LEFT)
-    {
-      if (input_index > 0)
-      {
-        if (z_windows[active_z_window_id]->xpos
-            + z_windows[active_z_window_id]->xcursorpos - 1
-            > input_x)
-        {
-          z_windows[active_z_window_id]->xcursorpos--;
-          refresh_cursor(active_z_window_id);
-          screen_cell_interface->update_screen();
-        }
-        else
-        {
-          screen_cell_interface->copy_area(
-              input_y,
-              z_windows[active_z_window_id]->xpos
-              + z_windows[active_z_window_id]->xcursorpos,
-              input_y,
-              z_windows[active_z_window_id]->xpos
-              + z_windows[active_z_window_id]->xcursorpos - 1,
-              1,
-              input_display_width - 1);
-
-          screen_cell_interface->goto_yx(input_y, input_x);
-          char_buf[0] = input_buffer[input_scroll_x - 1];
-          input_scroll_x--;
-          screen_cell_interface->z_ucs_output(char_buf);
-          screen_cell_interface->goto_yx(input_y, input_x);
-          //refresh_cursor(active_z_window_id);
-          screen_cell_interface->update_screen();
-        }
-
-        input_index--;
-      }
-    }
-    else if (event_type == EVENT_WAS_CODE_CURSOR_RIGHT)
-    {
-      // Verify if we're at the end of input (plus one more char since
-      // the cursor must also be allowed behind the input for appending):
-      if (input_index < input_size)
-      {
-        // Check if advancing the cursor right would move it behind the
-        // rightmost allowed input column.
-        if (z_windows[active_z_window_id]->xpos
-            + z_windows[active_z_window_id]->xcursorpos
-            < input_x + input_display_width)
-        {
-          // In this case, the cursor is still left of the right border, so
-          // we can just move it left:
-          z_windows[active_z_window_id]->xcursorpos++;
-          refresh_cursor(active_z_window_id);
-        }
-        else
-        {
-          // If the cursor moves behind the current rightmost position, we
-          // have to scroll the input line.
-          screen_cell_interface->copy_area(
-              input_y,
-              input_x,
-              input_y,
-              input_x + 1,
-              1,
-              input_display_width - 1);
-
-          // Verify if the cusor is still over the input line or if it's
-          // now on the "append" column behind.
-          if (input_index == input_size - 1)
-          {
-            // In case we're at the end we have to fill the new, empty
-            // column with a space.
-            char_buf[0] = Z_UCS_SPACE;
-          }
-          else
-          {
-            // If the cursor is still over the input, we'll fill the
-            // rightmost column with appropriate char.
-            char_buf[0] = input_buffer[input_scroll_x + input_display_width];
-          }
-          // After determining how to fill the rightmost column, jump to
-          // the correct position on-screen, display the new char and
-          // re-position the cursor over the rightmost column.
-          screen_cell_interface->goto_yx(input_y,
-              input_x + input_display_width - 1);
-          screen_cell_interface->z_ucs_output(char_buf);
-          screen_cell_interface->goto_yx(input_y,
-              input_x + input_display_width - 1);
-
-          input_scroll_x++;
-        }
-        screen_cell_interface->update_screen();
-
-        // No matter whether we had to scroll or not, as long as we were
-        // not at the end of the input, the cursor was moved right, and thus
-        // the input index has to be altered.
-        input_index++;
-      }
-    }
-    else if (
-        (
-       (event_type == EVENT_WAS_CODE_CURSOR_UP)
-       &&
-       (cmd_history_index < command_history_nof_entries)
-      )
-      ||
-      (
-       (event_type == EVENT_WAS_CODE_CURSOR_DOWN)
-       &&
-       (cmd_history_index != 0)
-      )
-      )
-    {
-      TRACE_LOG("old history index: %d.\n", cmd_history_index);
-
-      cmd_history_index += event_type == EVENT_WAS_CODE_CURSOR_UP ? 1 : -1;
-      if (cmd_history_index - 1 > command_history_newest_entry)
-        cmd_index
-          =  command_history_nof_entries
-          - (cmd_history_index - 1)
-          -  command_history_newest_entry;
-      else
-        cmd_index
-          = command_history_newest_entry - (cmd_history_index - 1);
-
-      cmd_history_ptr
-        = command_history_buffer
-        + command_history_entries[cmd_index];
-
-      if (cmd_history_index > 0)
-      {
-        input_size = strlen((char*)cmd_history_ptr);
-        if (input_size > input_display_width+1)
-        {
-          input_scroll_x = input_size - input_display_width;
-          z_windows[active_z_window_id]->xcursorpos
-            = input_x + input_display_width;
-        }
-        else
-        {
-          input_scroll_x = 0;
-          z_windows[active_z_window_id]->xcursorpos = input_x + input_size;
-        }
-
-        input_index = input_size;
-
-        for (i=0; i<=input_size; i++)
-          input_buffer[i] = zscii_input_char_to_z_ucs(*(cmd_history_ptr++));
-
-        TRACE_LOG("out:%d, %d, %d\n",
-            input_size, input_scroll_x, input_display_width);
-
-        if (input_size - input_scroll_x >= input_display_width+1)
-        {
-          buf = input_buffer[input_scroll_x + input_display_width];
-          input_buffer[input_scroll_x + input_display_width] = 0;
-        }
-        else
-          buf = 0;
-
-        screen_cell_interface->goto_yx(input_y, input_x);
-        screen_cell_interface->z_ucs_output(input_buffer + input_scroll_x);
-        if (buf != 0)
-          input_buffer[input_scroll_x + input_display_width] = buf;
-        screen_cell_interface->clear_to_eol();
-      }
-      else
-      {
-        input_size = 0;
-        input_scroll_x = 0;
-        input_index = 0;
-        z_windows[active_z_window_id]->xcursorpos = input_x;
-        screen_cell_interface->goto_yx(input_y, input_x);
-        screen_cell_interface->clear_to_eol();
-      }
-
-      refresh_cursor(active_z_window_id);
-      screen_cell_interface->update_screen();
+      TRACE_LOG("timeout.\n");
+      // Don't forget to restore current_input_buffer on recursive read.
     }
     else if (
         (
@@ -2281,6 +1926,9 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
         )
         )
     {
+      TRACE_LOG("top_upscroll_line: %d, history_screen_line: %d.\n",
+          top_upscroll_line, history_screen_line);
+
       // TODO: Important: destroy_history_output_target(history);
 
       // While in "upscroll mode", top_upscroll_line designates the current
@@ -2300,12 +1948,17 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
       else
         top_upscroll_line -= z_windows[0]->ysize / 2;
 
+      TRACE_LOG("top_upscroll_line: %d, history_screen_line: %d.\n",
+          top_upscroll_line, history_screen_line);
+
       if (top_upscroll_line < z_windows[0]->ysize)
       {
         // We're at the output bottom again. We'll simply turn of scrolling
         // and use the default method to refresh the screen and especially
         // the input line.
+        TRACE_LOG("Back at bottom.\n");
         top_upscroll_line = -1;
+        destroy_history_output(history);
         refresh_screen();
       }
       else
@@ -2356,8 +2009,13 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           TRACE_LOG("Page down.\n");
           upscroll_hit_top = false;
 
+          remember_history_output_position(history);
           while (history_screen_line > top_upscroll_line)
           {
+            last_history_screen_line = history_screen_line;
+            TRACE_LOG("top_upscroll_line: %d, history_screen_line: %d.\n",
+                top_upscroll_line, history_screen_line);
+
             refresh_newline_counter = 0;
             TRACE_LOG("Start paragraph repetition.\n");
             output_repeat_paragraphs(history, 1, false, true);
@@ -2365,10 +2023,33 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
             TRACE_LOG("End paragraph repetition.\n");
             history_screen_line -= (refresh_newline_counter + 1);
           }
+
+          if (history_screen_line != top_upscroll_line)
+          {
+            // We're now below the desired output line.
+            history_screen_line = last_history_screen_line;
+            restore_history_output_position(history);
+            refresh_lines_to_skip = history_screen_line - top_upscroll_line;
+          }
+          else
+          {
+            // Exactly at the desired line.
+            refresh_lines_to_skip = 0;
+          }
         }
         refresh_count_mode = false;
 
         //wordwrap_set_line_index(refresh_wordwrapper, 0);
+
+        // We're now above our first desired output line. Before actual
+        // output begins, we'll remember the current output history state,
+        // so we can restore it at the end of the output. This helps
+        // accelerating the scrolling process, since after the next
+        // page up/down key press, we only have to adjust the history output
+        // position for one page, instead of having to scroll up the entire
+        // history from the output end.
+
+        remember_history_output_position(history);
 
         erase_window(0);
         refresh_lines_to_output = z_windows[0]->ysize;
@@ -2394,21 +2075,398 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
         }
         disable_more_prompt = false;
         TRACE_LOG("refreshscreen-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
+
+        restore_history_output_position(history);
+
         screen_cell_interface->update_screen();
       }
+
+      TRACE_LOG("Final top-upscroll line: %d.\n", top_upscroll_line);
     }
-    else if (event_type == EVENT_WAS_TIMEOUT)
+    else
     {
-      TRACE_LOG("timeout.\n");
-      // Don't forget to restore current_input_buffer on recuesive read.
+      if (top_upscroll_line != -1)
+      {
+        // End up-scroll.
+        TRACE_LOG("Ending scrollback.\n");
+        top_upscroll_line = -1;
+        destroy_history_output(history);
+        refresh_screen();
+      }
+
+      if (event_type == EVENT_WAS_INPUT)
+      {
+        if (input == Z_UCS_NEWLINE)
+        {
+          input_in_progress = false;
+        }
+        else if (input == 12)
+        {
+          TRACE_LOG("Got CTRL-L.\n");
+          screen_cell_interface->redraw_screen_from_scratch();
+        }
+        else if (
+            // Check if we have a valid input char.
+            (unicode_char_to_zscii_input_char(input) != 0xff)
+            &&
+            (
+             // We'll also only add new input if we're either not at the end
+             // of a filled input line ...
+             (input_size < maximum_length)
+             ||
+             // ... or if the cursor is left of the input end.
+             (input_index < input_size)
+            )
+            )
+        {
+          TRACE_LOG("New ZSCII input char %d / z_ucs code %d.\n",
+              unicode_char_to_zscii_input_char(input), input);
+
+          if (input_index < input_size)
+          {
+            // In case we're not appending at the end of the input, we'll
+            // provide space for a new char in the input (and lose the rightmost
+            // char in case the input line is full):
+            memmove(
+                input_buffer + input_index + 1,
+                input_buffer + input_index,
+                sizeof(z_ucs) * (input_size - input_index + 1
+                  - (input_size < maximum_length ? 0 : 1)));
+          }
+          else
+          {
+            input_buffer[input_index + 1] = 0;
+          }
+
+          input_buffer[input_index] = input;
+          input_index++;
+
+          TRACE_LOG("fresh input_buffer (length %d): \"", input_index);
+          TRACE_LOG_Z_UCS(input_buffer);
+          TRACE_LOG("\".\n");
+
+          if (input_size < maximum_length)
+            input_size++;
+
+          if (z_windows[active_z_window_id]->xcursorpos -1
+              - z_windows[active_z_window_id]->rightmargin
+              == input_display_width)
+            input_scroll_x++;
+          else
+            z_windows[active_z_window_id]->xcursorpos++;
+
+          buf = 0;
+          TRACE_LOG("out:%d, %d, %d\n",
+              input_size, input_scroll_x, input_display_width);
+
+          if (input_size - input_scroll_x >= input_display_width+1)
+          {
+            buf = input_buffer[input_scroll_x + input_display_width];
+            input_buffer[input_scroll_x + input_display_width] = 0;
+          }
+
+          screen_cell_interface->goto_yx(input_y, input_x);
+          screen_cell_interface->z_ucs_output(input_buffer + input_scroll_x);
+          if (buf != 0)
+            input_buffer[input_scroll_x + input_display_width] = buf;
+
+          refresh_cursor(active_z_window_id);
+          screen_cell_interface->update_screen();
+        }
+      }
+      else if (event_type == EVENT_WAS_CODE_BACKSPACE)
+      {
+        // We only have something to do if the cursor is not at the start of
+        // the input.
+        if (input_index > 0)
+        {
+          // We always have to move all chars from the cursor position onward
+          // one position to the left.
+          memmove(
+              input_buffer + input_index - 1,
+              input_buffer + input_index,
+              sizeof(z_ucs)*(input_size - input_index));
+
+          input_size--;
+          input_index--;
+
+          // Check if the cursor is on the leftmost input column.
+          if (z_windows[active_z_window_id]->xpos
+              + z_windows[active_z_window_id]->xcursorpos - 1
+              == input_x)
+          {
+            // In this case we don't have to do anything to correct the
+            // display, modifying the memory is enough.
+            input_scroll_x--;
+          }
+          else
+          {
+            // If we're at any point right of the leftmost column, we'll first
+            // move everthing right of the cursor on position to the left.
+            TRACE_LOG("Moving %d chars from  %d/%d to %d/%d.\n",
+                input_display_width -
+                ((z_windows[active_z_window_id]->xpos
+                  + z_windows[active_z_window_id]->xcursorpos - 1) - input_x),
+                z_windows[active_z_window_id]->xpos
+                + z_windows[active_z_window_id]->xcursorpos - 1,
+                input_y,
+                z_windows[active_z_window_id]->xpos
+                + z_windows[active_z_window_id]->xcursorpos - 2,
+                input_y);
+
+            screen_cell_interface->copy_area(
+                input_y,
+                z_windows[active_z_window_id]->xpos
+                + z_windows[active_z_window_id]->xcursorpos - 2,
+                input_y,
+                z_windows[active_z_window_id]->xpos
+                + z_windows[active_z_window_id]->xcursorpos - 1,
+                1,
+                input_display_width -
+                ((z_windows[active_z_window_id]->xpos
+                  + z_windows[active_z_window_id]->xcursorpos - 1) - input_x));
+
+            /*
+            // Check if there's now enough input to fill the whole line.
+            if (input_size - input_scroll_x < input_display_width)
+            {
+            // If there's not enough input, we'll have to fill the column
+            // directly right after the last char with a space.
+            char_buf[0] = Z_UCS_SPACE;
+            }
+            else
+            {
+            // In case there's enough input we'll take the char to fill the
+            // rightmost input column to fill with from the input.
+            char_buf[0] = 'X';
+            }
+            screen_cell_interface->goto_yx(input_y,
+            input_x + input_display_width - 1);
+            screen_cell_interface->z_ucs_output(char_buf);
+            screen_cell_interface->goto_yx(input_y,
+            input_x + input_display_width - 1);
+            */
+
+            z_windows[active_z_window_id]->xcursorpos--;
+            refresh_cursor(active_z_window_id);
+
+            screen_cell_interface->update_screen();
+          }
+
+
+          /*
+             if (z_windows[active_z_window_id]->xpos
+             + z_windows[active_z_window_id]->xcursorpos -1
+             > input_x)
+             z_windows[active_z_window_id]->xcursorpos--;
+
+          // The position of the newly created space (from the copy_area above)
+          // on the screen is stored in pos.
+          pos
+          = z_windows[active_z_window_id]->xpos
+          + z_windows[active_z_window_id]->xcursorpos - 1
+          + (input_size - input_index);
+          maxpos
+          = z_windows[active_z_window_id]->xpos
+          + z_windows[active_z_window_id]->xsize - 1
+          - z_windows[active_z_window_id]->rightmargin;
+          if (pos > maxpos)
+          pos = maxpos;
+
+          screen_cell_interface->goto_yx(input_y, pos);
+          char_buf[0] = 'X';
+          screen_cell_interface->z_ucs_output(char_buf);
+          refresh_cursor(active_z_window_id);
+          */
+        }
+      }
+      else if (event_type == EVENT_WAS_CODE_CURSOR_LEFT)
+      {
+        if (input_index > 0)
+        {
+          if (z_windows[active_z_window_id]->xpos
+              + z_windows[active_z_window_id]->xcursorpos - 1
+              > input_x)
+          {
+            z_windows[active_z_window_id]->xcursorpos--;
+            refresh_cursor(active_z_window_id);
+            screen_cell_interface->update_screen();
+          }
+          else
+          {
+            screen_cell_interface->copy_area(
+                input_y,
+                z_windows[active_z_window_id]->xpos
+                + z_windows[active_z_window_id]->xcursorpos,
+                input_y,
+                z_windows[active_z_window_id]->xpos
+                + z_windows[active_z_window_id]->xcursorpos - 1,
+                1,
+                input_display_width - 1);
+
+            screen_cell_interface->goto_yx(input_y, input_x);
+            char_buf[0] = input_buffer[input_scroll_x - 1];
+            input_scroll_x--;
+            screen_cell_interface->z_ucs_output(char_buf);
+            screen_cell_interface->goto_yx(input_y, input_x);
+            //refresh_cursor(active_z_window_id);
+            screen_cell_interface->update_screen();
+          }
+
+          input_index--;
+        }
+      }
+      else if (event_type == EVENT_WAS_CODE_CURSOR_RIGHT)
+      {
+        // Verify if we're at the end of input (plus one more char since
+        // the cursor must also be allowed behind the input for appending):
+        if (input_index < input_size)
+        {
+          // Check if advancing the cursor right would move it behind the
+          // rightmost allowed input column.
+          if (z_windows[active_z_window_id]->xpos
+              + z_windows[active_z_window_id]->xcursorpos
+              < input_x + input_display_width)
+          {
+            // In this case, the cursor is still left of the right border, so
+            // we can just move it left:
+            z_windows[active_z_window_id]->xcursorpos++;
+            refresh_cursor(active_z_window_id);
+          }
+          else
+          {
+            // If the cursor moves behind the current rightmost position, we
+            // have to scroll the input line.
+            screen_cell_interface->copy_area(
+                input_y,
+                input_x,
+                input_y,
+                input_x + 1,
+                1,
+                input_display_width - 1);
+
+            // Verify if the cusor is still over the input line or if it's
+            // now on the "append" column behind.
+            if (input_index == input_size - 1)
+            {
+              // In case we're at the end we have to fill the new, empty
+              // column with a space.
+              char_buf[0] = Z_UCS_SPACE;
+            }
+            else
+            {
+              // If the cursor is still over the input, we'll fill the
+              // rightmost column with appropriate char.
+              char_buf[0] = input_buffer[input_scroll_x + input_display_width];
+            }
+            // After determining how to fill the rightmost column, jump to
+            // the correct position on-screen, display the new char and
+            // re-position the cursor over the rightmost column.
+            screen_cell_interface->goto_yx(input_y,
+                input_x + input_display_width - 1);
+            screen_cell_interface->z_ucs_output(char_buf);
+            screen_cell_interface->goto_yx(input_y,
+                input_x + input_display_width - 1);
+
+            input_scroll_x++;
+          }
+          screen_cell_interface->update_screen();
+
+          // No matter whether we had to scroll or not, as long as we were
+          // not at the end of the input, the cursor was moved right, and thus
+          // the input index has to be altered.
+          input_index++;
+        }
+      }
+      else if (
+          (
+           (event_type == EVENT_WAS_CODE_CURSOR_UP)
+           &&
+           (cmd_history_index < command_history_nof_entries)
+          )
+          ||
+          (
+           (event_type == EVENT_WAS_CODE_CURSOR_DOWN)
+           &&
+           (cmd_history_index != 0)
+          )
+          )
+      {
+        TRACE_LOG("old history index: %d.\n", cmd_history_index);
+
+        cmd_history_index += event_type == EVENT_WAS_CODE_CURSOR_UP ? 1 : -1;
+        if (cmd_history_index - 1 > command_history_newest_entry)
+          cmd_index
+            =  command_history_nof_entries
+            - (cmd_history_index - 1)
+            -  command_history_newest_entry;
+        else
+          cmd_index
+            = command_history_newest_entry - (cmd_history_index - 1);
+
+        cmd_history_ptr
+          = command_history_buffer
+          + command_history_entries[cmd_index];
+
+        if (cmd_history_index > 0)
+        {
+          input_size = strlen((char*)cmd_history_ptr);
+          if (input_size > input_display_width+1)
+          {
+            input_scroll_x = input_size - input_display_width;
+            z_windows[active_z_window_id]->xcursorpos
+              = input_x + input_display_width;
+          }
+          else
+          {
+            input_scroll_x = 0;
+            z_windows[active_z_window_id]->xcursorpos = input_x + input_size;
+          }
+
+          input_index = input_size;
+
+          for (i=0; i<=input_size; i++)
+            input_buffer[i] = zscii_input_char_to_z_ucs(*(cmd_history_ptr++));
+
+          TRACE_LOG("out:%d, %d, %d\n",
+              input_size, input_scroll_x, input_display_width);
+
+          if (input_size - input_scroll_x >= input_display_width+1)
+          {
+            buf = input_buffer[input_scroll_x + input_display_width];
+            input_buffer[input_scroll_x + input_display_width] = 0;
+          }
+          else
+            buf = 0;
+
+          screen_cell_interface->goto_yx(input_y, input_x);
+          screen_cell_interface->z_ucs_output(input_buffer + input_scroll_x);
+          if (buf != 0)
+            input_buffer[input_scroll_x + input_display_width] = buf;
+          screen_cell_interface->clear_to_eol();
+        }
+        else
+        {
+          input_size = 0;
+          input_scroll_x = 0;
+          input_index = 0;
+          z_windows[active_z_window_id]->xcursorpos = input_x;
+          screen_cell_interface->goto_yx(input_y, input_x);
+          screen_cell_interface->clear_to_eol();
+        }
+
+        refresh_cursor(active_z_window_id);
+        screen_cell_interface->update_screen();
+      }
+      else if (event_type == EVENT_WAS_WINCH)
+      {
+        TRACE_LOG("timeout.\n");
+        new_cell_screen_size(
+            screen_cell_interface->get_screen_height(),
+            screen_cell_interface->get_screen_width());
+      }
     }
-    else if (event_type == EVENT_WAS_WINCH)
-    {
-      TRACE_LOG("timeout.\n");
-      new_cell_screen_size(
-          screen_cell_interface->get_screen_height(),
-          screen_cell_interface->get_screen_width());
-    }
+
     TRACE_LOG("readline-ycursorpos: %d.\n", z_windows[0]->ycursorpos);
 
     TRACE_LOG("current input_buffer: \"");
