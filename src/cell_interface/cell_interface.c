@@ -2134,12 +2134,26 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           TRACE_LOG("New ZSCII input char %d / z_ucs code %d.\n",
               unicode_char_to_zscii_input_char(input), input);
 
+          TRACE_LOG("Input_buffer at %p (length %d): \"",
+              input_buffer, input_index);
+          TRACE_LOG_Z_UCS(input_buffer);
+          TRACE_LOG("\".\n");
+
+          TRACE_LOG("input_index: %d, input_size: %d, maximum_length: %d.\n",
+              input_index, input_size, maximum_length);
+
           if (input_index < input_size)
           {
             // In case we're not appending at the end of the input, we'll
             // provide space for a new char in the input (and lose the rightmost
             // char in case the input line is full):
             memmove(
+                input_buffer + input_index + 1,
+                input_buffer + input_index,
+                sizeof(z_ucs) * (input_size - input_index + 1
+                  - (input_size < maximum_length ? 0 : 1)));
+
+            TRACE_LOG("%p, %p, %lu.\n",
                 input_buffer + input_index + 1,
                 input_buffer + input_index,
                 sizeof(z_ucs) * (input_size - input_index + 1
@@ -2197,7 +2211,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           memmove(
               input_buffer + input_index - 1,
               input_buffer + input_index,
-              sizeof(z_ucs)*(input_size - input_index));
+              sizeof(z_ucs)*(input_size - input_index + 1));
 
           input_size--;
           input_index--;
