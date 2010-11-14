@@ -1993,6 +1993,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           if (history_screen_line < top_upscroll_line)
           {
             // We've hit the top of the history.
+            TRACE_LOG("Hit top of history.\n");
             upscroll_hit_top = true;
             top_upscroll_line = history_screen_line;
           }
@@ -2077,7 +2078,10 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           TRACE_LOG("(flush output)\n");
           wordwrap_flush_output(refresh_wordwrapper);
           TRACE_LOG("(refresh dest)\n");
-          z_ucs_output_refresh_destination(newline_string, NULL); 
+          if (refresh_lines_to_output > 1)
+            z_ucs_output_refresh_destination(newline_string, NULL); 
+          else
+            refresh_lines_to_output = 0;
           if (return_code < 0)
             break;
         }
