@@ -597,6 +597,9 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
     {
       // Skip lines as long as we're supposed to.
       while ( (*z_ucs_output != 0) && (refresh_lines_to_skip > 0) )
+      {
+        TRACE_LOG("refresh lines to skip: %d.\n", refresh_lines_to_skip);
+
         if ((z_ucs_output = z_ucs_chr(z_ucs_output, Z_UCS_NEWLINE)) != NULL)
         {
           TRACE_LOG("Found newline at %p.\n", z_ucs_output);
@@ -610,6 +613,7 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
         }
         else
           break;
+      }
     }
 
     TRACE_LOG("Total output: \"");
@@ -1951,7 +1955,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
       TRACE_LOG("top_upscroll_line: %d, history_screen_line: %d.\n",
           top_upscroll_line, history_screen_line);
 
-      if (top_upscroll_line < z_windows[0]->ysize)
+      if (top_upscroll_line <= z_windows[0]->ysize)
       {
         // We're at the output bottom again. We'll simply turn of scrolling
         // and use the default method to refresh the screen and especially
@@ -2009,9 +2013,9 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           TRACE_LOG("Page down.\n");
           upscroll_hit_top = false;
 
-          remember_history_output_position(history);
           while (history_screen_line > top_upscroll_line)
           {
+            remember_history_output_position(history);
             last_history_screen_line = history_screen_line;
             TRACE_LOG("top_upscroll_line: %d, history_screen_line: %d.\n",
                 top_upscroll_line, history_screen_line);
@@ -2030,9 +2034,13 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
             history_screen_line = last_history_screen_line;
             restore_history_output_position(history);
             refresh_lines_to_skip = history_screen_line - top_upscroll_line;
+
+            TRACE_LOG("Too low, going back. refresh_lines_to_skip: %d.\n",
+                refresh_lines_to_skip);
           }
           else
           {
+            TRACE_LOG("Met top line exactly.\n");
             // Exactly at the desired line.
             refresh_lines_to_skip = 0;
           }
