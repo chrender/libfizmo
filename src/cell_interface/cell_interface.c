@@ -643,7 +643,7 @@ static void z_ucs_output_refresh_destination(z_ucs *z_ucs_output,
       // Find the last line we're supposed to output.
       while (refresh_lines_to_output > 0)
       {
-        TRACE_LOG("refresh_lines_to_output: %d.", refresh_lines_to_output);
+        TRACE_LOG("refresh_lines_to_output: %d.\n", refresh_lines_to_output);
         if ((output_end = z_ucs_chr(output_end, Z_UCS_NEWLINE)) != NULL)
         {
           TRACE_LOG("output_end:%p.\n", output_end);

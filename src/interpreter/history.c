@@ -58,7 +58,7 @@
  * (... "output_rewind_paragraph", "output_repeat_paragraphs")
  *
  * Please note: The buffer size must have at least the size of the largest
- * metadata entry, which is 4 bytes.
+ * metadata entry, which is 4 z_ucs-chars.
  */
 
 
@@ -1097,7 +1097,7 @@ int output_rewind_paragraph(history_output *output)
 
   while (*index != '\n')
   {
-    TRACE_LOG("Looking at %p.\n", index);
+    //TRACE_LOG("Looking at %p.\n", index);
 
     last_index = index;
 
@@ -1204,15 +1204,20 @@ int output_repeat_paragraphs(history_output *output, int n,
   buf_index = 0;
   while (n > 0)
   {
+    TRACE_LOG("Looking at %p.\n", output_ptr);
+
     if (output_ptr == output->history->z_history_buffer_front_index)
+    {
       n = -1;
+      TRACE_LOG("Buffer front encountered.\n");
+    }
     else if (*output_ptr == '\n')
       n--;
 
     if (
         (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
         ||
-        (n == 0)
+        (n < 1)
         ||
         (*output_ptr == HISTORY_METADATA_ESCAPE)
        )
@@ -1222,7 +1227,10 @@ int output_repeat_paragraphs(history_output *output, int n,
       output->target->z_ucs_output(output_buf);
 
       if (n < 1)
+      {
+        TRACE_LOG("n < 1.\n");
         break;
+      }
 
       buf_index = 0;
 
@@ -1275,6 +1283,8 @@ int output_repeat_paragraphs(history_output *output, int n,
     if ((++output_ptr) > output->history->z_history_buffer_end)
       output_ptr = output->history->z_history_buffer_start;
   }
+
+  TRACE_LOG("n: %d.\n", n);
 
   if (advance_history_pointer == true)
   {
