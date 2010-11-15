@@ -594,24 +594,29 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
   if (metadata_type == HISTORY_METADATA_TYPE_FONT)
   {
     h->history_buffer_front_index_font = parameter;
+    TRACE_LOG("storing font.\n");
   }
   else if (metadata_type == HISTORY_METADATA_TYPE_STYLE)
   {
     h->history_buffer_front_index_style = parameter;
+    TRACE_LOG("storing style.\n");
   }
   else if (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
   {
     h->history_buffer_front_index_foreground = parameter;
+    TRACE_LOG("storing colour.\n");
   }
 
   // All parameter values are offset by +13. This is necessary to avoid
   // having LF characters in the buffer, which makes searching for paragraph
   // starts much simpler.
   output_buffer[2] = (z_ucs)(parameter + HISTORY_METADATA_DATA_OFFSET);
+  TRACE_LOG("param1: %d.\n", parameter);
 
   if (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
   {
     parameter = va_arg(ap, int);
+    TRACE_LOG("param2: %d.\n", parameter);
     if ( (parameter < -2) || (parameter > 15 ) )
     {
       TRACE_LOG("Parameter value %d outside valid range.\n", parameter);
@@ -875,11 +880,18 @@ static void evaluate_metadata_for_paragraph(history_output *output)
   z_ucs *i2 = NULL, *i3 = NULL, *i4 = NULL;
   int metadata_type, parameter;
 
+  TRACE_LOG("Evaluating metadata for current paragraph.\n");
+
   if (output->metadata_at_index_evaluated == true)
+  {
+    TRACE_LOG("Already evaluated, returning.\n");
     return;
+  }
 
   metadata_block_index
     = buffer_index - (buffer_index % (Z_HISTORY_METADATA_STATE_BLOCK_SIZE));
+
+  TRACE_LOG("metadata_block_index: %ld.\n", metadata_block_index);
 
   if (
       (output->last_rewinded_paragraphs_block_index == metadata_block_index)
@@ -896,6 +908,7 @@ static void evaluate_metadata_for_paragraph(history_output *output)
     TRACE_LOG("Re-using metadata state block.\n");
     output->font_at_index = output->last_used_metadata_state_font;
     output->style_at_index = output->last_used_metadata_state_style;
+    TRACE_LOG("sai: #1\n");
     output->foreground_at_index = output->last_used_metadata_state_foreground;
     output->background_at_index = output->last_used_metadata_state_background;
   }
@@ -905,6 +918,7 @@ static void evaluate_metadata_for_paragraph(history_output *output)
 
     output->font_at_index = -1;
     output->style_at_index = -1;
+    TRACE_LOG("sai: #2\n");
     output->foreground_at_index = Z_COLOUR_ILLEGAL_CODE;
     output->background_at_index = Z_COLOUR_ILLEGAL_CODE;
 
@@ -920,14 +934,12 @@ static void evaluate_metadata_for_paragraph(history_output *output)
         (output->background_at_index == Z_COLOUR_ILLEGAL_CODE)
         )
     {
-      /*
       TRACE_LOG("search-ptr: %p (%d, %d, %d, %d).\n",
           index,
           output->font_at_index,
           output->style_at_index,
           output->foreground_at_index,
           output->background_at_index);
-      */
 
       i4 = i3;
       i3 = i2;
@@ -943,7 +955,10 @@ static void evaluate_metadata_for_paragraph(history_output *output)
           output->font_at_index = h->history_buffer_back_index_font;
 
         if (output->style_at_index == -1)
+        {
           output->style_at_index = h->history_buffer_back_index_style;
+          TRACE_LOG("sai: #3\n");
+        }
 
         if (output->foreground_at_index == Z_COLOUR_ILLEGAL_CODE)
           output->foreground_at_index=h->history_buffer_front_index_foreground;
@@ -971,7 +986,10 @@ static void evaluate_metadata_for_paragraph(history_output *output)
             &&
             (output->style_at_index == -1)
             )
-          output->style_at_index = parameter;
+          {
+            output->style_at_index = parameter;
+            TRACE_LOG("sai: #5\n");
+          }
         else if (
             (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
             &&
@@ -1210,6 +1228,8 @@ int output_repeat_paragraphs(history_output *output, int n,
 
       if (*output_ptr == HISTORY_METADATA_ESCAPE)
       {
+        TRACE_LOG("Metadata found at %p in output.\n", output_ptr);
+
         if (++output_ptr > output->history->z_history_buffer_end)
           output_ptr = output->history->z_history_buffer_start;
         metadata_type = *output_ptr;
@@ -1219,11 +1239,13 @@ int output_repeat_paragraphs(history_output *output, int n,
 
         if (metadata_type == HISTORY_METADATA_TYPE_FONT)
         {
+          output->font_at_index = parameter;
           if (include_metadata == true)
             output->target->set_font(parameter);
         }
         else if (metadata_type == HISTORY_METADATA_TYPE_STYLE)
         {
+          output->style_at_index = parameter;
           if (include_metadata == true)
             output->target->set_text_style(parameter);
         }
@@ -1231,11 +1253,11 @@ int output_repeat_paragraphs(history_output *output, int n,
         {
           if (++output_ptr > output->history->z_history_buffer_end)
             output_ptr = output->history->z_history_buffer_start;
+          parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
+          output->foreground_at_index = parameter;
+          output->background_at_index = parameter2;
           if (include_metadata == true)
-          {
-            parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
             output->target->set_colour(parameter, parameter2, -1);
-          }
         }
         else
         {
@@ -1260,7 +1282,19 @@ int output_repeat_paragraphs(history_output *output, int n,
     if (output->current_paragraph_index
         != output->history->z_history_buffer_front_index)
       output->current_paragraph_index += 1;
+
+    // There might be more metadata blocks after this newline. These
+    // also have to be evaluated if the metadata should be correct
+    // after advancing the pointer.
+
+    if (*output_ptr == HISTORY_METADATA_ESCAPE)
+    {
+      TRACE_LOG("Found metadata-escape.\n");
+    }
   }
+
+  TRACE_LOG("Repeted output, last included output char: %p.\n",
+      output_ptr);
 
   return n;
 }
@@ -1315,6 +1349,7 @@ void restore_history_output_position(history_output *output)
     output->saved_font_at_index;
   output->style_at_index =
     output->saved_style_at_index;
+  TRACE_LOG("sai: #4\n");
   output->foreground_at_index =
     output->saved_foreground_at_index;
   output->background_at_index =
