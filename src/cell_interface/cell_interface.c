@@ -184,6 +184,7 @@ static void wordwrap_output_style(void *window_number, uint32_t style_data)
   int window_id = *((int*)window_number);
 
   TRACE_LOG("wordwrap-style:%d.\n", style_data);
+  TRACE_LOG("window: %d.\n", window_id);
 
   z_windows[window_id]->output_text_style = (z_style)style_data;
 }
@@ -408,6 +409,11 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
 
   refresh_cursor(window_number);
 
+  TRACE_LOG("output-window-target, win %d, %dx%d.\n",
+      window_number,
+      z_windows[window_number]->xsize,
+      z_windows[window_number]->ysize);
+
   while (*z_ucs_output != 0)
   {
     TRACE_LOG("Output queue: \"");
@@ -451,8 +457,12 @@ void z_ucs_output_window_target(z_ucs *z_ucs_output,
     {
       TRACE_LOG("At end of line.\n");
       // At the end of the line
-      if (z_windows[window_number]->ycursorpos
-          == z_windows[window_number]->ysize)
+      if (
+          (z_windows[window_number]->ycursorpos
+           == z_windows[window_number]->ysize)
+          //&&
+          //(z_windows[window_number]->ysize > 0)
+         )
         screen_cell_interface->copy_area(
             z_windows[window_number]->ypos,
             z_windows[window_number]->xpos,
@@ -1545,6 +1555,7 @@ static void refresh_input_line()
       *current_input_size, *current_input_scroll_x,
       *current_input_display_width);
 
+  // Set output style to current window 0 style.
   update_output_colours(0);
   update_output_text_style(0);
 
@@ -1697,6 +1708,8 @@ static void refresh_screen()
     current_output_background_colour
       = upper_window_buffer->content[0].background_colour;
 
+    // z_windows[window_number]->output_text_style
+
     //screen_cell_interface->set_font(upper_font);
     screen_cell_interface->set_text_style(current_output_text_style);
     if (using_colors == true)
@@ -1811,6 +1824,10 @@ static void refresh_screen()
     }
   }
 
+  update_output_colours(0);
+  update_output_text_style(0);
+
+  refresh_cursor(0);
   screen_cell_interface->update_screen();
 
   if (last_active_z_window_id != -1)
@@ -1910,6 +1927,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
   while (input_in_progress == true)
   {
     event_type = screen_cell_interface->get_next_event(&input, timeout_millis);
+    TRACE_LOG("Evaluating event %d.\n", event_type);
 
     if (event_type == EVENT_WAS_TIMEOUT)
     {
@@ -1928,6 +1946,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           ((event_type == EVENT_WAS_CODE_PAGE_DOWN)&&(top_upscroll_line == -1))
          )
       {
+        TRACE_LOG("Already at top or bottom.\n");
         // Already at top or already at bottom.
       }
       else
@@ -1964,6 +1983,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           // the input line.
           TRACE_LOG("Back at bottom.\n");
           top_upscroll_line = -1;
+          upscroll_hit_top = false;
           destroy_history_output(history);
           refresh_screen();
         }
@@ -2110,6 +2130,7 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
         // End up-scroll.
         TRACE_LOG("Ending scrollback.\n");
         top_upscroll_line = -1;
+        upscroll_hit_top = false;
         destroy_history_output(history);
         refresh_screen();
       }
@@ -2802,7 +2823,32 @@ static void set_cursor(int16_t line, int16_t column, int16_t window_number)
   if (bool_equal(z_windows[window_number]->buffering_active, true))
     wordwrap_flush_output(z_windows[window_number]->wordwrapper);
 
-  TRACE_LOG("%d %d %d %d\n", line, column, window_number, z_windows[window_number]->ysize);
+  if (column < 0)
+    return;
+  else if (line < 0)
+  {
+    if (ver < 6)
+      return;
+    else
+    {
+      if (line == -1)
+      {
+        // turn cursor off
+        // FIXME: Implement
+      }
+      else if (line == -2)
+      {
+        // turn cursor on
+        // FIXME: Implement
+      }
+      else
+        return;
+    }
+  }
+
+  TRACE_LOG("set_cursor: %d %d %d %d\n",
+      line, column, window_number, z_windows[window_number]->ysize);
+
   if (
       (window_number >= 0)
       &&
