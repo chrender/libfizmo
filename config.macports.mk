@@ -37,13 +37,13 @@ ENABLE_OPTIMIZATION = 1
 # Debug-Flags:
 
 # Uncomment to fill your harddisk _very_ fast:
-ENABLE_TRACING = 1
+#ENABLE_TRACING = 1
 
 # Used for the strictz-test:
 #ENABLE_STRICT_Z = 1
 
 # Add GDB symbols, only useful for debuggong:
-ENABLE_GDB_SYMBOLS = 1
+#ENABLE_GDB_SYMBOLS = 1
 
 # Throws sigfault on error for emergency backtrace (usually never needed):
 #THROW_SIGFAULT_ON_ERROR = 1
