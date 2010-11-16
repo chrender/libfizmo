@@ -147,9 +147,21 @@ void opcode_set_window(void)
 
 void opcode_erase_window(void)
 {
+  int window_id = (int16_t)op[0];
   TRACE_LOG("Opcode: ERASE_WINDOW\n");
   TRACE_LOG("Window to erase: %d.\n", (int16_t)op[0]);
-  active_interface->erase_window((int16_t)op[0]);
+  //
+  //FIXME: Implement -2
+
+  if (window_id == -1)
+  {
+    active_interface->split_window(0);
+    active_window_number = 0;
+    active_interface->set_window(0);
+    active_interface->erase_window(0);
+  }
+  else
+    active_interface->erase_window((int16_t)op[0]);
 }
 
 
