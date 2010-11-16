@@ -1241,13 +1241,6 @@ static void split_window(int16_t nof_lines)
 
 static void erase_window(int16_t window_number)
 {
-  //FIXME: Implement -2
-  if (window_number == -1)
-  {
-    split_window(0);
-    window_number = 0;
-  }
-
   if (
       (window_number >= 0)
       &&
@@ -1267,6 +1260,8 @@ static void erase_window(int16_t window_number)
         z_windows[window_number]->xsize,
         z_windows[window_number]->ysize);
 
+    z_windows[window_number]->xcursorpos
+      = 1 + z_windows[window_number]->leftmargin;
     z_windows[window_number]->ycursorpos
       = (ver >= 5 ? 1 : z_windows[window_number]->ysize);
 
