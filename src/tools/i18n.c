@@ -174,6 +174,7 @@ static locale_module *parse_locale_file(z_ucs *module_name,
   nof_zucs_chars = 0;
   while ((parse_utf8_char_from_file(in)) != UEOF)
     nof_zucs_chars++;
+  nof_zucs_chars++; // Add space for terminating zero (yes, really requried).
 
   if (fseek(in, 0, SEEK_SET) == -1)
   {
@@ -196,7 +197,8 @@ static locale_module *parse_locale_file(z_ucs *module_name,
     return NULL;
   }
 
-  TRACE_LOG("Locale data at %p.\n", locale_data);
+  TRACE_LOG("Locale data at %p, ends at %p.\n",
+      locale_data, locale_data+nof_zucs_chars);
 
   // open-resource:
   if ((result = malloc(sizeof(locale_module))) == NULL)
@@ -315,7 +317,8 @@ static locale_module *parse_locale_file(z_ucs *module_name,
     in_char = fgetc(in);
   }
 
-  *locale_data++ = 0;
+  *locale_data = 0;
+  TRACE_LOG("Wirte last byte at %p.\n", locale_data);
 
   /* --- */
 
