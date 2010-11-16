@@ -1095,7 +1095,7 @@ static void link_interface_to_story(struct z_story *story)
   len = z_ucs_len(ncursesw_if_more_prompt);
 
   ncursesw_if_more_prompt
-    = (z_ucs*)fizmo_realloc(ncursesw_if_more_prompt, len + 3);
+    = (z_ucs*)fizmo_realloc(ncursesw_if_more_prompt, sizeof(z_ucs) * (len + 3));
 
   memmove(
       ncursesw_if_more_prompt + 1,
