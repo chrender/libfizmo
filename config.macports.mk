@@ -8,9 +8,9 @@ CFLAGS = -Wall -Wextra
 ifneq ($(DESTDIR),)
 INSTALL_PREFIX = $(DESTDIR)
 else
-INSTALL_PREFIX = /usr/local
+#INSTALL_PREFIX = /usr/local
+INSTALL_PREFIX = $(HOME)/opt/fizmo
 endif
-INSTALL_PREFIX = /Users/chrender/opt/fizmo
 
 DEFAULT_PREFIX = /opt/local
 DEFAULT_LIB_PREFIX = $(DEFAULT_PREFIX)/lib
