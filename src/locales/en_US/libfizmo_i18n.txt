@@ -79,7 +79,3 @@ Opcode JE with only 1 operand is illegal.
 Function call time() returned -1.
 Unknown configuration option \{0s}.
 Invalid value "\{0s}" for parameters "\{1s}".
-More
-Score
-Turns
-libcellinterface version \{0s}.
