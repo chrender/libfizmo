@@ -79,12 +79,23 @@ WORDWRAP *wordwrap_new_wrapper(size_t line_length,
     int left_side_padding, bool flush_after_newline, bool enable_hyphenation)
 {
   WORDWRAP *result = fizmo_malloc(sizeof(WORDWRAP));
+  int i;
 
   result->line_length = line_length;
   result->wrapped_text_output_destination = wrapped_text_output_destination;
   result->destination_parameter = destination_parameter;
   result->add_newline_after_full_line = add_newline_after_full_line;
   result->left_side_padding = left_side_padding;
+  if (left_side_padding > 0)
+  {
+    result->padding_buffer
+      = fizmo_malloc((left_side_padding + 1) * sizeof(z_ucs));
+    for (i=0; i<left_side_padding; i++)
+      result->padding_buffer[i] = Z_UCS_SPACE;
+    result->padding_buffer[i] = 0;
+  }
+  else
+    result->padding_buffer = NULL;
   result->flush_after_newline = flush_after_newline;
   result->enable_hyphenation = enable_hyphenation;
   result->input_buffer_size = line_length * 4;
@@ -100,6 +111,12 @@ WORDWRAP *wordwrap_new_wrapper(size_t line_length,
 
 void wordwrap_destroy_wrapper(WORDWRAP *wrapper_to_destroy)
 {
+  free(wrapper_to_destroy->input_buffer);
+  if (wrapper_to_destroy->padding_buffer != NULL)
+    free(wrapper_to_destroy->padding_buffer);
+  if (wrapper_to_destroy->metadata != NULL)
+    free(wrapper_to_destroy->metadata);
+  free(wrapper_to_destroy);
 }
 
 
@@ -671,6 +688,10 @@ void wordwrap_set_line_index(WORDWRAP *wrapper, int new_line_index)
 
 void wordwrap_output_left_padding(WORDWRAP *wrapper)
 {
+  if (wrapper->left_side_padding > 0)
+    wrapper->wrapped_text_output_destination(
+        wrapper->padding_buffer,
+        wrapper->destination_parameter);
 }
 
 
