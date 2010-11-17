@@ -5,7 +5,7 @@ include config.mk
 
 TMPLIBDIR = libfizmotmp
 
-all: libfizmo.a src/cell_interface/libcellif.a libfizmo.mk libcellif.mk
+all: libfizmo.a libfizmo.mk
 
 libfizmo.a: src/tools/libtools.a src/interpreter/libinterpreter.a
 	mkdir -p $(TMPLIBDIR) ; \
@@ -16,19 +16,19 @@ libfizmo.a: src/tools/libtools.a src/interpreter/libinterpreter.a
 	cd .. ; \
 	rm -r $(TMPLIBDIR)
 
-install: libfizmo.a src/cell_interface/libcellif.a libfizmo.mk libcellif.mk
+install: libfizmo.a libfizmo.mk
 	mkdir -p $(INSTALL_PREFIX)/lib/fizmo
 	cp libfizmo.a $(INSTALL_PREFIX)/lib/fizmo
 	mkdir -p $(INSTALL_PREFIX)/include/fizmo/interpreter
 	cp libfizmo.mk $(INSTALL_PREFIX)/include/fizmo
-	cp libcellif.mk $(INSTALL_PREFIX)/include/fizmo
 	cp src/interpreter/*.h $(INSTALL_PREFIX)/include/fizmo/interpreter
 	mkdir -p $(INSTALL_PREFIX)/include/fizmo/tools
 	cp src/tools/*.h $(INSTALL_PREFIX)/include/fizmo/tools
-	mkdir -p $(INSTALL_PREFIX)/include/fizmo/cell_interface
-	cp src/cell_interface/*.h $(INSTALL_PREFIX)/include/fizmo/cell_interface
-	cp src/cell_interface/libcellif.a $(INSTALL_PREFIX)/lib/fizmo
-	cp -r src/screen_interface $(INSTALL_PREFIX)/include/fizmo/
+	mkdir -p $(INSTALL_PREFIX)/include/fizmo/screen_interface
+	cp src/screen_interface/*.h \
+	  $(INSTALL_PREFIX)/include/fizmo/screen_interface
+	cp src/screen_interface/*.cpp \
+	  $(INSTALL_PREFIX)/include/fizmo/screen_interface
 	cp -r src/sound_interface $(INSTALL_PREFIX)/include/fizmo/
 	mkdir -p $(INSTALL_PREFIX)/share/fizmo/locales
 	for l in `cd src/locales ; ls -d ??_??`; \
@@ -40,14 +40,12 @@ install: libfizmo.a src/cell_interface/libcellif.a libfizmo.mk libcellif.mk
 clean::
 	cd src/interpreter ; make clean
 	cd src/tools ; make clean
-	cd src/cell_interface ; make clean
 	cd src/locales ; make clean
 
 distclean:: clean
-	rm -f libfizmo.a libfizmo.mk libcellif.mk
+	rm -f libfizmo.a libfizmo.mk
 	cd src/interpreter ; make distclean
 	cd src/tools ; make distclean
-	cd src/cell_interface ; make distclean
 
 src/tools/libtools.a::
 	cd src/tools ; make
@@ -65,16 +63,6 @@ ifeq ($(DISABLE_LIBXML2),)
 endif
 	echo >> libfizmo.mk
 	
-libcellif.mk::
-	echo > libcellif.mk
-	echo LIBCELLIF_INC_DIRS = -I$(INSTALL_PREFIX)/include/fizmo >> libcellif.mk
-	echo LIBCELLIF_LIB_DIRS = -L$(INSTALL_PREFIX)/lib/fizmo >> libcellif.mk
-	echo LIBCELLIF_LIBS = -lcellif >> libcellif.mk
-	echo >> libcellif.mk
-
 src/interpreter/libinterpreter.a::
 	cd src/interpreter ; make
-
-src/cell_interface/libcellif.a::
-	cd src/cell_interface ; make
 
