@@ -2011,8 +2011,17 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
             {
               // We've hit the top of the history.
               TRACE_LOG("Hit top of history.\n");
-              upscroll_hit_top = true;
-              top_upscroll_line = history_screen_line;
+              if (history_screen_line <= z_windows[0]->ysize)
+              {
+                // Not enough in buffer to fill the screen at the moment,
+                // scrolling back not possible.
+                top_upscroll_line = -1;
+              }
+              else
+              {
+                upscroll_hit_top = true;
+                top_upscroll_line = history_screen_line;
+              }
             }
             else if (history_screen_line > top_upscroll_line)
             {
@@ -2065,54 +2074,62 @@ static int16_t read_line(zscii *dest, uint16_t maximum_length,
           }
           refresh_count_mode = false;
 
-          //wordwrap_set_line_index(refresh_wordwrapper, 0);
-
-          // We're now above our first desired output line. Before actual
-          // output begins, we'll remember the current output history state,
-          // so we can restore it at the end of the output. This helps
-          // accelerating the scrolling process, since after the next
-          // page up/down key press, we only have to adjust the history output
-          // position for one page, instead of having to scroll up the entire
-          // history from the output end.
-
-          remember_history_output_position(history);
-
-          erase_window(0);
-          refresh_lines_to_output = z_windows[0]->ysize;
-
-          z_windows[0]->xcursorpos = 1 + z_windows[0]->leftmargin;
-          z_windows[0]->ycursorpos = z_windows[0]->ypos;
-          refresh_cursor(0);
-
-          TRACE_LOG("Repeating %d lines.\n", refresh_lines_to_output);
-          TRACE_LOG("refreshscreen-ycursorpos: %d.\n",
-              z_windows[0]->ycursorpos);
-          disable_more_prompt = true;
-          while (refresh_lines_to_output > 0)
+          if (top_upscroll_line < 0)
           {
-            TRACE_LOG("%d lines left.\n", refresh_lines_to_output);
-            TRACE_LOG("(repeat paragraph)\n");
-            return_code = output_repeat_paragraphs(history, 1, true, true);
-            TRACE_LOG("(flush output)\n");
-            wordwrap_flush_output(refresh_wordwrapper);
-            TRACE_LOG("(refresh dest)\n");
-            TRACE_LOG("check: %d lines left.\n", refresh_lines_to_output);
-            if (refresh_lines_to_output > 1)
-              z_ucs_output_refresh_destination(newline_string, NULL); 
-            else
-              refresh_lines_to_output = 0;
-            if (return_code < 0)
-              break;
+            // Not enough in buffer to scroll at all.
+            destroy_history_output(history);
           }
-          TRACE_LOG("%d lines left.\n", refresh_lines_to_output);
-          TRACE_LOG("Done output scrolling.\n");
-          disable_more_prompt = false;
-          TRACE_LOG("refreshscreen-ycursorpos: %d.\n",
-              z_windows[0]->ycursorpos);
+          else
+          {
+            //wordwrap_set_line_index(refresh_wordwrapper, 0);
 
-          restore_history_output_position(history);
+            // We're now above our first desired output line. Before actual
+            // output begins, we'll remember the current output history state,
+            // so we can restore it at the end of the output. This helps
+            // accelerating the scrolling process, since after the next
+            // page up/down key press, we only have to adjust the history output
+            // position for one page, instead of having to scroll up the entire
+            // history from the output end.
 
-          screen_cell_interface->update_screen();
+            remember_history_output_position(history);
+
+            erase_window(0);
+            refresh_lines_to_output = z_windows[0]->ysize;
+
+            z_windows[0]->xcursorpos = 1 + z_windows[0]->leftmargin;
+            z_windows[0]->ycursorpos = z_windows[0]->ypos;
+            refresh_cursor(0);
+
+            TRACE_LOG("Repeating %d lines.\n", refresh_lines_to_output);
+            TRACE_LOG("refreshscreen-ycursorpos: %d.\n",
+                z_windows[0]->ycursorpos);
+            disable_more_prompt = true;
+            while (refresh_lines_to_output > 0)
+            {
+              TRACE_LOG("%d lines left.\n", refresh_lines_to_output);
+              TRACE_LOG("(repeat paragraph)\n");
+              return_code = output_repeat_paragraphs(history, 1, true, true);
+              TRACE_LOG("(flush output)\n");
+              wordwrap_flush_output(refresh_wordwrapper);
+              TRACE_LOG("(refresh dest)\n");
+              TRACE_LOG("check: %d lines left.\n", refresh_lines_to_output);
+              if (refresh_lines_to_output > 1)
+                z_ucs_output_refresh_destination(newline_string, NULL); 
+              else
+                refresh_lines_to_output = 0;
+              if (return_code < 0)
+                break;
+            }
+            TRACE_LOG("%d lines left.\n", refresh_lines_to_output);
+            TRACE_LOG("Done output scrolling.\n");
+            disable_more_prompt = false;
+            TRACE_LOG("refreshscreen-ycursorpos: %d.\n",
+                z_windows[0]->ycursorpos);
+
+            restore_history_output_position(history);
+
+            screen_cell_interface->update_screen();
+          }
         }
 
         TRACE_LOG("Final top-upscroll line: %d.\n", top_upscroll_line);
