@@ -22,7 +22,8 @@
  - Implemented a cell-screen meta-interface. This translates the output
    from fizmo's screen interface into simple goto-xy and print commands,
    allowing implementation of interfaces using fixed-width fonts with a
-   minimum of work. This is also used by the new "fizmo-ncursesw" interface.
+   minimum of work. This is also used by the new "fizmo-ncursesw" interface,
+   which has also been entirely rewritten.
  - Moved "i18n", "tracelog", "z_ucs" and "types" into a new "tools"
    package adding "stringmap", "list" and "tools_test" on the way. The
    tools package is supposed to be used by interpreter-related tools
@@ -30,6 +31,15 @@
  - Rebuilt the interpreter core of fizmo into a set of static libraries.
    The "libfizmo" library contains the interpreter and the associated
    tools, the "libcellif" library the cell-screen meta-interface.
+ - Rebuilt the interpreter core of fizmo into a set of static libraries.
+   The "libfizmo" library contains the interpreter and the associated
+   tools, the "libcellif" library the cell-screen meta-interface.
+ - libdrilbo ("drilbo represents an imaging libary not only for blorb
+   objects") now handles all graphical related tasks. It also makes the
+   version 0.6 requirement for GTK to load images obsolete, it directly
+   uses libjpg and libpng to load images, and has its own Xlib implementation
+   for X11 output.
+ - Re-implemented almost the entire build process.
 
    From 0.6.7 to 0.6.8
  + 0.6.8 was finished at about Tue Jan 12 09:53:42 CET 2010.
