@@ -33,7 +33,6 @@
 #ifndef libfizmo_locales_h_INCLUDED 
 #define libfizmo_locales_h_INCLUDED
 
-// fizmo-locales:
 #define i18n_libfizmo_COULD_NOT_OPEN_TRACE_FILE_P0S 0
 #define i18n_libfizmo_INVALID_PARAMETER_TYPE_P0S 1
 #define i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR 2
@@ -115,12 +114,6 @@
 #define i18n_libfizmo_FUNCTION_CALL_TIME_RETURNED_NEG_1 78
 #define i18n_libfizmo_UNKNOWN_CONFIGURATION_OPTION_P0S 79
 #define i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S 80
-
-// cell-interface-locales:
-#define i18n_libfizmo_MORE_PROMPT 81
-#define i18n_libfizmo_SCORE 82
-#define i18n_libfizmo_TURNS 83
-#define i18n_libfizmo_LIBCELLINTERFACE_VERRSION_P0S 84
 
 extern z_ucs libfizmo_module_name[];
 extern z_ucs default_locale_name[];
