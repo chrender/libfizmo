@@ -653,13 +653,6 @@ int get_paragraph_y_positions(OUTPUTHISTORY *history, int screen_width,
     int left_padding);
 */
 
-// Used to remove preloaded input:
-void remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
-{
-  TRACE_LOG("remove_chars_from_history not yet implemented.\n");
-  exit(-1);
-}
-
 
 // This function will really only decrement the pointer. "Only" means that
 // even after a successful decrement the pointer is not guaraneteed to
@@ -739,6 +732,41 @@ z_ucs *increment_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr, bool *has_wrapped)
   return ptr;
 }
 */
+
+
+// Used to remove preloaded input:
+int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
+{
+  z_ucs *ptr = history->z_history_buffer_front_index;
+  bool has_wrapped = history->wrapped_around;
+  z_ucs last_data = 0;
+
+  TRACE_LOG("Removing %d chars from history at %p.\n", nof_chars, ptr);
+
+  while (nof_chars > 0)
+  {
+    if ((ptr = decrement_buffer_pointer(history, ptr, &has_wrapped)) == NULL)
+      // Can't rewind any more. Don't change current pointer.
+      return -1;
+
+    if ( (*ptr == HISTORY_METADATA_ESCAPE) && (last_data != 0) )
+    {
+      nof_chars += (last_data = HISTORY_METADATA_TYPE_COLOUR ? 4 : 3);
+    }
+    else
+    {
+      last_data = *ptr;
+      nof_chars --;
+    }
+  }
+
+  history->z_history_buffer_front_index = ptr;
+  history->wrapped_around = has_wrapped;
+
+  TRACE_LOG("History went to %p.\n", ptr);
+
+  return 0;
+}
 
 
 // Search from index in direction of the back index and return the position
