@@ -63,12 +63,12 @@ typedef struct
   int metadata_size;
   int metadata_index;
 
+  z_ucs *padding_buffer;
   /*
   void (*padding_starts)();
   void (*padding_ends)();
   void *destination_parameter;
   z_ucs *output_buffer;
-  z_ucs *padding_buffer;
   z_ucs *output_buffer_index;
   size_t output_buffer_size;
   bool add_newline_after_full_line;
