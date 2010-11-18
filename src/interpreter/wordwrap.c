@@ -127,6 +127,10 @@ static void output_buffer(WORDWRAP *wrapper, z_ucs *buffer_start,
   struct wordwrap_metadata *metadata_entry;
   z_ucs buf;
 
+  TRACE_LOG("Output buffer: \"");
+  TRACE_LOG_Z_UCS(buffer_start);
+  TRACE_LOG("\"");
+
   if (*metadata_offset == wrapper->metadata_index)
   {
     wrapper->wrapped_text_output_destination(
@@ -264,6 +268,10 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       chars_sent += len;
 
       output_buffer(wrapper, input, &metadata_offset);
+      if (wrapper->left_side_padding != 0)
+        wrapper->wrapped_text_output_destination(
+            wrapper->padding_buffer,
+            wrapper->destination_parameter);
 
       if (index != NULL)
         *index = buf;
@@ -472,6 +480,10 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       *(index + 1) = 0;
 
       output_buffer(wrapper, input, &metadata_offset);
+      if (wrapper->left_side_padding != 0)
+        wrapper->wrapped_text_output_destination(
+            wrapper->padding_buffer,
+            wrapper->destination_parameter);
 
       *(index + 1) = buf;
       *index = buf2;
@@ -528,6 +540,10 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       TRACE_LOG("Output from %p.\n", input);
 
       output_buffer(wrapper, input, &metadata_offset);
+      if (wrapper->left_side_padding != 0)
+        wrapper->wrapped_text_output_destination(
+            wrapper->padding_buffer,
+            wrapper->destination_parameter);
 
       *(index+1) = buf2;
       *index = buf;
