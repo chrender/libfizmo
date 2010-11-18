@@ -19,7 +19,9 @@
  The latest version should be available from 
  http://spellbreaker.org/~chrender/fizmo
 
- Fizmo uses the Mersenne twister from
+ ------------------------------------------------------------------------------
+
+ libfizmo uses the Mersenne twister from
  http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html
  as a random number generator implementation:
 "A C-program for MT19937, with initialization improved 2002/1/26.
@@ -28,9 +30,21 @@
  All rights reserved."
  For full copyright notice see "src/fizmo/mt19937ar.c".
 
+ ------------------------------------------------------------------------------
+
+ libfizmo includes the following hyphenation patterns from the offo ("Objects
+ For Formatting Objects") project from sourceforge, available from
+ http://offo.sourceforge.net:
+
+  - en_US.xml, under D.E. Knuth's TeX license.
+  - de.xml, under LaTeX Project Public License.
+
+ ------------------------------------------------------------------------------
+
  Please note:
  Currently fizmo is in beta status, meaning it might do unexpected things
  such as stop with an error message, crash or cleesh your machine into a
  frog. There is no warranty of any kind whatsoever and you're entirely on
  your own when running it.
+
 
