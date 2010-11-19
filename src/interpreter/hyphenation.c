@@ -339,10 +339,12 @@ static int load_patterns()
 }
 
 
+/*
 static int factorial(int n)
 {
   return n == 1 ? 1: n * factorial(n - 1);
 }
+*/
 
 
 static z_ucs *get_pattern(z_ucs *subword)
