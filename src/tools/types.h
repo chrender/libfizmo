@@ -70,6 +70,8 @@
 #define bool_equal(a,b) ((a) ? (b) : !(b))
 #define FIZMO_UNIQUE_EXIT_CODE(a) a
 
+#define NOF_Z_COLOURS 8
+
 typedef uint8_t zscii;
 typedef uint32_t z_ucs;
 typedef int16_t z_colour;
@@ -157,7 +159,10 @@ struct z_story
   struct z_story_blorb_image *blorb_images;
 };
 
+extern char* z_colour_names[];
+
 bool is_regular_z_colour(z_colour colour);
+short color_name_to_z_colour(char *colour_name);
 
 #endif /* types_h_INCLUDED */
 
