@@ -1145,28 +1145,32 @@ static int parse_fizmo_config_file(char *filename)
       c = fgetc(config_file);
     }
 
-    if (c == '=')
+    if ( (c == '=') || (c == '\n') )
     {
       while ( (i > 0) && (key[i-1] == ' ') )
         i--;
       key[i] = '\0';
       i = 0;
-      c = fgetc(config_file);
-      while ( (c != '\n') && (c != EOF) )
+
+      if (c == '=')
       {
-        if ( (i < MAX_CONFIG_OPTION_LENGTH - 1) && (!((i == 0) && (c == ' '))) )
-          value[i++] = (char)c;
         c = fgetc(config_file);
+        while ( (c != '\n') && (c != EOF) )
+        {
+          if ( (i < MAX_CONFIG_OPTION_LENGTH-1) && (!((i == 0) && (c == ' '))) )
+            value[i++] = (char)c;
+          c = fgetc(config_file);
+        }
+
+        while ( (i > 0) && (value[i-1] == ' ') )
+          i--;
       }
 
       if (c == '\n')
       {
-        while ( (i > 0) && (value[i-1] == ' ') )
-          i--;
-
         value[i] = '\0';
 
-        if (strcasecmp(key, "language") == 0)
+        if (strcasecmp(key, "locale") == 0)
         {
           TRACE_LOG("locale parameter: \"%s\".\n", value);
           zucs_string = dup_utf8_string_to_zucs_string(value);
@@ -1187,6 +1191,14 @@ static int parse_fizmo_config_file(char *filename)
             (strcasecmp(key, "transcript-filename") == 0)
             ||
             (strcasecmp(key, "command-filename") == 0)
+            ||
+            (strcasecmp(key, "foreground-color") == 0)
+            ||
+            (strcasecmp(key, "background-color") == 0)
+            ||
+            (strcasecmp(key, "enable-color") == 0)
+            ||
+            (strcasecmp(key, "disable-color") == 0)
             )
         {
           TRACE_LOG("New configuration key/value: \"%s\", \"%s\".\n",
