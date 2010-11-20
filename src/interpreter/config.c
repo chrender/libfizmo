@@ -44,10 +44,13 @@
 #include "../tools/i18n.h"
 #include "../locales/libfizmo_locales.h"
 
+#define BUFSIZE 5
+
 //int system_charset = SYSTEM_CHARSET_ASCII;
 bool auto_adapt_upper_window = true;
 bool auto_open_upper_window = true;
 bool skip_active_routines_stack_check_warning = false;
+char true_value[] = "true";
 char false_value[] = "false";
 
 
@@ -60,7 +63,6 @@ struct configuration_option
 
 struct configuration_option configuration_options[] = {
   { "locale", NULL },
-  //{ "system-charset", NULL },
   { "random-mode", NULL },
   { "start-script-when-story-starts", NULL },
   { "start-command-recording-when-story-starts", NULL },
@@ -84,6 +86,10 @@ struct configuration_option configuration_options[] = {
   { "command-filename", NULL },
   { "sync-transcript", NULL }, // bool-string
   { "i18n-search-path", NULL },
+  { "foreground-color", NULL },
+  { "background-color", NULL },
+  { "enable-color", NULL },
+  { "disable-color", NULL },
   { NULL, NULL }
 };
 
@@ -92,7 +98,9 @@ int set_configuration_value(char *key, char* new_value)
 {
   int i;
   //va_list ap;
-  char *ptr;
+  char *ptr, *current_value;
+  char buf[BUFSIZE];
+  short color_code;
 
   if (key == NULL)
     return -1;
@@ -103,55 +111,27 @@ int set_configuration_value(char *key, char* new_value)
   {
     if (strcmp(configuration_options[i].name, key) == 0)
     {
-      if (strcmp(key, "random-mode") == 0)
+      if (strcasecmp(key, "random-mode") == 0)
       {
         if (new_value == NULL)
           return -1;
-        else if (strcmp(new_value, "random") == 0)
+        else if (strcasecmp(new_value, "random") == 0)
         {
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
           configuration_options[i].value = fizmo_strdup("random");
+          seed_random_generator();
         }
-        else if (strcmp(new_value, "predictable") == 0)
+        else if (strcasecmp(new_value, "predictable") == 0)
         {
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
           configuration_options[i].value = fizmo_strdup("predictable");
-        }
-        else if (strcmp(new_value, "force-predictable") == 0)
-        {
-          if (configuration_options[i].value != NULL)
-            free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup("force-predictable");
-        }
-        else
-          return -1;
-
-        seed_random_generator();
-        return 0;
-      }
-      /*
-      else if (strcmp(key, "system-charset") == 0)
-      {
-        if (new_value == NULL)
-          return -1;
-        else if (
-            (strcmp(new_value, "utf-8") == 0)
-            ||
-            (strcmp(new_value, "latin-1") == 0)
-            )
-        {
-          ptr = fizmo_strdup(new_value);
-          if (configuration_options[i].value != NULL)
-            free(configuration_options[i].value);
-          configuration_options[i].value = ptr;
-          return 0;
+          seed_random_generator();
         }
         else
           return -1;
       }
-      */
       // Options for values are copied
       else if (
           (strcmp(key, "save-and-quit-file-before-read") == 0)
@@ -177,6 +157,54 @@ int set_configuration_value(char *key, char* new_value)
         // "config.c" file.
         set_i18n_search_path(new_value);
         return 0;
+      }
+      // Color options
+      else if (strcasecmp(key, "foreground-color") == 0)
+      {
+        if ((color_code = color_name_to_z_colour(new_value)) == -1)
+          return -1;
+        if (snprintf(buf, BUFSIZE, "%d", color_code) >= BUFSIZE)
+          return -1;
+        configuration_options[i].value = fizmo_strdup(buf);
+        return 0;
+      }
+      else if (strcasecmp(key, "background-color") == 0)
+      {
+        if ((color_code = color_name_to_z_colour(new_value)) == -1)
+          return -1;
+        if (snprintf(buf, BUFSIZE, "%d", color_code) >= BUFSIZE)
+          return -1;
+        configuration_options[i].value = fizmo_strdup(buf);
+        return 0;
+      }
+      // Non-primitive boolean options
+      else if (strcasecmp(key, "enable-color") == 0)
+      {
+        if ((new_value == NULL) || (*new_value == 0) )
+        {
+          current_value = get_configuration_value("disable-color");
+          if ( (current_value != NULL)
+              && (strcasecmp(current_value, true_value) == 0) )
+            return -1;
+          configuration_options[i].value = fizmo_strdup(true_value);
+          return 0;
+        }
+        else
+          return -1;
+      }
+      else if (strcasecmp(key, "disable-color") == 0)
+      {
+        if ((new_value == NULL) || (*new_value == 0) )
+        {
+          current_value = get_configuration_value("enable-color");
+          if ( (current_value != NULL)
+              && (strcasecmp(current_value, true_value) == 0) )
+            return -1;
+          configuration_options[i].value = fizmo_strdup(true_value);
+          return 0;
+        }
+        else
+          return -1;
       }
       // Boolean options
       else if (
