@@ -1170,22 +1170,7 @@ static int parse_fizmo_config_file(char *filename)
       {
         value[i] = '\0';
 
-        if (strcasecmp(key, "locale") == 0)
-        {
-          TRACE_LOG("locale parameter: \"%s\".\n", value);
-          zucs_string = dup_utf8_string_to_zucs_string(value);
-          result = set_current_locale_name(zucs_string);
-          free(zucs_string);
-
-          if (result != 0)
-            i18n_translate_and_exit(
-                libfizmo_module_name,
-                i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S,
-                -0x0101,
-                key,
-                value);
-        }
-        else if (
+        if (
             (strcasecmp(key, "savegame-path") == 0)
             ||
             (strcasecmp(key, "transcript-filename") == 0)
@@ -1199,6 +1184,8 @@ static int parse_fizmo_config_file(char *filename)
             (strcasecmp(key, "enable-color") == 0)
             ||
             (strcasecmp(key, "disable-color") == 0)
+            ||
+            (strcasecmp(key, "locale") == 0)
             )
         {
           TRACE_LOG("New configuration key/value: \"%s\", \"%s\".\n",
