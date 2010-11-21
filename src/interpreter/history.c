@@ -1405,5 +1405,10 @@ void restore_history_output_position(history_output *output)
 }
 
 
+size_t get_allocated_text_history_size(OUTPUTHISTORY *h)
+{
+  return h->z_history_buffer_size;
+}
+
 #endif /* history_c_INCLUDED */
 

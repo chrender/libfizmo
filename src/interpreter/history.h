@@ -164,21 +164,7 @@ int output_repeat_paragraphs(history_output *output, int n,
 void destroy_history_output(history_output *output);
 void remember_history_output_position(history_output *output);
 void restore_history_output_position(history_output *output);
-
-
-/*
-void repeat_paragraphs_from_history(OUTPUTHISTORY *history,
-    int start_paragraph_number, int end_paragraph_number,
-    bool allow_adjust_start_paragraph,
-    struct history_repetition_target *target);
-
-int get_paragraph_y_positions(OUTPUTHISTORY *history, int screen_width,
-    int bottom_y, int *bottom_y_pos, int top_y, int *top_y_pos,
-    int left_padding);
-*/
-
-// Used to remove preloaded input:
-
+size_t get_allocated_text_history_size(OUTPUTHISTORY *h);
 
 #endif /* history_h_INCLUDED */
 
