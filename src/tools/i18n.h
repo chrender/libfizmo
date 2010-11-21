@@ -68,15 +68,9 @@ char *get_i18n_search_path();
 int set_i18n_search_path(char *path);
 
 z_ucs *get_current_locale_name();
-int set_current_locale_name(z_ucs *new_locale_name);
+int set_current_locale_name(char *new_locale_name);
 char **get_available_locale_names();
-
-//int i18n_translate_padded(int string_code, ...); -> unused
-
-/*
-void i18n_translate_warning(z_ucs *module_name, int string_code,
-    char *opcode_name, ...);
-*/
+char *get_i18n_default_search_path(void);
 
 #endif /* i18n_h_INCLUDED */
 

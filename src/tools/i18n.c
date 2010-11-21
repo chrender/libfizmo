@@ -1337,18 +1337,22 @@ z_ucs *get_current_locale_name()
 }
 
 
-int set_current_locale_name(z_ucs *new_locale_name)
+int set_current_locale_name(char *new_locale_name)
 {
   char *locale_dir_name = NULL;
   z_ucs *locale_dup;
 
-  if ((locale_dir_name = get_path_for_locale(new_locale_name)) == NULL)
+  if ((locale_dup =
+        dup_utf8_string_to_zucs_string(new_locale_name)) == NULL)
     return -1;
+
+  if ((locale_dir_name = get_path_for_locale(locale_dup)) == NULL)
+  {
+    free(locale_dup);
+    return -1;
+  }
 
   free(locale_dir_name);
-
-  if ((locale_dup = z_ucs_dup(new_locale_name)) == NULL)
-    return -1;
 
   if (current_locale_name != NULL)
     free(current_locale_name);
@@ -1358,29 +1362,14 @@ int set_current_locale_name(z_ucs *new_locale_name)
   TRACE_LOG("New locale name: '");
   TRACE_LOG_Z_UCS(current_locale_name);
   TRACE_LOG("'.\n");
-
   return 0;
 }
 
 
-/*
-void i18n_translate_warning(z_ucs *module_name, int string_code,
-    char *opcode_name, ...)
+char *get_i18n_default_search_path(void)
 {
-  va_list ap;
-
-  i18n_translate(
-      module_name,
-      i18n_libfizmo_WARNING_FOR_P0S_AT_P0X,
-      opcode_name,
-      (unsigned int)(current_instruction_location - z_mem));
-  streams_latin1_output(" ");
-  va_start(ap, opcode_name);
-  i18n_translate_from_va_list(module_name, string_code, ap, true, NULL);
-  streams_latin1_output("\n");
-  va_end(ap);
+  return default_search_path;
 }
-*/
 
 #endif /* i18n_c_INCLUDED */
 
