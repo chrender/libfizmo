@@ -208,7 +208,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 {
   z_ucs *index = NULL, *ptr, *hyphenated_word, *last_hyphen, *word_start;
   z_ucs *word_end_without_split_chars, *word_end_with_split_chars;
-  z_ucs buf, buf2, buf3;
+  z_ucs buf=0, buf2; // buf initialized to avoid compiler warning
+  z_ucs buf3 = '-'; // buf3 initialized to avoid compiler warning
   long len, chars_sent = 0;
   z_ucs *input = wrapper->input_buffer;
   bool minus_found;
