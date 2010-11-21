@@ -57,6 +57,8 @@ z_style upper_window_style = Z_STYLE_ROMAN;
 z_style lower_window_style = Z_STYLE_ROMAN;
 z_colour current_foreground_colour;
 z_colour current_background_colour;
+z_colour default_foreground_colour = Z_COLOUR_WHITE;
+z_colour default_background_colour = Z_COLOUR_BLACK;
 z_colour upper_window_foreground_colour;
 z_colour upper_window_background_colour;
 z_colour lower_window_foreground_colour;

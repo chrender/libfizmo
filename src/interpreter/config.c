@@ -40,6 +40,7 @@
 #include "config.h"
 #include "fizmo.h"
 #include "math.h"
+#include "output.h"
 #include "../tools/types.h"
 #include "../tools/i18n.h"
 #include "../locales/libfizmo_locales.h"
@@ -166,6 +167,7 @@ int set_configuration_value(char *key, char* new_value)
         if (snprintf(buf, BUFSIZE, "%d", color_code) >= BUFSIZE)
           return -1;
         configuration_options[i].value = fizmo_strdup(buf);
+        default_foreground_colour = color_code;
         return 0;
       }
       else if (strcasecmp(key, "background-color") == 0)
@@ -175,6 +177,7 @@ int set_configuration_value(char *key, char* new_value)
         if (snprintf(buf, BUFSIZE, "%d", color_code) >= BUFSIZE)
           return -1;
         configuration_options[i].value = fizmo_strdup(buf);
+        default_background_colour = color_code;
         return 0;
       }
       // Non-primitive boolean options

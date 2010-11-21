@@ -40,7 +40,6 @@
 #define STYLE_FIXED_PITCH 8
 
 #ifndef output_c_INCLUDED
-/*@-exportlocal@*/
 extern int16_t active_window_number;
 extern z_font current_font;
 extern bool lower_window_buffering_active;
@@ -49,11 +48,12 @@ extern z_style upper_window_style;
 extern z_style lower_window_style;
 extern z_colour current_foreground_colour;
 extern z_colour current_background_colour;
+extern z_colour default_foreground_colour;
+extern z_colour default_background_colour;
 extern z_colour upper_window_foreground_colour;
 extern z_colour upper_window_background_colour;
 extern z_colour lower_window_foreground_colour;
 extern z_colour lower_window_background_colour;
-/*@+exportlocal@*/
 #endif /* output_c_INCLUDED */
 
 void opcode_split_window(void);
