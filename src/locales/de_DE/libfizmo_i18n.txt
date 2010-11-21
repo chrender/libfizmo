@@ -54,8 +54,6 @@ Z-Stack Einträge in Benutzung: \{0d}.
 Unterlauf-Überprüfung für Routinenstack deaktiviert.
 \{0d} Bytes werden von Undo benutzt.
 \{0d} bytes von Texthistorie belegt.
-\{0d} bytes von Metadaten der Texthistorie belegt.
-\{0d} bytes von Paragraph-Zwischenspeicher belegt.
 \{0d} bytes für Blockbuffer verwendet.
 Interface „\{0s}“ unterstützt keinen Preloaded Input.
 Interface „\{0s}“ unterstützt keinen Timed Input.

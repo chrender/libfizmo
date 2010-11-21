@@ -54,8 +54,6 @@ Z-Stack entries in use: \{0d}.
 Routine stack underflow check disabled.
 \{0d} Bytes used for undo.
 \{0d} bytes allocated by text history.
-\{0d} bytes allocated by text history metadata.
-\{0d} bytes allocated by paragraph cache.
 \{0d} bytes allocated by block buffer.
 Preloaded input not availiable in interface "\{0s}".
 Timed input not implemented in interface "\{0s}".
