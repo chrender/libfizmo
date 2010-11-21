@@ -98,7 +98,6 @@ struct configuration_option configuration_options[] = {
 int set_configuration_value(char *key, char* new_value)
 {
   int i;
-  //va_list ap;
   char *ptr, *current_value;
   char buf[BUFSIZE];
   short color_code;
@@ -135,15 +134,15 @@ int set_configuration_value(char *key, char* new_value)
       }
       // Options for values are copied
       else if (
-          (strcmp(key, "save-and-quit-file-before-read") == 0)
+          (strcasecmp(key, "save-and-quit-file-before-read") == 0)
           ||
-          (strcmp(key, "z-code-path") == 0)
+          (strcasecmp(key, "z-code-path") == 0)
           ||
-          (strcmp(key, "savegame-path") == 0)
+          (strcasecmp(key, "savegame-path") == 0)
           ||
-          (strcmp(key, "transcript-filename") == 0)
+          (strcasecmp(key, "transcript-filename") == 0)
           ||
-          (strcmp(key, "command-filename") == 0)
+          (strcasecmp(key, "command-filename") == 0)
           )
       {
         ptr = fizmo_strdup(new_value);
@@ -152,7 +151,11 @@ int set_configuration_value(char *key, char* new_value)
         configuration_options[i].value = ptr;
         return 0;
       }
-      else if (strcmp(key, "i18n-search-path") == 0)
+      else if (strcasecmp(key, "locale") == 0)
+      {
+        set_current_locale_name(new_value);
+      }
+      else if (strcasecmp(key, "i18n-search-path") == 0)
       {
         // Forward to i18n, since this is in tools and cannot access the
         // "config.c" file.
