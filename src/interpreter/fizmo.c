@@ -1127,7 +1127,6 @@ static int parse_fizmo_config_file(char *filename)
   char value[MAX_CONFIG_OPTION_LENGTH];
   int c, i;
   FILE *config_file;
-  z_ucs *zucs_string;
   int result;
 
   TRACE_LOG("Parsing config file \"%s\".\n", filename);
