@@ -1439,6 +1439,12 @@ static bool process_interpreter_command()
         (long)get_allocated_undo_memory_size());
     (void)streams_latin1_output("\n");
 
+    (void)i18n_translate(
+        libfizmo_module_name,
+        i18n_libfizmo_P0D_BYTES_USED_BY_TEXT_HISTORY,
+        (long)get_allocated_text_history_size(outputhistory[0]));
+    (void)streams_latin1_output("\n");
+
     ptr = get_configuration_value("random-mode");
     if (ptr != NULL)
     {
