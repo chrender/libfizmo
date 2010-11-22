@@ -36,7 +36,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
+#include "../tools/tracelog.h"
 #include "config.h"
 #include "fizmo.h"
 #include "math.h"
@@ -53,6 +57,7 @@ bool auto_open_upper_window = true;
 bool skip_active_routines_stack_check_warning = false;
 char true_value[] = "true";
 char false_value[] = "false";
+char empty_string[] = "";
 
 
 struct configuration_option
@@ -95,15 +100,134 @@ struct configuration_option configuration_options[] = {
 };
 
 
-int set_configuration_value(char *key, char* new_value)
+static char *expand_configuration_value(char *unexpanded_value)
+{
+  static char *homedir = NULL;
+  static int homedir_len = -1;
+  struct passwd *pw_entry;
+  char *ptr = unexpanded_value;
+  int resultlen;
+  char *result, *resultindex;
+  char *var_name;
+  char buf;
+
+  if (unexpanded_value == NULL)
+    return NULL;
+
+  if (homedir == NULL)
+  {
+    pw_entry = getpwuid(getuid());
+    if (pw_entry->pw_dir == NULL)
+      homedir = empty_string;
+    else
+      homedir = strdup(pw_entry->pw_dir);
+    homedir_len = strlen(homedir);
+  }
+
+  resultlen = 0;
+  while (*ptr != 0)
+  {
+    if (*ptr == '$')
+    {
+      ptr++;
+      if (*ptr == '(')
+      {
+        ptr++;
+        var_name = ptr;
+        while ( (*ptr != 0) && (*ptr != ')') )
+          ptr++;
+        if (*ptr != ')')
+          return NULL;
+        buf = *ptr;
+        *ptr = 0;
+
+        if (strcasecmp(var_name, "HOME") == 0)
+        {
+          resultlen += strlen(homedir);
+        }
+        else
+        {
+          *ptr = buf;
+          return NULL;
+        }
+
+        *ptr = buf;
+        ptr++;
+      }
+      else
+        return NULL;
+    }
+    else
+    {
+      ptr++;
+      resultlen++;
+    }
+  }
+
+  TRACE_LOG("result len: %d.\n", resultlen);
+  result = fizmo_malloc(resultlen + 1);
+  resultindex = result;
+
+  ptr = unexpanded_value;
+  while (*ptr != 0)
+  {
+    if (*ptr == '$')
+    {
+      ptr++;
+      if (*ptr == '(')
+      {
+        ptr++;
+        var_name = ptr;
+        while ( (*ptr != 0) && (*ptr != ')') )
+          ptr++;
+        if (*ptr != ')')
+          return NULL;
+        buf = *ptr;
+        *ptr = 0;
+
+        if (strcasecmp(var_name, "HOME") == 0)
+        {
+          strcpy(resultindex, homedir);
+          resultindex += homedir_len;
+        }
+        else
+        {
+          *ptr = buf;
+          // Can't ever reach this point due to loop 1.
+        }
+
+        *ptr = buf;
+        ptr++;
+      }
+    }
+    else
+    {
+      *resultindex = *ptr;
+      ptr++;
+      resultindex++;
+    }
+  }
+
+  *resultindex = 0;
+
+  TRACE_LOG("result expanded value: %s.\n", result);
+  return result;
+}
+
+
+int set_configuration_value(char *key, char* new_unexpanded_value)
 {
   int i;
-  char *ptr, *current_value;
+  char *current_value, *new_value = NULL;
   char buf[BUFSIZE];
   short color_code;
 
   if (key == NULL)
     return -1;
+
+  if (new_unexpanded_value != NULL)
+    if ((new_value = expand_configuration_value(new_unexpanded_value)) == NULL)
+      return -1;
 
   i = 0;
 
@@ -119,14 +243,14 @@ int set_configuration_value(char *key, char* new_value)
         {
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup("random");
+          configuration_options[i].value = new_value;
           seed_random_generator();
         }
         else if (strcasecmp(new_value, "predictable") == 0)
         {
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup("predictable");
+          configuration_options[i].value = new_value;
           seed_random_generator();
         }
         else
@@ -145,28 +269,34 @@ int set_configuration_value(char *key, char* new_value)
           (strcasecmp(key, "command-filename") == 0)
           )
       {
-        ptr = fizmo_strdup(new_value);
         if (configuration_options[i].value != NULL)
           free(configuration_options[i].value);
-        configuration_options[i].value = ptr;
+        configuration_options[i].value = new_value;
         return 0;
       }
       else if (strcasecmp(key, "locale") == 0)
       {
         set_current_locale_name(new_value);
+        free(new_value);
+        return 0;
       }
       else if (strcasecmp(key, "i18n-search-path") == 0)
       {
         // Forward to i18n, since this is in tools and cannot access the
         // "config.c" file.
         set_i18n_search_path(new_value);
+        free(new_value);
         return 0;
       }
       // Color options
       else if (strcasecmp(key, "foreground-color") == 0)
       {
         if ((color_code = color_name_to_z_colour(new_value)) == -1)
+        {
+          free(new_value);
           return -1;
+        }
+        free(new_value);
         if (snprintf(buf, BUFSIZE, "%d", color_code) >= BUFSIZE)
           return -1;
         configuration_options[i].value = fizmo_strdup(buf);
@@ -176,7 +306,11 @@ int set_configuration_value(char *key, char* new_value)
       else if (strcasecmp(key, "background-color") == 0)
       {
         if ((color_code = color_name_to_z_colour(new_value)) == -1)
+        {
+          free(new_value);
           return -1;
+        }
+        free(new_value);
         if (snprintf(buf, BUFSIZE, "%d", color_code) >= BUFSIZE)
           return -1;
         configuration_options[i].value = fizmo_strdup(buf);
@@ -188,6 +322,7 @@ int set_configuration_value(char *key, char* new_value)
       {
         if ((new_value == NULL) || (*new_value == 0) )
         {
+          free(new_value);
           current_value = get_configuration_value("disable-color");
           if ( (current_value != NULL)
               && (strcasecmp(current_value, true_value) == 0) )
@@ -196,12 +331,16 @@ int set_configuration_value(char *key, char* new_value)
           return 0;
         }
         else
+        {
+          free(new_value);
           return -1;
+        }
       }
       else if (strcasecmp(key, "disable-color") == 0)
       {
         if ((new_value == NULL) || (*new_value == 0) )
         {
+          free(new_value);
           current_value = get_configuration_value("enable-color");
           if ( (current_value != NULL)
               && (strcasecmp(current_value, true_value) == 0) )
@@ -210,9 +349,13 @@ int set_configuration_value(char *key, char* new_value)
           return 0;
         }
         else
+        {
+          free(new_value);
           return -1;
+        }
       }
       // Boolean options
+      // FIXME: values.
       else if (
           (strcmp(key, "disable-save") == 0)
           ||
@@ -251,10 +394,9 @@ int set_configuration_value(char *key, char* new_value)
            )
           return -1;
 
-        ptr = fizmo_strdup(new_value);
         if (configuration_options[i].value != NULL)
           free(configuration_options[i].value);
-        configuration_options[i].value = ptr;
+        configuration_options[i].value = new_value;
         return 0;
       }
       else
