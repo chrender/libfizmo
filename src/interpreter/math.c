@@ -264,27 +264,19 @@ void opcode_random(void)
   }
   else if ((int16_t)op[0] < 0)
   {
-    // Seed random generator.
+    // If range is negative, the random number generator is seeded to
+    // that value and the return value is 0.
 
     ptr = get_configuration_value("random-mode");
     if (
         (ptr == NULL)
         ||
-        (
-         (strcmp(ptr, "predictable") != 0)
-         &&
-         (strcmp(ptr, "force-predictable") != 0)
-        )
+        (strcmp(ptr, "predictable") != 0)
         ||
         ((int16_t)op[0] <= -1000)
        )
     {
-      if (
-          (ptr == NULL)
-          ||
-          (strcmp(ptr, "force-predictable") != 0)
-         )
-        init_genrand((unsigned long)(int16_t)op[0]);
+      init_genrand((unsigned long)(int16_t)op[0]);
     }
     else
     {
@@ -298,17 +290,14 @@ void opcode_random(void)
   }
   else
   {
-    // Create random value.
+    // If range is positive, returns a uniformly random number between 1
+    // and range.
 
     ptr = get_configuration_value("random-mode");
     if (
         (ptr == NULL)
         ||
-        (
-         (strcmp(ptr, "predictable") != 0)
-         &&
-         (strcmp(ptr, "force-predictable") != 0)
-        )
+        (strcmp(ptr, "predictable") != 0)
         ||
         (predictable_upper_border >= 1000)
        )

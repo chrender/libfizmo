@@ -1549,8 +1549,12 @@ int save_and_quit_if_required(bool force_save)
   save_and_quit_file
     = get_configuration_value("save-and-quit-file-before-read");
 
+  TRACE_LOG("save_and_quit_file: %s.\n", save_and_quit_file);
+
   if (
       (save_and_quit_file != NULL)
+      &&
+      (strcmp(save_and_quit_file, "true") == 0)
       &&
       (
        (zpu_step_number != 1)

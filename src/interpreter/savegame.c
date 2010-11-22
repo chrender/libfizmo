@@ -648,7 +648,7 @@ void save_game(uint16_t address, uint16_t length, char *filename,
                 active_z_story->story_file_exec_offset,
                 SEEK_SET)) == 0)
         &&
-        (strcmp(get_configuration_value("force-quetzal-umem"), "true") != 0)
+        (strcmp(get_configuration_value("quetzal-umem"), "true") != 0)
        )
     {
       // The original story file is availiable, use CMem.

@@ -707,16 +707,16 @@ static struct z_story *load_z_story(char *input_filename, char *blorb_filename)
   {
     if (
         (active_sound_interface != NULL)
-        &&
-        (strcmp(get_configuration_value("force-8bit-sound"), "true") != 0)
+        //&&
+        //(strcmp(get_configuration_value("force-8bit-sound"), "true") != 0)
        )
       result->memory[1] |= 0x20;
   }
   else if (
       (
        (active_sound_interface == NULL)
-       ||
-       (strcmp(get_configuration_value("force-8bit-sound"), "true") == 0)
+       //||
+       //(strcmp(get_configuration_value("force-8bit-sound"), "true") == 0)
       )
       &&
       (result->version >= 5)
@@ -1026,7 +1026,7 @@ void write_interpreter_info_into_header()
     if (active_interface->is_variable_pitch_font_default() == true)
       z_mem[1] |= 0x40;
 
-    if (strcmp(get_configuration_value("set-tandy-bit"), "true") == 0)
+    if (strcmp(get_configuration_value("set-tandy-flag"), "true") == 0)
       z_mem[1] |= 0x08;
   }
 
@@ -1171,11 +1171,23 @@ static int parse_fizmo_config_file(char *filename)
         value[i] = '\0';
 
         if (
+            (strcasecmp(key, "locale") == 0)
+            ||
             (strcasecmp(key, "savegame-path") == 0)
             ||
             (strcasecmp(key, "transcript-filename") == 0)
             ||
+            (strcasecmp(key, "start-script-when-story-starts") == 0)
+            ||
+            (strcasecmp(key, "sync-transcript") == 0)
+            ||
+            (strcasecmp(key, "start-command-recording-when-story-starts") == 0)
+            ||
             (strcasecmp(key, "command-filename") == 0)
+            ||
+            (strcasecmp(key, "start-file-input-when-story-starts") == 0)
+            ||
+            (strcasecmp(key, "random-mode") == 0)
             ||
             (strcasecmp(key, "foreground-color") == 0)
             ||
@@ -1185,7 +1197,11 @@ static int parse_fizmo_config_file(char *filename)
             ||
             (strcasecmp(key, "disable-color") == 0)
             ||
-            (strcasecmp(key, "locale") == 0)
+            (strcasecmp(key, "quetzal-umem") == 0)
+            ||
+            (strcasecmp(key, "disable-sound") == 0)
+            ||
+            (strcasecmp(key, "set-tandy-flag") == 0)
             )
         {
           TRACE_LOG("New configuration key/value: \"%s\", \"%s\".\n",

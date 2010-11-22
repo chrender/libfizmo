@@ -5,8 +5,8 @@
  libfizmo configuration option names
 
  2010-11-22
- CVS-Id: $Id: configuration-options.txt,v 1.1 2010-11-22 13:24:37 chrender Exp $
- CVS-Revision: $Revision: 1.1 $
+ CVS-Id: $Id: configuration-options.txt,v 1.2 2010-11-22 21:20:12 chrender Exp $
+ CVS-Revision: $Revision: 1.2 $
 
 
 
@@ -83,11 +83,11 @@
  This sets a custom background color. The color name must be one out of
  black, red, green, yellow, blue, magenta, cyan and white.
 
- force-enable-color
+ enable-color
  Force libfizmo to enable color mode, even if the output interface reports
  that it cannot handle color.
 
- force-disable-color
+ disable-color
  Force libfizmo to disabled color mode, even if the output interface reports
  that color is available.
 
