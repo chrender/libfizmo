@@ -68,7 +68,8 @@
 #define Z_STYLE_FIXED_PITCH 8
 
 #define bool_equal(a,b) ((a) ? (b) : !(b))
-#define FIZMO_UNIQUE_EXIT_CODE(a) a
+//#define FIZMO_UNIQUE_EXIT_CODE(filecode) (-(((filecode) << 16) | __LINE__))
+//#define FIZMO_UNIQUE_EXIT_CODE(filecode) (__LINE__)
 
 #define NOF_Z_COLOURS 8
 

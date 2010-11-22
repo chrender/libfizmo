@@ -108,7 +108,7 @@ static int i18n_send_output(z_ucs *z_ucs_data, int output_mode,
   }
   else
   {
-    return FIZMO_UNIQUE_EXIT_CODE(-1);
+    return -1;
   }
 }
 
@@ -719,7 +719,7 @@ static long i18n_translate_from_va_list(z_ucs *module_name, int string_code,
   index = module->messages[string_code];
 
   if (index == NULL)
-    return FIZMO_UNIQUE_EXIT_CODE(-1);
+    return -1;
 
   TRACE_LOG("Translating string code %d at %p.\n", string_code, index);
 
@@ -801,7 +801,7 @@ static long i18n_translate_from_va_list(z_ucs *module_name, int string_code,
           module->messages[string_code],
           output_mode,
           (string_target != NULL ? &string_target : NULL)) != 0)
-      return FIZMO_UNIQUE_EXIT_CODE(-1);
+      return -1;
     else
       return z_ucs_len(module->messages[string_code]);
   }
