@@ -68,7 +68,7 @@
 #include "blockbuf.h"
 #endif // DISABLE_BLOCKBUFFER
 
-#define MAX_CONFIG_OPTION_LENGTH 40
+#define MAX_CONFIG_OPTION_LENGTH 240
 
 
 struct z_story *active_z_story;
@@ -1153,11 +1153,12 @@ static int parse_fizmo_config_file(char *filename)
 
       if (c == '=')
       {
-        c = fgetc(config_file);
-        while ( (c != '\n') && (c != EOF) )
+        do
+          c = fgetc(config_file);
+        while (c == ' ');
+        while ( (c != '\n') && (c != EOF) && (i < MAX_CONFIG_OPTION_LENGTH-1) )
         {
-          if ( (i < MAX_CONFIG_OPTION_LENGTH-1) && (!((i == 0) && (c == ' '))) )
-            value[i++] = (char)c;
+          value[i++] = (char)c;
           c = fgetc(config_file);
         }
 
