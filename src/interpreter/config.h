@@ -88,6 +88,8 @@
 /*@external@*/ extern bool auto_adapt_upper_window;
 /*@external@*/ extern bool auto_open_upper_window;
 /*@external@*/ extern bool skip_active_routines_stack_check_warning;
+extern char true_value[];
+extern char false_value[];
 #endif /* config_c_INCLUDED */
 
 int set_configuration_value(char *key, char* new_value);
