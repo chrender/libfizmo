@@ -117,6 +117,8 @@ static char *expand_configuration_value(char *unexpanded_value)
   if (unexpanded_value == NULL)
     return NULL;
 
+  TRACE_LOG("Value to expand: \"%s\".\n", unexpanded_value);
+
   if (homedir == NULL)
   {
     pw_entry = getpwuid(getuid());
@@ -144,7 +146,7 @@ static char *expand_configuration_value(char *unexpanded_value)
         buf = *ptr;
         *ptr = 0;
 
-        if (strcasecmp(var_name, "HOME") == 0)
+        if (strcmp(var_name, "HOME") == 0)
         {
           resultlen += strlen(homedir);
         }
@@ -188,7 +190,7 @@ static char *expand_configuration_value(char *unexpanded_value)
         buf = *ptr;
         *ptr = 0;
 
-        if (strcasecmp(var_name, "HOME") == 0)
+        if (strcmp(var_name, "HOME") == 0)
         {
           strcpy(resultindex, homedir);
           resultindex += homedir_len;
@@ -213,7 +215,7 @@ static char *expand_configuration_value(char *unexpanded_value)
 
   *resultindex = 0;
 
-  TRACE_LOG("result expanded value: %s.\n", result);
+  TRACE_LOG("result expanded value: %s / %p.\n", result, result);
   return result;
 }
 
@@ -232,43 +234,55 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
     if ((new_value = expand_configuration_value(new_unexpanded_value)) == NULL)
       return -1;
 
+#ifdef ENABLE_TRACING
+  TRACE_LOG("Setting configuration key \"%s\".\n", key);
+  if (new_value != NULL)
+  {
+    TRACE_LOG("New value: %s at %p.\n", new_value, new_value);
+  }
+#endif //ENABLE_TRACING
+
   i = 0;
 
   while (configuration_options[i].name != NULL)
   {
+    TRACE_LOG("i:%d, name:%s.\n", i, configuration_options[i].name);
 
     if (strcmp(configuration_options[i].name, key) == 0)
     {
       // Parse option values which cannot be simply copied:
 
-      if (strcasecmp(key, "locale") == 0)
+      if (strcmp(key, "locale") == 0)
       {
-        set_current_locale_name(new_value);
+        return_code = set_current_locale_name(new_value);
         free(new_value);
-        return 0;
+        return return_code;
       }
-      else if (strcasecmp(key, "random-mode") == 0)
+      else if (strcmp(key, "random-mode") == 0)
       {
         if (new_value == NULL)
           return -1;
-        else if (strcasecmp(new_value, "random") == 0)
+        else if (strcmp(new_value, "random") == 0)
         {
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
           configuration_options[i].value = new_value;
           seed_random_generator();
+          return 0;
         }
-        else if (strcasecmp(new_value, "predictable") == 0)
+        else if (strcmp(new_value, "predictable") == 0)
         {
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
           configuration_options[i].value = new_value;
+          TRACE_LOG("stored value: %p.\n", configuration_options[i].value);
           seed_random_generator();
+          return 0;
         }
         else
           return -1;
       }
-      else if (strcasecmp(key, "i18n-search-path") == 0)
+      else if (strcmp(key, "i18n-search-path") == 0)
       {
         // Forward to i18n, since this is in tools and cannot access the
         // "config.c" file.
@@ -279,13 +293,13 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
 
       // Options for values which can simply be copied.
       else if (
-          (strcasecmp(key, "z-code-path") == 0)
+          (strcmp(key, "z-code-path") == 0)
           ||
-          (strcasecmp(key, "savegame-path") == 0)
+          (strcmp(key, "savegame-path") == 0)
           ||
-          (strcasecmp(key, "transcript-filename") == 0)
+          (strcmp(key, "transcript-filename") == 0)
           ||
-          (strcasecmp(key, "command-filename") == 0)
+          (strcmp(key, "command-filename") == 0)
           )
       {
         if (configuration_options[i].value != NULL)
@@ -295,7 +309,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
       }
 
       // Color options
-      else if (strcasecmp(key, "foreground-color") == 0)
+      else if (strcmp(key, "foreground-color") == 0)
       {
         if ((color_code = color_name_to_z_colour(new_value)) == -1)
         {
@@ -309,7 +323,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
         default_foreground_colour = color_code;
         return 0;
       }
-      else if (strcasecmp(key, "background-color") == 0)
+      else if (strcmp(key, "background-color") == 0)
       {
         if ((color_code = color_name_to_z_colour(new_value)) == -1)
         {
@@ -325,24 +339,24 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
       }
 
       // Non-primitive boolean options
-      else if (strcasecmp(key, "enable-color") == 0)
+      else if (strcmp(key, "enable-color") == 0)
       {
         if (
             (new_value == NULL)
             ||
             (*new_value == 0)
             ||
-            (strcasecmp(new_value, true_value) == 0)
+            (strcmp(new_value, true_value) == 0)
            )
         {
           free(new_value);
           current_value = get_configuration_value("disable-color");
-          if (strcasecmp(current_value, true_value) == 0)
+          if (strcmp(current_value, true_value) == 0)
             return -1;
           configuration_options[i].value = fizmo_strdup(true_value);
           return 0;
         }
-        else if ((new_value != NULL) && (strcasecmp(new_value, false_value)==0))
+        else if ((new_value != NULL) && (strcmp(new_value, false_value)==0))
         {
           free(new_value);
           if (configuration_options[i].value != NULL)
@@ -356,24 +370,24 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           return -1;
         }
       }
-      else if (strcasecmp(key, "disable-color") == 0)
+      else if (strcmp(key, "disable-color") == 0)
       {
         if (
             (new_value == NULL)
             ||
             (*new_value == 0)
             ||
-            (strcasecmp(new_value, true_value) == 0)
+            (strcmp(new_value, true_value) == 0)
            )
         {
           free(new_value);
           current_value = get_configuration_value("enable-color");
-          if (strcasecmp(current_value, true_value) == 0)
+          if (strcmp(current_value, true_value) == 0)
             return -1;
           configuration_options[i].value = fizmo_strdup(true_value);
           return 0;
         }
-        else if ((new_value != NULL) && (strcasecmp(new_value, false_value)==0))
+        else if ((new_value != NULL) && (strcmp(new_value, false_value)==0))
         {
           free(new_value);
           if (configuration_options[i].value != NULL)
@@ -390,35 +404,35 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
 
       // Boolean options
       else if (
-          (strcasecmp(key, "save-and-quit-file-before-read") == 0)
+          (strcmp(key, "save-and-quit-file-before-read") == 0)
           ||
-          (strcasecmp(key, "disable-save") == 0)
+          (strcmp(key, "disable-save") == 0)
           ||
-          (strcasecmp(key, "disable-restore") == 0)
+          (strcmp(key, "disable-restore") == 0)
           ||
-          (strcasecmp(key, "restore-after-save-and-quit-file-before-read") == 0)
+          (strcmp(key, "restore-after-save-and-quit-file-before-read") == 0)
           ||
-          (strcasecmp(key, "disable-external-streams") == 0)
+          (strcmp(key, "disable-external-streams") == 0)
           ||
-          (strcasecmp(key, "start-script-when-story-starts") == 0)
+          (strcmp(key, "start-script-when-story-starts") == 0)
           ||
-          (strcasecmp(key, "disable-sound") == 0)
+          (strcmp(key, "disable-sound") == 0)
           ||
-          (strcasecmp(key, "enable-font3-conversion") == 0)
+          (strcmp(key, "enable-font3-conversion") == 0)
           ||
-          (strcasecmp(key, "sync-transcript") == 0)
+          (strcmp(key, "sync-transcript") == 0)
           ||
-          (strcasecmp(key, "start-command-recording-when-story-starts") == 0)
+          (strcmp(key, "start-command-recording-when-story-starts") == 0)
           ||
-          (strcasecmp(key, "command-filename") == 0)
+          (strcmp(key, "command-filename") == 0)
           ||
-          (strcasecmp(key, "start-file-input-when-story-starts") == 0)
+          (strcmp(key, "start-file-input-when-story-starts") == 0)
           ||
-          (strcasecmp(key, "random-mode") == 0)
+          (strcmp(key, "random-mode") == 0)
           ||
-          (strcasecmp(key, "quetzal-umem") == 0)
+          (strcmp(key, "quetzal-umem") == 0)
           ||
-          (strcasecmp(key, "set-tandy-flag") == 0)
+          (strcmp(key, "set-tandy-flag") == 0)
           )
       {
         if (
@@ -426,7 +440,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
             ||
             (*new_value == 0)
             ||
-            (strcasecmp(new_value, true_value) == 0)
+            (strcmp(new_value, true_value) == 0)
            )
         {
           if (new_value != NULL)
@@ -436,7 +450,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           configuration_options[i].value = fizmo_strdup(true_value);
           return 0;
         }
-        else if ((new_value != NULL) && (strcasecmp(new_value, false_value)==0))
+        else if ((new_value != NULL) && (strcmp(new_value, false_value)==0))
         {
           free(new_value);
           if (configuration_options[i].value != NULL)
@@ -486,43 +500,45 @@ char *get_configuration_value(char *key)
   {
     while (configuration_options[i].name != NULL)
     {
+      TRACE_LOG("i:%d, name:%s.\n", i, configuration_options[i].name);
+
       if (strcmp(configuration_options[i].name, key) == 0)
       {
         // Boolean options
         if (
-            (strcasecmp(key, "save-and-quit-file-before-read") == 0)
+            (strcmp(key, "save-and-quit-file-before-read") == 0)
             ||
-            (strcasecmp(key, "disable-save") == 0)
+            (strcmp(key, "disable-save") == 0)
             ||
-            (strcasecmp(key, "disable-restore") == 0)
+            (strcmp(key, "disable-restore") == 0)
             ||
-            (strcasecmp(key, "restore-after-save-and-quit-file-before-read")==0)
+            (strcmp(key, "restore-after-save-and-quit-file-before-read")==0)
             ||
-            (strcasecmp(key, "disable-external-streams") == 0)
+            (strcmp(key, "disable-external-streams") == 0)
             ||
-            (strcasecmp(key, "start-script-when-story-starts") == 0)
+            (strcmp(key, "start-script-when-story-starts") == 0)
             ||
-            (strcasecmp(key, "disable-sound") == 0)
+            (strcmp(key, "disable-sound") == 0)
             ||
-            (strcasecmp(key, "enable-font3-conversion") == 0)
+            (strcmp(key, "enable-font3-conversion") == 0)
             ||
-            (strcasecmp(key, "sync-transcript") == 0)
+            (strcmp(key, "sync-transcript") == 0)
             ||
-            (strcasecmp(key, "start-command-recording-when-story-starts") == 0)
+            (strcmp(key, "start-command-recording-when-story-starts") == 0)
             ||
-            (strcasecmp(key, "command-filename") == 0)
+            (strcmp(key, "command-filename") == 0)
             ||
-            (strcasecmp(key, "start-file-input-when-story-starts") == 0)
+            (strcmp(key, "start-file-input-when-story-starts") == 0)
             ||
-            (strcasecmp(key, "random-mode") == 0)
+            (strcmp(key, "random-mode") == 0)
             ||
-            (strcasecmp(key, "quetzal-umem") == 0)
+            (strcmp(key, "quetzal-umem") == 0)
             ||
-            (strcasecmp(key, "set-tandy-flag") == 0)
+            (strcmp(key, "set-tandy-flag") == 0)
             ||
-            (strcasecmp(key, "enable-color") == 0)
+            (strcmp(key, "enable-color") == 0)
             ||
-            (strcasecmp(key, "disable-color") == 0)
+            (strcmp(key, "disable-color") == 0)
            )
         {
           if (configuration_options[i].value == NULL)
@@ -536,32 +552,41 @@ char *get_configuration_value(char *key)
             return configuration_options[i].value;
           }
         }
-      }
 
-      // String options
-      else if (
-          (strcasecmp(key, "locale") == 0)
-          ||
-          (strcasecmp(key, "random-mode") == 0)
-          ||
-          (strcasecmp(key, "z-code-path") == 0)
-          ||
-          (strcasecmp(key, "savegame-path") == 0)
-          ||
-          (strcasecmp(key, "transcript-filename") == 0)
-          ||
-          (strcasecmp(key, "command-filename") == 0)
-          ||
-          (strcasecmp(key, "foreground-color") == 0)
-          ||
-          (strcasecmp(key, "background-color") == 0)
-         )
-      {
-        return configuration_options[i].value;
+        // String options
+        else if (
+            (strcmp(key, "locale") == 0)
+            ||
+            (strcmp(key, "random-mode") == 0)
+            ||
+            (strcmp(key, "z-code-path") == 0)
+            ||
+            (strcmp(key, "savegame-path") == 0)
+            ||
+            (strcmp(key, "transcript-filename") == 0)
+            ||
+            (strcmp(key, "command-filename") == 0)
+            ||
+            (strcmp(key, "foreground-color") == 0)
+            ||
+            (strcmp(key, "background-color") == 0)
+            )
+        {
+          TRACE_LOG("Returning value at %p.\n", configuration_options[i].value);
+          return configuration_options[i].value;
+        }
+
+        else
+        {
+          TRACE_LOG("Unknown config key: \"%s\".", key);
+          return NULL;
+        }
       }
 
       i++;
     }
+
+    TRACE_LOG("Unknown config key: \"%s\".", key);
     return NULL;
   }
 }
