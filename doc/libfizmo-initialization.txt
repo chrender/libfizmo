@@ -3,10 +3,7 @@
 
 
  libfizmo initialization
-
  2010-11-22
- CVS-Id: $Id: libfizmo-initialization.txt,v 1.1 2010-11-22 13:24:37 chrender Exp $
- CVS-Revision: $Revision: 1.1 $
 
 
 
@@ -31,3 +28,8 @@
     XDG_CONFIG_DIRS path.
  3. $HOME/.config.fizmo
 
+
+ ---------
+
+ CVS-Id: $Id: libfizmo-initialization.txt,v 1.2 2010-11-29 08:30:53 chrender Exp $
+ CVS-Revision: $Revision: 1.2 $

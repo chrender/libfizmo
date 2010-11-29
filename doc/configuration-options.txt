@@ -3,10 +3,7 @@
 
 
  libfizmo configuration option names
-
  2010-11-22
- CVS-Id: $Id: configuration-options.txt,v 1.2 2010-11-22 21:20:12 chrender Exp $
- CVS-Revision: $Revision: 1.2 $
 
 
 
@@ -113,4 +110,8 @@
  [1] Z-Maschine-Specification
      http://www.gnelson.demon.co.uk/zspec/
 
+ ---------
+
+ CVS-Id: $Id: configuration-options.txt,v 1.3 2010-11-29 08:30:53 chrender Exp $
+ CVS-Revision: $Revision: 1.3 $
 
