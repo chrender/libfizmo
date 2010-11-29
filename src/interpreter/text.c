@@ -1403,6 +1403,12 @@ static bool process_interpreter_command()
 
     i18n_translate(
         libfizmo_module_name,
+        i18n_libfizmo_STORY_HAS_Z_VERSION_NUMBER_P0D,
+        (long int)active_z_story->version);
+    streams_latin1_output("\n");
+
+    i18n_translate(
+        libfizmo_module_name,
         i18n_libfizmo_STORY_RELEASE_NUMBER,
         (long int)active_z_story->release_code);
     streams_latin1_output("\n");
@@ -1452,12 +1458,12 @@ static bool process_interpreter_command()
         (void)i18n_translate(
             libfizmo_module_name,
             i18n_libfizmo_RANDOM_GENERATOR_IS_NOW_IN_PREDICTABLE_MODE);
-      else if (strcmp(ptr, "random") == 0)
+      else
         (void)i18n_translate(
             libfizmo_module_name,
             i18n_libfizmo_RANDOM_GENERATOR_IS_NOW_IN_RANDOM_MODE);
+      (void)streams_latin1_output("\n");
     }
-    (void)streams_latin1_output("\n");
 
     /*
 #ifndef DISABLE_OUTPUT_HISTORY
