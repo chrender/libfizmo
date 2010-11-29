@@ -53,8 +53,8 @@ Aktuelle Z-Stack-Größe: \{0d} Enträge.
 Z-Stack Einträge in Benutzung: \{0d}.
 Unterlauf-Überprüfung für Routinenstack deaktiviert.
 \{0d} Bytes werden von Undo benutzt.
-\{0d} bytes von Texthistorie belegt.
-\{0d} bytes für Blockbuffer verwendet.
+\{0d} Bytes von Texthistorie belegt.
+\{0d} Bytes für Blockbuffer verwendet.
 Interface „\{0s}“ unterstützt keinen Preloaded Input.
 Interface „\{0s}“ unterstützt keinen Timed Input.
 Bitte geben Sie den Dateinamen für das gespeicherte Spiel ein.
@@ -77,3 +77,4 @@ Opcode JE mit nur einem Operand ist nicht gültig.
 Funktionsaufruf time() lieferte -1.
 Unbekannte Konfigurationsoption „\{0s}“.
 Ungültiger Wert „\{0s}“ for Parameters „\{1s}“.
+Story hat Z-Versionsnummer \{0d}.

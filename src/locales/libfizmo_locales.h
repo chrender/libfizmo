@@ -112,6 +112,7 @@
 #define i18n_libfizmo_FUNCTION_CALL_TIME_RETURNED_NEG_1 76
 #define i18n_libfizmo_UNKNOWN_CONFIGURATION_OPTION_P0S 77
 #define i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S 78
+#define i18n_libfizmo_STORY_HAS_Z_VERSION_NUMBER_P0D 79
 
 extern z_ucs libfizmo_module_name[];
 extern z_ucs default_locale_name[];
