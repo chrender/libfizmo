@@ -155,6 +155,8 @@ void destroy_outputhistory(OUTPUTHISTORY *history);
 void store_z_ucs_output_in_history(OUTPUTHISTORY *history,
     z_ucs *z_ucs_output);
 int store_metadata_in_history(OUTPUTHISTORY *history, int metadata_type, ...);
+void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
+    bool evaluate_state_block);
 int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars);
 z_ucs *get_current_line(OUTPUTHISTORY *history);
 history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t);

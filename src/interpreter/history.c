@@ -324,7 +324,7 @@ static void write_metadata_state_block_if_necessary(OUTPUTHISTORY *h)
 }
 
 
-static void store_zucs_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
+void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
     bool evaluate_state_block)
 {
   size_t space_available, missing_space, nof_increments, new_size;
@@ -334,9 +334,11 @@ static void store_zucs_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
     return;
 
   TRACE_LOG("Trying to store %ld z_ucs-chars in history.\n", (long int)len);
+  /*  Not usable, since data doesn't have to be null-terminated.
   TRACE_LOG("store_history: \"");
   TRACE_LOG_Z_UCS(data);
   TRACE_LOG("\".\n");
+  */
 
   if (len >= h->z_history_maximum_buffer_size)
   {
@@ -541,7 +543,7 @@ void store_z_ucs_output_in_history(OUTPUTHISTORY *h, z_ucs *z_ucs_output)
   if ((len = z_ucs_len(z_ucs_output)) == 0)
     return;
 
-  store_zucs_in_history(h, z_ucs_output, len, true);
+  store_data_in_history(h, z_ucs_output, len, true);
 
   cl = get_current_line(h);
   TRACE_LOG("currentline:|");
@@ -633,7 +635,7 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
 
   va_end(ap);
 
-  store_zucs_in_history(h, output_buffer, len, false);
+  store_data_in_history(h, output_buffer, len, false);
 
   return 0;
 }
