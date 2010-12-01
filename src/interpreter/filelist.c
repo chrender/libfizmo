@@ -1375,11 +1375,13 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
   if (fizmo_dir != NULL)
     nof_files_found += count_files(fizmo_dir, false);
 
+  /*
   if ((str = getenv("ZCODE_PATH")) == NULL)
     str = getenv("INFOCOM_PATH");
 
   if (str != NULL)
     set_configuration_value("z-code-path", str);
+    */
 
   if ((str = get_configuration_value("z-code-path")) != NULL)
   {
@@ -1391,7 +1393,7 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
     }
   }
 
-  if ((str = getenv("ZCODE_ROOT_PATH")) != NULL)
+  if ((str = get_configuration_value("z-code-root-path")) != NULL)
   {
     path = strtok(str, ":");
     while (path != NULL)
@@ -1413,6 +1415,7 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
   if (fizmo_dir != NULL)
     build_filelist(fizmo_dir, result, false, babel);
 
+  /*
   if ((str = getenv("ZCODE_PATH")) == NULL)
     str = getenv("INFOCOM_PATH");
 
@@ -1438,6 +1441,7 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
       path = strtok(NULL, ":");
     }
   }
+  */
 
   if (show_progress == true)
     printf("\n");
