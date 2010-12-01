@@ -182,18 +182,18 @@ int start_new_chunk(char *id, FILE *iff_file)
 }
 
 
-static int write_chunk_length(uint32_t chunk_length, FILE *iff_file)
+int write_four_byte_number(uint32_t number, FILE *iff_file)
 {
-  if (fputc((int)(chunk_length >> 24), iff_file) == EOF)
+  if (fputc((int)(number >> 24), iff_file) == EOF)
     return -1;
 
-  if (fputc((int)(chunk_length >> 16), iff_file) == EOF)
+  if (fputc((int)(number >> 16), iff_file) == EOF)
     return -1;
 
-  if (fputc((int)(chunk_length >>  8), iff_file) == EOF)
+  if (fputc((int)(number >>  8), iff_file) == EOF)
     return -1;
 
-  if (fputc((int)(chunk_length      ), iff_file) == EOF)
+  if (fputc((int)(number      ), iff_file) == EOF)
     return -1;
 
   return 0;
@@ -232,7 +232,7 @@ int end_current_chunk(FILE *iff_file)
     return -1;
 
   TRACE_LOG("Writing chunk length %d.\n", chunk_length_uint32_t);
-  if (write_chunk_length(chunk_length_uint32_t, iff_file) == -1)
+  if (write_four_byte_number(chunk_length_uint32_t, iff_file) == -1)
     return -1;
 
   TRACE_LOG("Seeking end of file.\n");
@@ -266,7 +266,7 @@ int close_simple_iff_file(FILE *iff_file)
   if (fseek(iff_file, 4, SEEK_SET) == -1)
     return -1;
 
-  if (write_chunk_length(length_uint32_t, iff_file) == -1)
+  if (write_four_byte_number(length_uint32_t, iff_file) == -1)
     return -1;
 
   if (fclose(iff_file) == EOF)
