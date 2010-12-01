@@ -60,13 +60,6 @@ char false_value[] = "false";
 char empty_string[] = "";
 
 
-struct configuration_option
-{
-  char *name;
-  char *value;
-};
-
-
 struct configuration_option configuration_options[] = {
 
   // String values:
@@ -79,6 +72,8 @@ struct configuration_option configuration_options[] = {
   { "savegame-path", NULL },
   { "transcript-filename", NULL },
   { "z-code-path", NULL },
+  { "z-code-root-path", NULL },
+  { "save-text-history-paragraphs", NULL },
 
   // Boolean values:
   { "disable-color", NULL },
@@ -220,6 +215,27 @@ static char *expand_configuration_value(char *unexpanded_value)
 }
 
 
+int append_path_value(char *key, char *value_to_append)
+{
+  char *str, *str2;
+  int result;
+
+  if ((str = get_configuration_value(key)) != NULL)
+  {
+    str2 = fizmo_malloc(strlen(str) + strlen(value_to_append) + 2);
+    strcpy(str2, str);
+    strcat(str2, ":");
+    strcat(str2, value_to_append);
+    TRACE_LOG("Appended path: %s.\n", str2);
+    result = set_configuration_value(key, str2);
+    free(str2);
+    return result;
+  }
+  else
+    return set_configuration_value(key, value_to_append);
+}
+
+
 int set_configuration_value(char *key, char* new_unexpanded_value)
 {
   int i, return_code;
@@ -295,9 +311,13 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
       else if (
           (strcmp(key, "z-code-path") == 0)
           ||
+          (strcmp(key, "z-code-root-path") == 0)
+          ||
           (strcmp(key, "savegame-path") == 0)
           ||
           (strcmp(key, "transcript-filename") == 0)
+          ||
+          (strcmp(key, "save-text-history-paragraphs") == 0)
           ||
           (strcmp(key, "command-filename") == 0)
           )
@@ -496,6 +516,10 @@ char *get_configuration_value(char *key)
     // "config.c" file.
     return get_i18n_search_path();
   }
+  else if (strcmp(key, "locale") == 0)
+  {
+    return get_current_locale_name_in_utf8();
+  }
   else
   {
     while (configuration_options[i].name != NULL)
@@ -555,11 +579,11 @@ char *get_configuration_value(char *key)
 
         // String options
         else if (
-            (strcmp(key, "locale") == 0)
-            ||
             (strcmp(key, "random-mode") == 0)
             ||
             (strcmp(key, "z-code-path") == 0)
+            ||
+            (strcmp(key, "z-code-root-path") == 0)
             ||
             (strcmp(key, "savegame-path") == 0)
             ||
@@ -568,6 +592,8 @@ char *get_configuration_value(char *key)
             (strcmp(key, "command-filename") == 0)
             ||
             (strcmp(key, "foreground-color") == 0)
+            ||
+            (strcmp(key, "save-text-history-paragraphs") == 0)
             ||
             (strcmp(key, "background-color") == 0)
             )

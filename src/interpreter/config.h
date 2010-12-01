@@ -83,16 +83,24 @@
 
 //#define THROW_SIGFAULT_ON_ERROR 1
 
+struct configuration_option
+{
+  char *name;
+  char *value;
+};
+
 #ifndef config_c_INCLUDED 
-/*@external@*/ extern int system_charset;
-/*@external@*/ extern bool auto_adapt_upper_window;
-/*@external@*/ extern bool auto_open_upper_window;
-/*@external@*/ extern bool skip_active_routines_stack_check_warning;
+extern int system_charset;
+extern bool auto_adapt_upper_window;
+extern bool auto_open_upper_window;
+extern bool skip_active_routines_stack_check_warning;
 extern char true_value[];
 extern char false_value[];
+extern struct configuration_option configuration_options[];
 #endif /* config_c_INCLUDED */
 
 int set_configuration_value(char *key, char* new_value);
+int append_path_value(char *key, char *value_to_append);
 char *get_configuration_value(char *key);
 //char **get_valid_configuration_options(char *key, ...);
 
