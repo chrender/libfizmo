@@ -115,6 +115,8 @@ struct z_screen_interface
   void (*erase_line_pixels)(uint16_t start_position);
   void (*output_interface_info)();
   bool (*input_must_be_repeated_by_story)();
+  void (*game_was_restored_and_history_modified)(); // interface might want
+  // to redraw the screen
 };
 
 #endif /* screen_interface_h_INCLUDED */
