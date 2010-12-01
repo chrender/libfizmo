@@ -56,6 +56,8 @@
 #include "config.h"
 #include "../locales/libfizmo_locales.h"
 
+#define HISTORY_BUFFER_INPUT_SIZE 1024
+
 
 z_ucs last_savegame_filename[MAXIMUM_SAVEGAME_NAME_LENGTH + 1];
 static zscii current_savegame_filename_buffer[MAXIMUM_SAVEGAME_NAME_LENGTH + 1];
@@ -421,6 +423,13 @@ static int _handle_save_or_restore_failure(bool evaluate_result,
 }
 
 
+int get_paragraph_save_amount()
+{
+  return strtol(
+      get_configuration_value("save-text-history-paragraphs"), NULL, 10);
+}
+
+
 void save_game(uint16_t address, uint16_t length, char *filename,
     bool skip_asking_for_filename, bool evaluate_result, char *directory)
 {
@@ -433,6 +442,12 @@ void save_game(uint16_t address, uint16_t length, char *filename,
   uint8_t *ptr;
   int data2; // removeme
   char *str;
+#ifndef DISABLE_OUTPUT_HISTORY
+  z_ucs *hst_ptr;
+  int nof_paragraphs_to_save;
+  history_output *history;
+  int return_code;
+#endif // DISABLE_OUTPUT_HISTORY
 
   TRACE_LOG("Save %d bytes from address %d.\n", length, address);
   TRACE_LOG("PC at: %x.\n", pc_on_restore);
@@ -831,6 +846,80 @@ void save_game(uint16_t address, uint16_t length, char *filename,
       return;
     }
 
+    nof_paragraphs_to_save = get_paragraph_save_amount();
+
+#ifndef DISABLE_OUTPUT_HISTORY
+    if (
+        (nof_paragraphs_to_save > 0)
+        &&
+        (outputhistory[0] != NULL)
+        &&
+        (outputhistory[0]->z_history_buffer_size > 0)
+       )
+    {
+      history = init_history_output(outputhistory[0], NULL);
+
+      do
+      {
+        return_code = output_rewind_paragraph(history);
+        nof_paragraphs_to_save--;
+      }
+      while ( (nof_paragraphs_to_save > 0) && (return_code == 0) );
+
+      if (start_new_chunk("TxHs", save_file) != 0)
+      {
+        _handle_save_or_restore_failure(
+            evaluate_result,
+            i18n_libfizmo_ERROR_WRITING_SAVE_FILE,
+            save_file);
+        return;
+      }
+
+      hst_ptr = history->current_paragraph_index;
+
+      if (hst_ptr < outputhistory[0]->z_history_buffer_back_index)
+      {
+        while (hst_ptr != outputhistory[0]->z_history_buffer_end)
+        {
+          if (write_four_byte_number(*hst_ptr, save_file) != 0)
+          {
+            _handle_save_or_restore_failure(
+                evaluate_result,
+                i18n_libfizmo_ERROR_WRITING_SAVE_FILE,
+                save_file);
+            return;
+          }
+
+          hst_ptr++;
+        }
+
+        hst_ptr = outputhistory[0]->z_history_buffer_start;
+      }
+
+      while (hst_ptr != outputhistory[0]->z_history_buffer_front_index)
+      {
+        if (write_four_byte_number(*hst_ptr, save_file) != 0)
+        {
+          _handle_save_or_restore_failure(
+              evaluate_result,
+              i18n_libfizmo_ERROR_WRITING_SAVE_FILE,
+              save_file);
+          return;
+        }
+
+        hst_ptr++;
+      }
+
+      if (end_current_chunk(save_file) != 0)
+      {
+        _handle_save_or_restore_failure(evaluate_result,
+            i18n_libfizmo_ERROR_WRITING_SAVE_FILE,
+            save_file);
+        return;
+      }
+    }
+#endif // DISABLE_OUTPUT_HISTORY
+
     if (close_simple_iff_file(save_file) != -0)
     {
       _handle_save_or_restore_failure(evaluate_result,
@@ -951,6 +1040,14 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
   uint16_t last_stack_frame_nof_functions_stack_words = 0;
   char *str;
   int i;
+#ifndef DISABLE_OUTPUT_HISTORY
+  z_ucs history_buffer[HISTORY_BUFFER_INPUT_SIZE];
+  int history_input_index;
+  int nof_paragraphs_to_save;
+#ifdef ENABLE_TRACING
+  z_ucs zucs_char_buffer[2];
+#endif // ENABLE_TRACING
+#endif // DISABLE_OUTPUT_HISTORY
 
   TRACE_LOG("Restore %d bytes to address %d.\n", length, address);
 
@@ -1428,6 +1525,67 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
     number_of_stack_frames++;
   }
   TRACE_LOG("Number of stack frames: %d.\n", number_of_stack_frames);
+  nof_paragraphs_to_save = get_paragraph_save_amount();
+
+#ifndef DISABLE_OUTPUT_HISTORY
+  if (
+      (nof_paragraphs_to_save > 0)
+      &&
+      (outputhistory[0] != NULL)
+      &&
+      (find_chunk("TxHs", iff_file) == 0)
+     )
+  {
+    if (read_chunk_length(iff_file) == -1)
+    {
+      free(restored_story_mem);
+      return _handle_save_or_restore_failure(evaluate_result,
+          i18n_libfizmo_CANT_READ_CHUNK_LENGTH, iff_file);
+    }
+
+    chunk_length = get_last_chunk_length();
+    TRACE_LOG("saved history size: %d bytes.\n", chunk_length);
+
+#ifdef ENABLE_TRACING
+    zucs_char_buffer[1] = 0;
+    i = 0;
+#endif // ENABLE_TRACING
+
+    if (chunk_length > 0)
+    {
+      history_input_index = 0;
+      while (chunk_length != 0)
+      {
+        history_buffer[history_input_index]
+          = (z_ucs)read_four_byte_number(iff_file);
+
+#ifdef ENABLE_TRACING
+        zucs_char_buffer[0] = history_buffer[history_input_index];
+        TRACE_LOG("read char %d: \"", i);
+        TRACE_LOG_Z_UCS(zucs_char_buffer);
+        TRACE_LOG("\"\n");
+        i++;
+#endif // ENABLE_TRACING
+
+        chunk_length -= 4;
+        history_input_index++;
+
+        if (
+            (history_input_index == HISTORY_BUFFER_INPUT_SIZE - 1)
+            ||
+            (chunk_length == 0)
+           )
+        {
+          store_data_in_history(
+              outputhistory[0], history_buffer, history_input_index, true);
+          history_input_index = 0;
+        }
+      }
+
+      //active_interface->game_was_restored_and_history_modified();
+    }
+  }
+#endif // DISABLE_OUTPUT_HISTORY
 
   if (fclose(iff_file) != 0)
     i18n_translate_and_exit(
