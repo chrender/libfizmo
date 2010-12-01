@@ -1170,48 +1170,60 @@ static int parse_fizmo_config_file(char *filename)
       {
         value[i] = '\0';
 
+        TRACE_LOG("Incoming config key: \"%s\".\n", key);
+
         if (
-            (strcasecmp(key, "locale") == 0)
+            (strcmp(key, "locale") == 0)
             ||
-            (strcasecmp(key, "savegame-path") == 0)
+            (strcmp(key, "savegame-path") == 0)
             ||
-            (strcasecmp(key, "transcript-filename") == 0)
+            (strcmp(key, "transcript-filename") == 0)
             ||
-            (strcasecmp(key, "start-script-when-story-starts") == 0)
+            (strcmp(key, "start-script-when-story-starts") == 0)
             ||
-            (strcasecmp(key, "sync-transcript") == 0)
+            (strcmp(key, "sync-transcript") == 0)
             ||
-            (strcasecmp(key, "start-command-recording-when-story-starts") == 0)
+            (strcmp(key, "save-text-history-paragraphs") == 0)
             ||
-            (strcasecmp(key, "command-filename") == 0)
+            (strcmp(key, "start-command-recording-when-story-starts") == 0)
             ||
-            (strcasecmp(key, "start-file-input-when-story-starts") == 0)
+            (strcmp(key, "command-filename") == 0)
             ||
-            (strcasecmp(key, "random-mode") == 0)
+            (strcmp(key, "start-file-input-when-story-starts") == 0)
             ||
-            (strcasecmp(key, "foreground-color") == 0)
+            (strcmp(key, "random-mode") == 0)
             ||
-            (strcasecmp(key, "background-color") == 0)
+            (strcmp(key, "foreground-color") == 0)
             ||
-            (strcasecmp(key, "enable-color") == 0)
+            (strcmp(key, "background-color") == 0)
             ||
-            (strcasecmp(key, "disable-color") == 0)
+            (strcmp(key, "enable-color") == 0)
             ||
-            (strcasecmp(key, "quetzal-umem") == 0)
+            (strcmp(key, "disable-color") == 0)
             ||
-            (strcasecmp(key, "disable-sound") == 0)
+            (strcmp(key, "quetzal-umem") == 0)
             ||
-            (strcasecmp(key, "set-tandy-flag") == 0)
+            (strcmp(key, "disable-sound") == 0)
+            ||
+            (strcmp(key, "set-tandy-flag") == 0)
             )
         {
           TRACE_LOG("New configuration key/value: \"%s\", \"%s\".\n",
               key, value);
           set_configuration_value(key, value);
         }
-        else if (strcasecmp(key, "sync-transcript") == 0)
+        else if (strcmp(key, "sync-transcript") == 0)
         {
           if ( (value != NULL) && (strcmp(value, "") != 0) )
             set_configuration_value("sync-transcript", "true");
+        }
+        else if (
+            (strcmp(key, "z-code-path") == 0)
+            ||
+            (strcmp(key, "z-code-root-path") == 0)
+            )
+        {
+          append_path_value(key, value);
         }
         else
         {
@@ -1430,6 +1442,7 @@ void fizmo_start(char* input_filename, char *blorb_filename,
   char *assumed_filename = NULL;
   int i;
   uint8_t flags2;
+  char *str;
 
   TRACE_LOG("Startup for input filename \"%s\".\n", input_filename);
 
@@ -1448,6 +1461,14 @@ void fizmo_start(char* input_filename, char *blorb_filename,
   if (bool_equal(story_list_was_updated, false))
     update_fizmo_story_list();
   */
+
+  if ((str = getenv("ZCODE_PATH")) == NULL)
+    str = getenv("INFOCOM_PATH");
+  if (str != NULL)
+    append_path_value("z-code-path", str);
+
+  if ((str = getenv("ZCODE_ROOT_PATH")) != NULL)
+    append_path_value("z-code-root-path", str);
 
   parse_fizmo_config_files();
 
@@ -1572,6 +1593,13 @@ void fizmo_start(char* input_filename, char *blorb_filename,
     active_sound_interface->init_sound();
   }
 
+  write_interpreter_info_into_header();
+
+  // REVISIT: Implement general initalization for restore / restart etc.
+  active_window_number = 0;
+  //previous_z_font = Z_FONT_NORMAL;
+  current_font = Z_FONT_NORMAL;
+
 #ifndef DISABLE_OUTPUT_HISTORY
   outputhistory[0]
     = create_outputhistory(
@@ -1584,13 +1612,6 @@ void fizmo_start(char* input_filename, char *blorb_filename,
         Z_FONT_NORMAL,
         Z_STYLE_ROMAN);
 #endif /* DISABLE_OUTPUT_HISTORY */
-
-  write_interpreter_info_into_header();
-
-  // REVISIT: Implement general initalization for restore / restart etc.
-  active_window_number = 0;
-  //previous_z_font = Z_FONT_NORMAL;
-  current_font = Z_FONT_NORMAL;
 
   if ( (ver <= 8) && (ver != 6) )
   {
@@ -1613,7 +1634,12 @@ void fizmo_start(char* input_filename, char *blorb_filename,
               true,
               evaluate_result,
               NULL) == 2)
+        {
+          TRACE_LOG("Redrawing screen from history.\n");
+          active_interface->game_was_restored_and_history_modified();
+
           interpret_resume();
+        }
 
         restore_on_start_filename = NULL;
       }
