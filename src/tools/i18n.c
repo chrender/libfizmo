@@ -50,6 +50,8 @@
 
 //z_ucs *active_locale = NULL;
 static z_ucs *current_locale_name = NULL;
+static char *current_locale_name_in_utf8 = NULL;
+static char *default_locale_name_in_utf8 = NULL;
 static int (*stream_output_function)(z_ucs *output) = NULL;
 static void (*abort_function)(int exit_code, z_ucs *error_message) = NULL;
 static char *locale_search_path = NULL;
@@ -660,6 +662,17 @@ static void i18n_exit(int exit_code, z_ucs *error_message)
 }
 
 
+char *get_default_locale_name()
+{
+  if (default_locale_name_in_utf8 == NULL)
+    if ((default_locale_name_in_utf8
+          = dup_zucs_string_to_utf8_string(default_locale_name)) == NULL)
+      return NULL;
+
+  return default_locale_name_in_utf8;
+}
+
+
 // "string_code" is one of the codes defined in "utf8.h".
 // "ap" is the va_list initialized in the various i18n-methods.
 // "output_mode" is either "i18n_OUTPUT_MODE_DEV_NULL" for no output
@@ -1163,7 +1176,9 @@ z_ucs *i18n_translate_to_string(z_ucs* module_name, int string_code, ...)
 
 char *get_i18n_search_path()
 {
-  return locale_search_path;
+  return locale_search_path == NULL
+    ? default_search_path
+    : locale_search_path;
 }
 
 
@@ -1337,27 +1352,49 @@ z_ucs *get_current_locale_name()
 }
 
 
+char *get_current_locale_name_in_utf8()
+{
+  return current_locale_name_in_utf8 != NULL
+    ? current_locale_name_in_utf8
+    : get_default_locale_name();
+}
+
+
 int set_current_locale_name(char *new_locale_name)
 {
   char *locale_dir_name = NULL;
   z_ucs *locale_dup;
+  char *locale_dup_utf8;
 
   if ((locale_dup =
         dup_utf8_string_to_zucs_string(new_locale_name)) == NULL)
     return -1;
 
+  if ((locale_dup_utf8 =
+        strdup(new_locale_name)) == NULL)
+  {
+    free(locale_dup);
+    free(locale_dup_utf8);
+    return -1;
+  }
+
   if ((locale_dir_name = get_path_for_locale(locale_dup)) == NULL)
   {
     free(locale_dup);
+    free(locale_dup_utf8);
     return -1;
   }
 
   free(locale_dir_name);
 
   if (current_locale_name != NULL)
+  {
     free(current_locale_name);
+    free(current_locale_name_in_utf8);
+  }
 
   current_locale_name = locale_dup;
+  current_locale_name_in_utf8 = strdup(locale_dup_utf8);
 
   TRACE_LOG("New locale name: '");
   TRACE_LOG_Z_UCS(current_locale_name);

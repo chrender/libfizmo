@@ -68,6 +68,7 @@ char *get_i18n_search_path();
 int set_i18n_search_path(char *path);
 
 z_ucs *get_current_locale_name();
+char *get_current_locale_name_in_utf8();
 int set_current_locale_name(char *new_locale_name);
 char **get_available_locale_names();
 char *get_i18n_default_search_path(void);
