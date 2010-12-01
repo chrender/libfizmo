@@ -1330,6 +1330,7 @@ static bool process_interpreter_command()
 {
   z_ucs *prefixed_command;
   char *ptr;
+  int i;
 
   TRACE_LOG("Checking for interpreter-command '");
   TRACE_LOG_Z_UCS(interpreter_command_buffer);
@@ -1358,7 +1359,9 @@ static bool process_interpreter_command()
     (void)streams_latin1_output("recstop\n");
     (void)streams_latin1_output(fizmo_command_prefix_string);
     (void)streams_latin1_output("fileinput\n");
-    (void)streams_latin1_output("\n");
+    (void)streams_latin1_output(fizmo_command_prefix_string);
+    (void)streams_latin1_output("config\n");
+    //(void)streams_latin1_output("\n");
     return true;
   }
   else if (z_ucs_cmp_latin1(prefixed_command, "predictable") == 0)
@@ -1536,6 +1539,20 @@ static bool process_interpreter_command()
   else if (z_ucs_cmp_latin1(prefixed_command, "fileinput") == 0)
   {
     open_input_stream_1();
+    return true;
+  }
+  else if (z_ucs_cmp_latin1(prefixed_command, "config") == 0)
+  {
+    i = 0;
+    while (configuration_options[i].name != NULL)
+    {
+      streams_latin1_output(configuration_options[i].name);
+      streams_latin1_output(" = ");
+      streams_latin1_output(
+          get_configuration_value(configuration_options[i].name));
+      streams_latin1_output("\n");
+      i++;
+    }
     return true;
   }
   else
