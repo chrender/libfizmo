@@ -283,7 +283,6 @@ void opcode_buffer_mode(void)
 
 
 static void process_set_colour_opcode(uint16_t op0, uint16_t op1, uint16_t op2)
-
 {
   z_colour new_foreground_colour;
   z_colour new_background_colour;

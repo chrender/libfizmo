@@ -74,6 +74,8 @@ void destroy_blockbuffer(BLOCKBUF *blockbuffer);
 void store_z_ucs_output_in_blockbuffer(BLOCKBUF *buffer, z_ucs *z_ucs_output);
 void set_blockbuf_cursor(BLOCKBUF *buffer, int x, int y);
 void set_blockbuf_style(BLOCKBUF *buffer, z_style style);
+void set_blockbuf_foreground_colour(BLOCKBUF *buffer, z_colour new_colour);
+void set_blockbuf_background_colour(BLOCKBUF *buffer, z_colour new_colour);
 void set_blockbuf_font(BLOCKBUF *buffer, z_font font);
 void blockbuf_resize(BLOCKBUF *buffer, int new_width, int new_height);
 

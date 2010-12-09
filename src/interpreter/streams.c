@@ -1135,6 +1135,20 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
             upper_window_style = current_style;
           }
 
+          if (upper_window_foreground_colour != current_foreground_colour)
+          {
+            set_blockbuf_foreground_colour(
+                upper_window_buffer, current_foreground_colour);
+            upper_window_foreground_colour = current_foreground_colour;
+          }
+
+          if (upper_window_background_colour != current_background_colour)
+          {
+            set_blockbuf_background_colour(
+                upper_window_buffer, current_background_colour);
+            upper_window_background_colour = current_background_colour;
+          }
+
           store_z_ucs_output_in_blockbuffer(
               upper_window_buffer, converted_output);
         }

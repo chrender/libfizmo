@@ -180,6 +180,20 @@ void set_blockbuf_style(BLOCKBUF *buffer, z_style style)
 }
 
 
+void set_blockbuf_foreground_colour(BLOCKBUF *buffer, z_colour new_colour)
+{
+  TRACE_LOG("Set blockbuffer-foreground-colour to %d.\n", new_colour);
+  buffer->current_foreground_colour = new_colour;
+}
+
+
+void set_blockbuf_background_colour(BLOCKBUF *buffer, z_colour new_colour)
+{
+  TRACE_LOG("Set blockbuffer-background-colour to %d.\n", new_colour);
+  buffer->current_background_colour = new_colour;
+}
+
+
 void set_blockbuf_font(BLOCKBUF *buffer, z_font font)
 {
   TRACE_LOG("Set blockbuffer-font to %d.\n", font);
