@@ -880,8 +880,8 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t)
   result->last_rewinded_paragraphs_block_index = -1;
   result->last_used_metadata_state_font = -1;
   result->last_used_metadata_state_style = -1;
-  result->last_used_metadata_state_foreground = Z_COLOUR_ILLEGAL_CODE;
-  result->last_used_metadata_state_background = Z_COLOUR_ILLEGAL_CODE;
+  result->last_used_metadata_state_foreground = Z_COLOUR_UNDEFINED;
+  result->last_used_metadata_state_background = Z_COLOUR_UNDEFINED;
 
   // Since "z_history_buffer_front_index" always points to the place where
   // the next char will be stored, we actually have to go back one char
@@ -930,9 +930,9 @@ static void evaluate_metadata_for_paragraph(history_output *output)
       &&
       (output->last_used_metadata_state_style != -1)
       &&
-      (output->last_used_metadata_state_foreground != Z_COLOUR_ILLEGAL_CODE)
+      (output->last_used_metadata_state_foreground != Z_COLOUR_UNDEFINED)
       &&
-      (output->last_used_metadata_state_background != -Z_COLOUR_ILLEGAL_CODE)
+      (output->last_used_metadata_state_background != -Z_COLOUR_UNDEFINED)
      )
   {
     TRACE_LOG("Re-using metadata state block.\n");
@@ -949,8 +949,8 @@ static void evaluate_metadata_for_paragraph(history_output *output)
     output->font_at_index = -1;
     output->style_at_index = -1;
     TRACE_LOG("sai: #2\n");
-    output->foreground_at_index = Z_COLOUR_ILLEGAL_CODE;
-    output->background_at_index = Z_COLOUR_ILLEGAL_CODE;
+    output->foreground_at_index = Z_COLOUR_UNDEFINED;
+    output->background_at_index = Z_COLOUR_UNDEFINED;
 
     has_wrapped = output->has_wrapped;
 
@@ -959,9 +959,9 @@ static void evaluate_metadata_for_paragraph(history_output *output)
         ||
         (output->style_at_index == -1)
         ||
-        (output->foreground_at_index == Z_COLOUR_ILLEGAL_CODE)
+        (output->foreground_at_index == Z_COLOUR_UNDEFINED)
         ||
-        (output->background_at_index == Z_COLOUR_ILLEGAL_CODE)
+        (output->background_at_index == Z_COLOUR_UNDEFINED)
         )
     {
       TRACE_LOG("search-ptr: %p (%d, %d, %d, %d).\n",
@@ -990,10 +990,10 @@ static void evaluate_metadata_for_paragraph(history_output *output)
           TRACE_LOG("sai: #3\n");
         }
 
-        if (output->foreground_at_index == Z_COLOUR_ILLEGAL_CODE)
+        if (output->foreground_at_index == Z_COLOUR_UNDEFINED)
           output->foreground_at_index=h->history_buffer_front_index_foreground;
 
-        if (output->background_at_index == Z_COLOUR_ILLEGAL_CODE)
+        if (output->background_at_index == Z_COLOUR_UNDEFINED)
           output->background_at_index=h->history_buffer_front_index_background;
 
         break;
@@ -1024,9 +1024,9 @@ static void evaluate_metadata_for_paragraph(history_output *output)
             (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
             &&
             (
-             (output->foreground_at_index == Z_COLOUR_ILLEGAL_CODE)
+             (output->foreground_at_index == Z_COLOUR_UNDEFINED)
              ||
-             (output->background_at_index == Z_COLOUR_ILLEGAL_CODE)
+             (output->background_at_index == Z_COLOUR_UNDEFINED)
             )
             )
         {
