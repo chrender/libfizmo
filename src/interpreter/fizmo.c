@@ -728,6 +728,13 @@ static struct z_story *load_z_story(char *input_filename, char *blorb_filename)
 
   TRACE_LOG("flags2: %x.\n", result->memory[0x11]);
 
+  if (result->version >= 6)
+    result->max_nof_color_pairs = 11 * 11; // (2 to 12) ^2
+  else if (result->version == 5)
+    result->max_nof_color_pairs = 8 * 8; // (2 to 9) ^2
+  else
+    result->max_nof_color_pairs = 0;
+
   /*
   if ((story_data = get_z_story_entry_from_list(
         result->serial_code,
