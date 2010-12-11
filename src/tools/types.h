@@ -37,7 +37,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define Z_COLOUR_ILLEGAL_CODE -3
 #define Z_COLOUR_UNDEFINED -2
 #define Z_COLOUR_UNDER_CURSOR -1
 #define Z_COLOUR_CURRENT 0
@@ -158,6 +157,8 @@ struct z_story
 
   struct z_story_blorb_sound *blorb_sounds;
   struct z_story_blorb_image *blorb_images;
+
+  int max_nof_color_pairs;
 };
 
 extern char* z_colour_names[];
