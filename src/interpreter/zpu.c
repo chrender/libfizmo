@@ -798,14 +798,10 @@ void init_opcode_functions(void)
     = &opcode_nop;
 
   z_opcode_functions[INSTRUCTION_0OP + 0x05]
-    = (ver <= 4)
-    ? &opcode_save_0op
-    : NULL;
+    = (ver <= 4) ? &opcode_save_0op : NULL;
 
   z_opcode_functions[INSTRUCTION_0OP + 0x06]
-    = (ver <= 4)
-    ? &opcode_restore_0op
-    : NULL;
+    = (ver <= 4) ? &opcode_restore_0op : NULL;
 
   z_opcode_functions[INSTRUCTION_0OP + 0x07]
     = &opcode_restart;
@@ -814,9 +810,7 @@ void init_opcode_functions(void)
     = &opcode_ret_popped;
 
   z_opcode_functions[INSTRUCTION_0OP + 0x09]
-    = ( (ver == 1) || (ver >=5) )
-    ? ver >= 5 ? &opcode_catch : opcode_pop
-    : NULL;
+    = ver >= 5 ? &opcode_catch : opcode_pop;
 
   z_opcode_functions[INSTRUCTION_0OP + 0x0a]
     = &opcode_quit;
