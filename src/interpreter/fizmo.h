@@ -41,7 +41,7 @@
 #include "../sound_interface/sound_interface.h"
 #include "blockbuf.h"
 
-#define FIZMO_VERSION "0.7.0-b7"
+#define FIZMO_VERSION "0.7.0-b8"
 
 #define FIZMO_INTERPRETER_NUMBER 6
 /*
