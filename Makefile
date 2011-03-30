@@ -46,7 +46,11 @@ install: libfizmo.a
 	echo 'Name: libfizmo' >>$(PKGFILE)
 	echo 'Description: libfizmo' >>$(PKGFILE)
 	echo 'Version: 0.7.0-b8' >>$(PKGFILE)
+ifeq ($(LIBFIZMO_REQS),)
+	echo 'Requires:' >>$(PKGFILE)
+else
 	echo 'Requires: $(LIBFIZMO_REQS)' >>$(PKGFILE)
+endif
 	echo 'Requires.private:' >>$(PKGFILE)
 	echo 'Cflags: -I$(INSTALL_PREFIX)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>$(PKGFILE)
 	echo 'Libs: -L$(INSTALL_PREFIX)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS)'  >>$(PKGFILE)
