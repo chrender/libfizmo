@@ -46,14 +46,10 @@ install: libfizmo.a
 	echo 'Name: libfizmo' >>$(PKGFILE)
 	echo 'Description: libfizmo' >>$(PKGFILE)
 	echo 'Version: 0.7.0-b8' >>$(PKGFILE)
-ifeq ($(DISABLE_LIBXML2),)
-	echo 'Requires: libxml-2.0' >>$(PKGFILE)
-else
-	echo 'Requires:' >>$(PKGFILE)
-endif
+	echo 'Requires: $(LIBFIZMO_REQS)' >>$(PKGFILE)
 	echo 'Requires.private:' >>$(PKGFILE)
-	echo 'Cflags: -I$(INSTALL_PREFIX)/include/fizmo ' >>$(PKGFILE)
-	echo 'Libs: -L$(INSTALL_PREFIX)/lib/fizmo -lfizmo'  >>$(PKGFILE)
+	echo 'Cflags: -I$(INSTALL_PREFIX)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>$(PKGFILE)
+	echo 'Libs: -L$(INSTALL_PREFIX)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS)'  >>$(PKGFILE)
 	echo >>$(PKGFILE)
 
 clean::
