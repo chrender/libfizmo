@@ -1,5 +1,5 @@
 
-.PHONY : all install install-locales clean distclean
+.PHONY : all install install-dev install-locales clean distclean
 
 include config.mk
 
@@ -21,7 +21,9 @@ libfizmo.a: src/tools/libtools.a src/interpreter/libinterpreter.a
 	cd .. ; \
 	rm -r $(TMPLIBDIR)
 
-install:: libfizmo.a install-locales
+install:: install-locales
+
+install-dev:: libfizmo.a
 	mkdir -p $(DEV_INSTALL_PREFIX)/lib/fizmo
 	cp libfizmo.a $(DEV_INSTALL_PREFIX)/lib/fizmo
 	mkdir -p $(DEV_INSTALL_PREFIX)/include/fizmo/interpreter
