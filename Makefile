@@ -1,10 +1,13 @@
 
-.PHONY : all locales-install clean distclean
+.PHONY : all install install-locales clean distclean
 
 include config.mk
 
 TMPLIBDIR = libfizmotmp
-PKG_DIR = $(INSTALL_PREFIX)/lib/pkgconfig
+ifeq ($(DEV_INSTALL_PREFIX),)
+  DEV_INSTALL_PREFIX=$(INSTALL_PREFIX)
+endif
+PKG_DIR = $(DEV_INSTALL_PREFIX)/lib/pkgconfig
 PKGFILE = $(PKG_DIR)/libfizmo.pc
 
 all: libfizmo.a
@@ -18,27 +21,21 @@ libfizmo.a: src/tools/libtools.a src/interpreter/libinterpreter.a
 	cd .. ; \
 	rm -r $(TMPLIBDIR)
 
-install: libfizmo.a
-	mkdir -p $(INSTALL_PREFIX)/lib/fizmo
-	cp libfizmo.a $(INSTALL_PREFIX)/lib/fizmo
-	mkdir -p $(INSTALL_PREFIX)/include/fizmo/interpreter
-	cp src/interpreter/*.h $(INSTALL_PREFIX)/include/fizmo/interpreter
-	mkdir -p $(INSTALL_PREFIX)/include/fizmo/tools
-	cp src/tools/*.h $(INSTALL_PREFIX)/include/fizmo/tools
-	mkdir -p $(INSTALL_PREFIX)/include/fizmo/screen_interface
+install:: libfizmo.a install-locales
+	mkdir -p $(DEV_INSTALL_PREFIX)/lib/fizmo
+	cp libfizmo.a $(DEV_INSTALL_PREFIX)/lib/fizmo
+	mkdir -p $(DEV_INSTALL_PREFIX)/include/fizmo/interpreter
+	cp src/interpreter/*.h $(DEV_INSTALL_PREFIX)/include/fizmo/interpreter
+	mkdir -p $(DEV_INSTALL_PREFIX)/include/fizmo/tools
+	cp src/tools/*.h $(DEV_INSTALL_PREFIX)/include/fizmo/tools
+	mkdir -p $(DEV_INSTALL_PREFIX)/include/fizmo/screen_interface
 	cp src/screen_interface/*.h \
-	  $(INSTALL_PREFIX)/include/fizmo/screen_interface
+	  $(DEV_INSTALL_PREFIX)/include/fizmo/screen_interface
 	cp src/screen_interface/*.cpp \
-	  $(INSTALL_PREFIX)/include/fizmo/screen_interface
-	cp -r src/sound_interface $(INSTALL_PREFIX)/include/fizmo/
-	mkdir -p $(INSTALL_PREFIX)/share/fizmo/locales
-	for l in `cd src/locales ; ls -d ??_??`; \
-	do \
-	  mkdir -p $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
-	  cp src/locales/$$l/*.txt $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
-	done
+	  $(DEV_INSTALL_PREFIX)/include/fizmo/screen_interface
+	cp -r src/sound_interface $(DEV_INSTALL_PREFIX)/include/fizmo/
 	mkdir -p $(PKG_DIR)
-	echo 'prefix=$(INSTALL_PREFIX)' >$(PKGFILE)
+	echo 'prefix=$(DEV_INSTALL_PREFIX)' >$(PKGFILE)
 	echo 'exec_prefix=$${prefix}' >>$(PKGFILE)
 	echo 'libdir=$${exec_prefix}/lib/fizmo' >>$(PKGFILE)
 	echo 'includedir=$${prefix}/include/fizmo' >>$(PKGFILE)
@@ -52,9 +49,17 @@ else
 	echo 'Requires: $(LIBFIZMO_REQS)' >>$(PKGFILE)
 endif
 	echo 'Requires.private:' >>$(PKGFILE)
-	echo 'Cflags: -I$(INSTALL_PREFIX)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>$(PKGFILE)
-	echo 'Libs: -L$(INSTALL_PREFIX)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS)'  >>$(PKGFILE)
+	echo 'Cflags: -I$(DEV_INSTALL_PREFIX)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>$(PKGFILE)
+	echo 'Libs: -L$(DEV_INSTALL_PREFIX)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS)'  >>$(PKGFILE)
 	echo >>$(PKGFILE)
+
+install-locales::
+	mkdir -p $(INSTALL_PREFIX)/share/fizmo/locales
+	for l in `cd src/locales ; ls -d ??_??`; \
+	do \
+	  mkdir -p $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
+	  cp src/locales/$$l/*.txt $(INSTALL_PREFIX)/share/fizmo/locales/$$l; \
+	done
 
 clean::
 	cd src/interpreter ; make clean
