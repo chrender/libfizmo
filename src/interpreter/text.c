@@ -91,7 +91,8 @@ static uint8_t first_word_found;
 static z_ucs z_ucs_output_buffer[Z_UCS_OUTPUT_BUFFER_SIZE];
 
 static uint8_t dictionary_entry_length;
-static uint16_t number_of_dictionary_entries;
+static int16_t number_of_dictionary_entries;
+static bool dictionary_is_unsorted;
 static uint8_t *dictionary_start;
 
 z_ucs z_ucs_newline_string[] = { Z_UCS_NEWLINE, 0 };
@@ -478,7 +479,7 @@ static uint8_t locate_dictionary_entry(
     }
   }
 
-  // FIXME: Improve searching
+  // FIXME: Improve searching (use "dictionary_is_unsorted").
   for (i=0; i<number_of_dictionary_entries; i++)
   {
     /*
@@ -593,7 +594,16 @@ static void tokenise(
   input_codes = dictionary;
   dictionary += number_of_input_codes;
   dictionary_entry_length = *(dictionary++);
-  number_of_dictionary_entries = load_word(dictionary);
+  number_of_dictionary_entries = (int16_t)load_word(dictionary);
+  if (number_of_dictionary_entries < 0)
+  {
+    dictionary_is_unsorted = true;
+    number_of_dictionary_entries = -number_of_dictionary_entries;
+  }
+  else
+  {
+    dictionary_is_unsorted = false;
+  }
   dictionary_start = dictionary + 2;
 
 #ifdef ENABLE_TRACING
