@@ -2289,7 +2289,7 @@ void opcode_print_table(void)
   for (y=0; y<height; y++)
   {
     buffer_index = 0;
-    active_interface->set_cursor(cursor_y, cursor_x, active_window_number);
+    process_set_cursor(cursor_y, cursor_x, active_window_number);
 
     for (x=0; x<width; x++)
     {
@@ -2304,9 +2304,15 @@ void opcode_print_table(void)
       src++;
     }
 
-    z_ucs_output_buffer[buffer_index] = 0;
-    streams_z_ucs_output(z_ucs_output_buffer);
-    buffer_index = 0;
+    if (buffer_index != 0)
+    {
+      z_ucs_output_buffer[buffer_index] = 0;
+      streams_z_ucs_output(z_ucs_output_buffer);
+      buffer_index = 0;
+    }
+
+    TRACE_LOG("Finished table output line %d of %d.\n", y+1, height);
+
     cursor_y++;
     src += skip;
   }
