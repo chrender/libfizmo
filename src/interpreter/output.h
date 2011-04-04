@@ -69,5 +69,7 @@ void opcode_set_colour_fb(void);
 void opcode_set_colour_fbw(void);
 void opcode_set_font(void);
 
+void process_set_cursor(int16_t y, int16_t x, int16_t window);
+
 #endif /* output_h_INCLUDED */
 
