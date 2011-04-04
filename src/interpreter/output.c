@@ -181,22 +181,12 @@ void opcode_erase_line_pixels(void)
 }
 
 
-void opcode_set_cursor(void)
+void process_set_cursor(int16_t y, int16_t x, int16_t window)
 {
-  int16_t y = (int16_t)op[0];
-  int16_t x = (int16_t)op[1];
-
-  // These two adjustments make "painter.z5" work.
-  if (y == 0)
-    y = 1;
-
-  if (x == 0)
-    x = 1;
-
+  TRACE_LOG("Processing set cursor to %d, %d, %d.\n", y, x, window);
   if (ver == 6)
   {
-    TRACE_LOG("Opcode: SET_CURSOR_LCW\n");
-    active_interface->set_cursor(x, y, op[2]);
+    active_interface->set_cursor(x, y, window);
   }
   else
   {
@@ -237,8 +227,32 @@ void opcode_set_cursor(void)
       }
     }
 
+    active_interface->set_cursor(y, x, window);
+  }
+}
+
+
+void opcode_set_cursor(void)
+{
+  int16_t y = (int16_t)op[0];
+  int16_t x = (int16_t)op[1];
+
+  // These two adjustments make "painter.z5" work.
+  if (y == 0)
+    y = 1;
+
+  if (x == 0)
+    x = 1;
+
+  if (ver == 6)
+  {
+    TRACE_LOG("Opcode: SET_CURSOR_LCW\n");
+    process_set_cursor(x, y, op[2]);
+  }
+  else
+  {
     TRACE_LOG("Opcode: SET_CURSOR_LC\n");
-    active_interface->set_cursor(y, x, active_window_number);
+    process_set_cursor(y, x, active_window_number);
   }
 }
 
@@ -276,7 +290,7 @@ void opcode_set_text_style(void)
 
 void opcode_buffer_mode(void)
 {
-  TRACE_LOG("OPCODE: BUFFER_MODE.\n");
+  TRACE_LOG("Opcode: BUFFER_MODE.\n");
   lower_window_buffering_active = ((int16_t)op[0] != 0 ? true : false);
   active_interface->set_buffer_mode(op[0]);
 }
@@ -318,7 +332,7 @@ static void process_set_colour_opcode(uint16_t op0, uint16_t op1, uint16_t op2)
 
 void opcode_set_colour_fb(void)
 {
-  TRACE_LOG("OPCODE: SET_COLOUR_FB\n");
+  TRACE_LOG("Opcode: SET_COLOUR_FB\n");
 
   TRACE_LOG("fg:%d, bg:%d.\n", op[0], op[1]);
   process_set_colour_opcode(op[0], op[1], (uint16_t)-1);
@@ -327,7 +341,7 @@ void opcode_set_colour_fb(void)
 
 void opcode_set_colour_fbw(void)
 {
-  TRACE_LOG("OPCODE: SET_COLOUR_FBW\n");
+  TRACE_LOG("Opcode: SET_COLOUR_FBW\n");
   process_set_colour_opcode(op[0], op[1], op[2]);
 }
 
@@ -346,7 +360,7 @@ void opcode_set_font(void)
   // these are probably the same. The availability of the character graphics
   // and picture font are read from interface definition.
 
-  TRACE_LOG("OPCODE: SET_FONT\n");
+  TRACE_LOG("Opcode: SET_FONT\n");
   read_z_result_variable();
   new_z_font = (int16_t)op[0];
 
