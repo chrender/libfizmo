@@ -215,6 +215,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
   bool minus_found;
   int metadata_offset = 0;
   int i, hyphen_offset, chars_left_on_line;
+  struct wordwrap_metadata *metadata_entry;
 
   input[wrapper->input_index] = 0;
   TRACE_LOG("input-index: %ld\n", wrapper->input_index);
@@ -238,12 +239,33 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
     {
       len = z_ucs_len(input);
       TRACE_LOG("len:%ld, force:%d.\n", len, force_flush);
-      
-      if (
-          (len == 0)
-          ||
-          ( (len <= wrapper->line_length) && (force_flush == false) )
-         )
+
+      if (len == 0)
+      {
+        if (force_flush == true)
+        {
+          // Force flush metadata behind end of output.
+          while (metadata_offset < wrapper->metadata_index)
+          {
+            TRACE_LOG("flush post-output metadata at: %ld.\n",
+                wrapper->metadata[metadata_offset].output_index);
+
+            metadata_entry = &wrapper->metadata[metadata_offset];
+
+            TRACE_LOG("Output metadata prm %d.\n",
+                metadata_entry->int_parameter);
+
+            metadata_entry->metadata_output_function(
+                metadata_entry->ptr_parameter,
+                metadata_entry->int_parameter);
+
+            metadata_offset++;
+          }
+        }
+        break;
+      }
+
+      if ( (len <= wrapper->line_length) && (force_flush == false) )
         // We're quitting on len == wrapper->line_length since we can only
         // determine wether we can break cleanly is if a space follows
         // immediately after the last char.
