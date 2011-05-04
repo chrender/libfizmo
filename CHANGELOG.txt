@@ -4,7 +4,7 @@
  - Restructured fizmo: The ncursesw- and console-interface, the sdl-sound
    interface and the X11-specific code have been moved into separate modules
    named "fizmo-ncursesw", "fizmo-console", "libsndifsdl" and "libdrilbo".
- - Change documentation for the new modules will from this point on can be
+   Change documentation for the new modules will from this point on can be
    found in the corresponding module package.
  - Implemented Frank Liangs TeX hy-phen-a-tion algorithm into the
    wordwrapper. Patterns were taken from the "Object For Formatting
