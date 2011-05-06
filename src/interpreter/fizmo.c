@@ -68,7 +68,7 @@
 #include "blockbuf.h"
 #endif // DISABLE_BLOCKBUFFER
 
-#define MAX_CONFIG_OPTION_LENGTH 240
+#define MAX_CONFIG_OPTION_LENGTH 512
 
 
 struct z_story *active_z_story;
