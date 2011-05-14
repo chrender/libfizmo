@@ -66,6 +66,7 @@ struct babel_story_info
   char *title;
   char *author;
   char *description;
+  char *language;
 };
 
 void free_babel_info(struct babel_info *babel);

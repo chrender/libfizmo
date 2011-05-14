@@ -66,6 +66,7 @@ void free_babel_story_info(struct babel_story_info *b_info)
   free(b_info->title);
   free(b_info->author);
   free(b_info->description);
+  free(b_info->language);
   free(b_info);
 }
 
@@ -554,6 +555,8 @@ struct babel_story_info *get_babel_story_info(uint16_t release, char *serial,
           xpathCtx, "author", current_namespace);
       result->description = getStoryNodeContent(
           xpathCtx, "description", current_namespace);
+      result->language = getStoryNodeContent(
+          xpathCtx, "language", current_namespace);
     }
   }
 
