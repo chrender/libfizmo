@@ -47,6 +47,7 @@
 #include "hyphenation.h"
 
 
+static z_ucs *last_pattern_locale = NULL;
 static z_ucs *pattern_data;
 static z_ucs **patterns;
 static int nof_patterns = 0;
@@ -183,6 +184,9 @@ static int load_patterns()
   }
 
   current_locale = get_current_locale_name();
+  if (last_pattern_locale != NULL)
+    free(last_pattern_locale);
+  last_pattern_locale = z_ucs_dup(current_locale);
   locale_len = z_ucs_len(current_locale);
 
   TRACE_LOG("pattern path: \"");
@@ -238,7 +242,7 @@ static int load_patterns()
         return -3;
       }
 
-      TRACE_LOG("Trying: \"%s\".\n", testfilename);
+      TRACE_LOG("Trying pattern file: \"%s\".\n", testfilename);
 
       patternfile = fopen(testfilename, "r");
       free(testfilename);
@@ -443,12 +447,18 @@ z_ucs *hyphenate(z_ucs *word_to_hyphenate)
     return NULL;
   }
 
-  if (nof_patterns == 0)
+  if (
+      (last_pattern_locale == NULL)
+      ||
+      (z_ucs_cmp(last_pattern_locale, get_current_locale_name()) != 0)
+     )
+  {
     if (load_patterns() < 0)
     {
       TRACE_LOG("Couldn't load patterns.\n");
       return NULL;
     }
+  }
 
   if ((result_buf = malloc(
           sizeof(z_ucs) * (word_to_hyphenate_len * 2 + 1))) == NULL)
