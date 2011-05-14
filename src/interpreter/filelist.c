@@ -1064,6 +1064,7 @@ static int count_files(char *abs_dir_name, bool recursive)
     return 0;
   }
 
+  TRACE_LOG("Counting files for \"%s\".\n", abs_dir_name);
   if ((current_dir = opendir(".")) == NULL)
   {
     printf("\"%s\":\n", abs_dir_name);
@@ -1130,6 +1131,8 @@ static int count_files(char *abs_dir_name, bool recursive)
 
   //printf("result:%d\n", result);
 
+  TRACE_LOG("count-result: %d\n", result);
+
   return result;
 }
 
@@ -1149,7 +1152,7 @@ static int search_dir(char *abs_dir_name,
   struct stat stat_buf;
   char *cwd = getcwd(NULL, 0);
 
-  //printf("Trying to readdir \"%s\".\n", abs_dir_name);
+  TRACE_LOG("Trying to readdir \"%s\".\n", abs_dir_name);
 
   if ((chdir(abs_dir_name)) == -1)
   {
@@ -1238,9 +1241,14 @@ void build_filelist(char *root_dir, struct z_story_list *story_list,
   char *absrootdir;
 
   if (root_dir == NULL)
+  {
+    TRACE_LOG("Building filelist for rootdir: \"/\".\n");
     search_dir("/", &new_file_searched, story_list, recursive, babel);
+  }
   else
   {
+    TRACE_LOG("Building filelist for rootdir: \"%s\".\n", root_dir);
+
     if ((chdir(root_dir)) == -1)
       detect_and_add_z_file(root_dir, NULL, babel, story_list);
     else
@@ -1328,7 +1336,7 @@ void save_story_list(struct z_story_list *story_list)
 }
 
 
-struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
+struct z_story_list *update_fizmo_story_list()
 {
   struct z_story_list *result;
   struct z_story_list_entry *entry;
@@ -1370,24 +1378,20 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
     }
   }
 
-  //nof_files_found = count_files(".", false);
-
-  if (fizmo_dir != NULL)
-    nof_files_found += count_files(fizmo_dir, false);
-
-  /*
   if ((str = getenv("ZCODE_PATH")) == NULL)
     str = getenv("INFOCOM_PATH");
-
   if (str != NULL)
     set_configuration_value("z-code-path", str);
-    */
+
+  if ((str = getenv("ZCODE_ROOT_PATH")) != NULL)
+    set_configuration_value("z-code-root-path", str);
 
   if ((str = get_configuration_value("z-code-path")) != NULL)
   {
     path = strtok(str, ":");
     while (path != NULL)
     {
+      TRACE_LOG("Counting for token \"%s\".\n", path);
       nof_files_found += count_files(path, false);
       path = strtok(NULL, ":");
     }
@@ -1398,11 +1402,14 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
     path = strtok(str, ":");
     while (path != NULL)
     {
+      TRACE_LOG("Counting for token \"%s\".\n", path);
       nof_files_found += count_files(path, true);
       path = strtok(NULL, ":");
     }
   }
 
+  TRACE_LOG("nof_files_found: %d, %d\n", nof_files_found,
+      NUMBER_OF_FILES_TO_SHOW_PROGRESS_FOR);
   if (nof_files_found >= NUMBER_OF_FILES_TO_SHOW_PROGRESS_FOR)
     show_progress = true;
   else
@@ -1411,16 +1418,6 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
   //printf("\n"); // newline for \r-progress indicator
 
   //build_filelist(".", result, false, babel);
-
-  if (fizmo_dir != NULL)
-    build_filelist(fizmo_dir, result, false, babel);
-
-  /*
-  if ((str = getenv("ZCODE_PATH")) == NULL)
-    str = getenv("INFOCOM_PATH");
-
-  if (str != NULL)
-    set_configuration_value("z-code-path", str);
 
   if ((str = get_configuration_value("z-code-path")) != NULL)
   {
@@ -1432,7 +1429,7 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
     }
   }
 
-  if ((str = getenv("ZCODE_ROOT_PATH")) != NULL)
+  if ((str = get_configuration_value("z-code-root-path")) != NULL)
   {
     path = strtok(str, ":");
     while (path != NULL)
@@ -1441,7 +1438,6 @@ struct z_story_list *update_fizmo_story_list(char *fizmo_dir)
       path = strtok(NULL, ":");
     }
   }
-  */
 
   if (show_progress == true)
     printf("\n");
