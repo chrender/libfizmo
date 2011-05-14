@@ -1177,65 +1177,27 @@ static int parse_fizmo_config_file(char *filename)
       {
         value[i] = '\0';
 
-        TRACE_LOG("Incoming config key: \"%s\".\n", key);
+        if ( (key[0] != 0) && (key[0] != '#') )
+        {
+          TRACE_LOG("Incoming config key: \"%s\".\n", key);
 
-        if (
-            (strcmp(key, "locale") == 0)
-            ||
-            (strcmp(key, "savegame-path") == 0)
-            ||
-            (strcmp(key, "transcript-filename") == 0)
-            ||
-            (strcmp(key, "start-script-when-story-starts") == 0)
-            ||
-            (strcmp(key, "sync-transcript") == 0)
-            ||
-            (strcmp(key, "save-text-history-paragraphs") == 0)
-            ||
-            (strcmp(key, "start-command-recording-when-story-starts") == 0)
-            ||
-            (strcmp(key, "command-filename") == 0)
-            ||
-            (strcmp(key, "start-file-input-when-story-starts") == 0)
-            ||
-            (strcmp(key, "random-mode") == 0)
-            ||
-            (strcmp(key, "foreground-color") == 0)
-            ||
-            (strcmp(key, "background-color") == 0)
-            ||
-            (strcmp(key, "enable-color") == 0)
-            ||
-            (strcmp(key, "disable-color") == 0)
-            ||
-            (strcmp(key, "quetzal-umem") == 0)
-            ||
-            (strcmp(key, "disable-sound") == 0)
-            ||
-            (strcmp(key, "set-tandy-flag") == 0)
-            )
-        {
-          TRACE_LOG("New configuration key/value: \"%s\", \"%s\".\n",
-              key, value);
-          set_configuration_value(key, value);
-        }
-        else if (strcmp(key, "sync-transcript") == 0)
-        {
-          if ( (value != NULL) && (strcmp(value, "") != 0) )
-            set_configuration_value("sync-transcript", "true");
-        }
-        else if (
-            (strcmp(key, "z-code-path") == 0)
-            ||
-            (strcmp(key, "z-code-root-path") == 0)
-            )
-        {
-          append_path_value(key, value);
-        }
-        else
-        {
-          // Forward non-comments to interface.
-          if (key[0] != '#')
+          // Don't set and overwrite path, append instead.
+          if (
+              (strcmp(key, "z-code-path") == 0)
+              ||
+              (strcmp(key, "z-code-root-path") == 0)
+             )
+          {
+            append_path_value(key, value);
+          }
+          // If no path was specified, check other libfizmo config options.
+          else if (is_valid_libfizmo_config_key(key) == true)
+          {
+            TRACE_LOG("libfizmo configuration key/value: \"%s\", \"%s\".\n",
+                key, value);
+            set_configuration_value(key, value);
+          }
+          else
           {
             TRACE_LOG("key/value forwarded to interface: \"%s\", \"%s\".\n",
                 key, value);
