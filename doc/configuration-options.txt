@@ -128,11 +128,13 @@
  enable-font3-conversion
  [...]
 
+ stream2-hyphenation
+ [...]
 
 
 
  ---------
 
- CVS-Id: $Id: configuration-options.txt,v 1.4 2011-05-14 08:34:39 chrender Exp $
- CVS-Revision: $Revision: 1.4 $
+ CVS-Id: $Id: configuration-options.txt,v 1.5 2011-05-14 15:00:32 chrender Exp $
+ CVS-Revision: $Revision: 1.5 $
 
