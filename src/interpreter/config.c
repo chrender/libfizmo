@@ -69,11 +69,11 @@ struct configuration_option configuration_options[] = {
   { "i18n-search-path", NULL },
   { "locale", NULL },
   { "random-mode", NULL },
+  { "save-text-history-paragraphs", NULL },
   { "savegame-path", NULL },
   { "transcript-filename", NULL },
   { "z-code-path", NULL },
   { "z-code-root-path", NULL },
-  { "save-text-history-paragraphs", NULL },
 
   // Boolean values:
   { "disable-color", NULL },
@@ -90,6 +90,7 @@ struct configuration_option configuration_options[] = {
   { "start-command-recording-when-story-starts", NULL },
   { "start-file-input-when-story-starts", NULL },
   { "start-script-when-story-starts", NULL },
+  { "stream2-hyphenation", NULL },
   { "sync-transcript", NULL },
 
   // NULL terminates the option list.
@@ -424,35 +425,39 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
 
       // Boolean options
       else if (
-          (strcmp(key, "save-and-quit-file-before-read") == 0)
-          ||
-          (strcmp(key, "disable-save") == 0)
-          ||
-          (strcmp(key, "disable-restore") == 0)
-          ||
-          (strcmp(key, "restore-after-save-and-quit-file-before-read") == 0)
+          (strcmp(key, "command-filename") == 0)
           ||
           (strcmp(key, "disable-external-streams") == 0)
           ||
-          (strcmp(key, "start-script-when-story-starts") == 0)
+          (strcmp(key, "disable-restore") == 0)
+          ||
+          (strcmp(key, "disable-save") == 0)
           ||
           (strcmp(key, "disable-sound") == 0)
           ||
+          (strcmp(key, "enable-color") == 0)
+          ||
           (strcmp(key, "enable-font3-conversion") == 0)
-          ||
-          (strcmp(key, "sync-transcript") == 0)
-          ||
-          (strcmp(key, "start-command-recording-when-story-starts") == 0)
-          ||
-          (strcmp(key, "command-filename") == 0)
-          ||
-          (strcmp(key, "start-file-input-when-story-starts") == 0)
-          ||
-          (strcmp(key, "random-mode") == 0)
           ||
           (strcmp(key, "quetzal-umem") == 0)
           ||
+          (strcmp(key, "random-mode") == 0)
+          ||
+          (strcmp(key, "restore-after-save-and-quit-file-before-read") == 0)
+          ||
+          (strcmp(key, "save-and-quit-file-before-read") == 0)
+          ||
           (strcmp(key, "set-tandy-flag") == 0)
+          ||
+          (strcmp(key, "start-command-recording-when-story-starts") == 0)
+          ||
+          (strcmp(key, "start-script-when-story-starts") == 0)
+          ||
+          (strcmp(key, "start-file-input-when-story-starts") == 0)
+          ||
+          (strcmp(key, "stream2-hyphenation") == 0)
+          ||
+          (strcmp(key, "sync-transcript") == 0)
           )
       {
         if (
@@ -530,39 +535,39 @@ char *get_configuration_value(char *key)
       {
         // Boolean options
         if (
-            (strcmp(key, "save-and-quit-file-before-read") == 0)
-            ||
-            (strcmp(key, "disable-save") == 0)
-            ||
-            (strcmp(key, "disable-restore") == 0)
-            ||
-            (strcmp(key, "restore-after-save-and-quit-file-before-read")==0)
+            (strcmp(key, "command-filename") == 0)
             ||
             (strcmp(key, "disable-external-streams") == 0)
             ||
-            (strcmp(key, "start-script-when-story-starts") == 0)
+            (strcmp(key, "disable-restore") == 0)
+            ||
+            (strcmp(key, "disable-save") == 0)
             ||
             (strcmp(key, "disable-sound") == 0)
             ||
+            (strcmp(key, "enable-color") == 0)
+            ||
             (strcmp(key, "enable-font3-conversion") == 0)
-            ||
-            (strcmp(key, "sync-transcript") == 0)
-            ||
-            (strcmp(key, "start-command-recording-when-story-starts") == 0)
-            ||
-            (strcmp(key, "command-filename") == 0)
-            ||
-            (strcmp(key, "start-file-input-when-story-starts") == 0)
-            ||
-            (strcmp(key, "random-mode") == 0)
             ||
             (strcmp(key, "quetzal-umem") == 0)
             ||
+            (strcmp(key, "random-mode") == 0)
+            ||
+            (strcmp(key, "restore-after-save-and-quit-file-before-read") == 0)
+            ||
+            (strcmp(key, "save-and-quit-file-before-read") == 0)
+            ||
             (strcmp(key, "set-tandy-flag") == 0)
             ||
-            (strcmp(key, "enable-color") == 0)
+            (strcmp(key, "start-command-recording-when-story-starts") == 0)
             ||
-            (strcmp(key, "disable-color") == 0)
+            (strcmp(key, "start-script-when-story-starts") == 0)
+            ||
+            (strcmp(key, "start-file-input-when-story-starts") == 0)
+            ||
+            (strcmp(key, "stream2-hyphenation") == 0)
+            ||
+            (strcmp(key, "sync-transcript") == 0)
            )
         {
           if (configuration_options[i].value == NULL)
@@ -660,6 +665,18 @@ char **get_valid_configuration_options(char *key, ...)
 }
 */
 
+
+bool is_valid_libfizmo_config_key(char *key)
+{
+  int i = 0;
+
+  while (configuration_options[i].name != NULL)
+  {
+    if (strcmp(configuration_options[i++].name, key) == 0)
+      return true;
+  }
+  return false;
+}
 
 #endif /* config_c_INCLUDED */
 

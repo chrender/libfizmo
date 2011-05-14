@@ -103,6 +103,7 @@ int set_configuration_value(char *key, char* new_value);
 int append_path_value(char *key, char *value_to_append);
 char *get_configuration_value(char *key);
 //char **get_valid_configuration_options(char *key, ...);
+bool is_valid_libfizmo_config_key(char *key);
 
 #endif /* config_h_INCLUDED */
 
