@@ -159,7 +159,9 @@ void init_streams()
       (strcmp(get_configuration_value("sync-transcript"), "true") == 0
        ? true
        : false),
-      true);
+      (strcmp(get_configuration_value("stream2-hyphenation"), "true") == 0
+       ? true
+       : false));
   /*@+mustfreeonly@*/
 
   if (strcmp(get_configuration_value("start-script-when-story-starts"), "true")
