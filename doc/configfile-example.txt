@@ -23,7 +23,7 @@ save-text-history-paragraphs = 100
 # files:
 #z-code-path = /foo:/bar
 
-# Directories listed in the "z-code-root-path" are search recursively.
+# Directories listed in the "z-code-root-path" are searched recursively.
 #z-code-root-path = /foo:/bar
 
 
