@@ -1134,7 +1134,6 @@ static int parse_fizmo_config_file(char *filename)
   char value[MAX_CONFIG_OPTION_LENGTH];
   int c, i;
   FILE *config_file;
-  int result;
 
   TRACE_LOG("Parsing config file \"%s\".\n", filename);
 
@@ -1190,6 +1189,11 @@ static int parse_fizmo_config_file(char *filename)
           {
             append_path_value(key, value);
           }
+          else
+          {
+            set_configuration_value(key, value);
+          }
+          /*
           // If no path was specified, check other libfizmo config options.
           else if (is_valid_libfizmo_config_key(key) == true)
           {
@@ -1217,6 +1221,7 @@ static int parse_fizmo_config_file(char *filename)
               // Ignore wrong config values.
             }   
           }
+          */
         }
       }
     }

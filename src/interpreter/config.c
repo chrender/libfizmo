@@ -237,8 +237,8 @@ int append_path_value(char *key, char *value_to_append)
 
 int set_configuration_value(char *key, char* new_unexpanded_value)
 {
-  int i, return_code;
-  char *current_value, *new_value = NULL;
+  int i, return_code, result;
+  char *new_value = NULL;
   char buf[BUFSIZE];
   short color_code;
 
@@ -434,7 +434,24 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
     i++;
   }
 
-  return -1;
+  if (active_interface == NULL)
+    return -2;
+  else
+  {
+    result = active_interface->parse_config_parameter(key, new_value);
+    if (result == -1)
+    {
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S,
+          -0x0101,
+          key,
+          new_value);
+    }
+
+    free(new_value);
+    return result;
+  }
 }
 
 
