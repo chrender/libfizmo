@@ -76,12 +76,10 @@ struct configuration_option configuration_options[] = {
   { "z-code-root-path", NULL },
 
   // Boolean values:
-  { "disable-color", NULL },
   { "disable-external-streams", NULL },
   { "disable-restore", NULL },
   { "disable-save", NULL },
   { "disable-sound", NULL },
-  { "enable-color", NULL },
   { "enable-font3-conversion", NULL },
   { "quetzal-umem", NULL },
   { "restore-after-save-and-quit-file-before-read", NULL },
@@ -359,70 +357,6 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
         return 0;
       }
 
-      // Non-primitive boolean options
-      else if (strcmp(key, "enable-color") == 0)
-      {
-        if (
-            (new_value == NULL)
-            ||
-            (*new_value == 0)
-            ||
-            (strcmp(new_value, true_value) == 0)
-           )
-        {
-          free(new_value);
-          current_value = get_configuration_value("disable-color");
-          if (strcmp(current_value, true_value) == 0)
-            return -1;
-          configuration_options[i].value = fizmo_strdup(true_value);
-          return 0;
-        }
-        else if ((new_value != NULL) && (strcmp(new_value, false_value)==0))
-        {
-          free(new_value);
-          if (configuration_options[i].value != NULL)
-            free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup(false_value);
-          return -1;
-        }
-        else
-        {
-          free(new_value);
-          return -1;
-        }
-      }
-      else if (strcmp(key, "disable-color") == 0)
-      {
-        if (
-            (new_value == NULL)
-            ||
-            (*new_value == 0)
-            ||
-            (strcmp(new_value, true_value) == 0)
-           )
-        {
-          free(new_value);
-          current_value = get_configuration_value("enable-color");
-          if (strcmp(current_value, true_value) == 0)
-            return -1;
-          configuration_options[i].value = fizmo_strdup(true_value);
-          return 0;
-        }
-        else if ((new_value != NULL) && (strcmp(new_value, false_value)==0))
-        {
-          free(new_value);
-          if (configuration_options[i].value != NULL)
-            free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup(false_value);
-          return -1;
-        }
-        else
-        {
-          free(new_value);
-          return -1;
-        }
-      }
-
       // Boolean options
       else if (
           (strcmp(key, "command-filename") == 0)
@@ -434,8 +368,6 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "disable-save") == 0)
           ||
           (strcmp(key, "disable-sound") == 0)
-          ||
-          (strcmp(key, "enable-color") == 0)
           ||
           (strcmp(key, "enable-font3-conversion") == 0)
           ||
@@ -544,8 +476,6 @@ char *get_configuration_value(char *key)
             (strcmp(key, "disable-save") == 0)
             ||
             (strcmp(key, "disable-sound") == 0)
-            ||
-            (strcmp(key, "enable-color") == 0)
             ||
             (strcmp(key, "enable-font3-conversion") == 0)
             ||

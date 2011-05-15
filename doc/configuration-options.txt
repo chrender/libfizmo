@@ -88,14 +88,6 @@
  This sets a custom background color. The color name must be one out of
  black, red, green, yellow, blue, magenta, cyan and white.
 
- enable-color
- Force libfizmo to enable color mode, even if the output interface reports
- that it cannot handle color.
-
- disable-color
- Force libfizmo to disabled color mode, even if the output interface reports
- that color is available.
-
  quetzal-umem
  Force libfizmo to write savegames in an uncompressed memory format. See
  quetzal appendix in the Z-Specification[1], section 3.
@@ -135,6 +127,6 @@
 
  ---------
 
- CVS-Id: $Id: configuration-options.txt,v 1.5 2011-05-14 15:00:32 chrender Exp $
- CVS-Revision: $Revision: 1.5 $
+ CVS-Id: $Id: configuration-options.txt,v 1.6 2011-05-15 13:17:03 chrender Exp $
+ CVS-Revision: $Revision: 1.6 $
 
