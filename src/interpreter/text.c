@@ -1341,6 +1341,7 @@ static bool process_interpreter_command()
   z_ucs *prefixed_command;
   char *ptr;
   int i;
+  char **interface_options;
 
   TRACE_LOG("Checking for interpreter-command '");
   TRACE_LOG_Z_UCS(interpreter_command_buffer);
@@ -1563,6 +1564,41 @@ static bool process_interpreter_command()
       streams_latin1_output("\n");
       i++;
     }
+
+    if ((interface_options = active_interface->get_config_option_names())
+        != NULL)
+    {
+      i = 0;
+      while (interface_options[i] != NULL)
+      {
+        streams_latin1_output(interface_options[i]);
+        streams_latin1_output(" = ");
+        streams_latin1_output(
+            active_interface->get_config_value(interface_options[i]));
+        streams_latin1_output("\n");
+        i++;
+      }
+    }
+
+    if (active_sound_interface != NULL)
+    {
+      if ((interface_options
+            = active_sound_interface->get_config_option_names())
+          != NULL)
+      {
+        i = 0;
+        while (interface_options[i] != NULL)
+        {
+          streams_latin1_output(interface_options[i]);
+          streams_latin1_output(" = ");
+          streams_latin1_output(
+              active_sound_interface->get_config_value(interface_options[i]));
+          streams_latin1_output("\n");
+          i++;
+        }
+      }
+    }
+
     return true;
   }
   else

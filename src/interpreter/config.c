@@ -55,8 +55,8 @@
 bool auto_adapt_upper_window = true;
 bool auto_open_upper_window = true;
 bool skip_active_routines_stack_check_warning = false;
-char true_value[] = "true";
-char false_value[] = "false";
+char config_true_value[] = "true";
+char config_false_value[] = "false";
 char empty_string[] = "";
 
 
@@ -397,22 +397,23 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
             ||
             (*new_value == 0)
             ||
-            (strcmp(new_value, true_value) == 0)
+            (strcmp(new_value, config_true_value) == 0)
            )
         {
           if (new_value != NULL)
             free(new_value);
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup(true_value);
+          configuration_options[i].value = fizmo_strdup(config_true_value);
           return 0;
         }
-        else if ((new_value != NULL) && (strcmp(new_value, false_value)==0))
+        else if ((new_value != NULL)
+            && (strcmp(new_value, config_false_value)==0))
         {
           free(new_value);
           if (configuration_options[i].value != NULL)
             free(configuration_options[i].value);
-          configuration_options[i].value = fizmo_strdup(false_value);
+          configuration_options[i].value = fizmo_strdup(config_false_value);
           return -1;
         }
         else
@@ -458,6 +459,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
 char *get_configuration_value(char *key)
 {
   int i = 0;
+  char **interface_option_names;
 
   if (key == NULL)
     return NULL;
@@ -520,7 +522,7 @@ char *get_configuration_value(char *key)
           if (configuration_options[i].value == NULL)
           {
             TRACE_LOG("return \"false\".\n");
-            return false_value;
+            return config_false_value;
           }
           else
           {
@@ -556,12 +558,38 @@ char *get_configuration_value(char *key)
 
         else
         {
+          // Internal error: config-key was found in configuration_options[],
+          // but not in the hardcoded keys above.
           TRACE_LOG("Unknown config key: \"%s\".", key);
           return NULL;
         }
       }
 
       i++;
+    }
+
+    if (active_interface != NULL)
+    {
+      if ((interface_option_names
+            = active_interface->get_config_option_names()) != NULL)
+      {
+        i = 0;
+        while (interface_option_names[i] != NULL)
+          if (strcmp(interface_option_names[i++], key) == 0)
+            return active_interface->get_config_value(key);
+      }
+    }
+
+    if (active_sound_interface != NULL)
+    {
+      if ((interface_option_names
+            = active_sound_interface->get_config_option_names()) != NULL)
+      {
+        i = 0;
+        while (interface_option_names[i] != NULL)
+          if (strcmp(interface_option_names[i++], key) == 0)
+            return active_sound_interface->get_config_value(key);
+      }
     }
 
     TRACE_LOG("Unknown config key: \"%s\".", key);

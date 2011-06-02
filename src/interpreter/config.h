@@ -94,8 +94,8 @@ extern int system_charset;
 extern bool auto_adapt_upper_window;
 extern bool auto_open_upper_window;
 extern bool skip_active_routines_stack_check_warning;
-extern char true_value[];
-extern char false_value[];
+extern char config_true_value[];
+extern char config_false_value[];
 extern struct configuration_option configuration_options[];
 #endif /* config_c_INCLUDED */
 
