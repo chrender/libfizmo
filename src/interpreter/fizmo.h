@@ -33,7 +33,6 @@
 #ifndef fizmo_h_INCLUDED 
 #define fizmo_h_INCLUDED
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 

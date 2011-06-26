@@ -34,14 +34,15 @@
 #ifndef hyphenation_c_INCLUDED
 #define hyphenation_c_INCLUDED
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
 #include "../tools/tracelog.h"
 #include "../tools/z_ucs.h"
 #include "../tools/list.h"
 #include "../tools/i18n.h"
+#include "../tools/filesys.h"
 #include "config.h"
 #include "fizmo.h"
 #include "hyphenation.h"
@@ -62,7 +63,7 @@ extern char default_search_path[];
 
 
 
-static z_ucs input_char(FILE *in)
+static z_ucs input_char(z_file *in)
 {
   z_ucs input;
 
@@ -160,7 +161,7 @@ static int load_patterns()
   z_ucs *colon_index, *current_locale;
   size_t bufsize = 0, len, filename_len, locale_len;
   z_ucs *zucs_buf = NULL, *filename_as_zucs;
-  FILE *patternfile = NULL;
+  z_file *patternfile = NULL;
   size_t nof_zucs_chars;
   z_ucs *linestart;
   z_ucs input;
@@ -244,7 +245,7 @@ static int load_patterns()
 
       TRACE_LOG("Trying pattern file: \"%s\".\n", testfilename);
 
-      patternfile = fopen(testfilename, "r");
+      patternfile = fsi->openfile(testfilename, FILETYPE_DATA, FILEACCESS_READ);
       free(testfilename);
 
       if (patternfile != NULL)
@@ -293,11 +294,11 @@ static int load_patterns()
       }
     }
 
-    if (fseek(patternfile, 0, SEEK_SET) == -1)
+    if (fsi->setfilepos(patternfile, 0, SEEK_SET) == -1)
     {
       // exit-point:
-      TRACE_LOG("fseek() returned -1.\n");
-      fclose(patternfile);
+      TRACE_LOG("setfilepos() returned -1.\n");
+      fsi->closefile(patternfile);
       return -6;
     }
 
@@ -308,7 +309,7 @@ static int load_patterns()
     {
       // exit-point:
       TRACE_LOG("malloc(%ld) returned NULL.\n", nof_zucs_chars * sizeof(z_ucs));
-      fclose(patternfile);
+      fsi->closefile(patternfile);
       return -7;
     }
 
@@ -316,7 +317,7 @@ static int load_patterns()
     lines = create_list();
     //printf("new list created: %p\n", lines);
 
-    in_char = fgetc(patternfile);
+    in_char = fsi->getchar(patternfile);
     while (in_char != EOF)
     {
       if (in_char == '%')
@@ -332,7 +333,7 @@ static int load_patterns()
       else
       {
         // Found a new line.
-        ungetc(in_char, patternfile);
+        fsi->ungetchar(in_char, patternfile);
 
         linestart = data;
 
@@ -358,9 +359,9 @@ static int load_patterns()
         //messages_processed++;
       }
 
-      in_char = fgetc(patternfile);
+      in_char = fsi->getchar(patternfile);
     }
-    fclose(patternfile);
+    fsi->closefile(patternfile);
     nof_patterns = get_list_size(lines);
     patterns = (z_ucs**)delete_list_and_get_ptrs(lines);
     TRACE_LOG("Read %d patterns, %ld comments.\n", nof_patterns, nof_comments);

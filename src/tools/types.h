@@ -35,7 +35,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdio.h>
+#include <time.h>
 
 #define Z_COLOUR_UNDEFINED -2
 #define Z_COLOUR_UNDER_CURSOR -1
@@ -85,6 +85,31 @@ struct commandline_parameter
   int i18n_description_code;
 };
 
+struct z_file_struct
+{
+  void *file_object; // Used to store z_filesys_interface-dependent data.
+  char *filename;
+  int filetype;
+  int fileaccess;
+};
+
+typedef struct z_file_struct z_file;
+
+struct z_dir_struct
+{
+  void *dir_object;
+};
+
+typedef struct z_dir_struct z_dir;
+
+struct z_dir_ent
+{
+  // Using only d_name since "this is the only field you can count on in
+  // al POSIX systems".
+  char *d_name;
+};
+
+
 #define Z_BLORB_IMAGE_PNG 0
 #define Z_BLORB_IMAGE_JPEG 1
 #define Z_BLORB_IMAGE_PLACEHOLDER 2
@@ -125,8 +150,8 @@ struct z_story
   uint16_t checksum;
   char *title;
 
-  FILE *z_file;
-  FILE *blorb_file;
+  z_file *z_story_file;
+  z_file *blorb_file;
   char *absolute_directory_name;
   char *absolute_file_name;
   long story_file_exec_offset;

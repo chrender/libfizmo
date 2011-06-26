@@ -34,13 +34,13 @@
 #define text_c_INCLUDED
 
 #include <string.h>
-#include <stdio.h>
 #include <ctype.h>
 
 #include "../tools/tracelog.h"
 #include "../tools/i18n.h"
 #include "../tools/types.h"
 #include "../tools/z_ucs.h"
+#include "../tools/filesys.h"
 #include "text.h"
 #include "fizmo.h"
 #include "routine.h"
@@ -1677,7 +1677,8 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
     if (input_stream_1_was_already_active == false)
       ask_for_input_stream_filename();
     TRACE_LOG("Trying to open \"%s\n", input_stream_1_filename);
-    if ((input_stream_1 = fopen(input_stream_1_filename, "r")) == NULL)
+    if ((input_stream_1 = fsi->openfile(input_stream_1_filename,
+            FILETYPE_INPUTRECORD, FILEACCESS_READ)) == NULL)
     {
       input_stream_1_active = false;
       input_stream_1_filename_size = 0;
@@ -1686,10 +1687,10 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
     }
   }
 
-  filepos = ftell(input_stream_1);
+  filepos = fsi->getfilepos(input_stream_1);
 
   // Parse "(Waited for <n> ms)".
-  res = fscanf(input_stream_1, "(Waited for %d ms)\n", &milliseconds);
+  res = fsi->filescanf(input_stream_1, "(Waited for %d ms)\n", &milliseconds);
   if (res == 1)
   {
     if (input_delay_tenth_seconds != NULL)
@@ -1699,12 +1700,12 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
   {
     if (input_delay_tenth_seconds != NULL)
       *input_delay_tenth_seconds = 0;
-    fseek(input_stream_1, filepos, SEEK_SET);
+    fsi->setfilepos(input_stream_1, filepos, SEEK_SET);
   }
 
   // FIMXE: Input conversion from latin1(?) to zscii-input.
   while (
-      ((c = fgetc(input_stream_1)) != EOF)
+      ((c = fsi->getchar(input_stream_1)) != EOF)
       &&
       (c != '\n')
       &&
@@ -1722,7 +1723,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
   {
     // Seek next '\n'.
     while (c != '\n')
-      if ((c = fgetc(input_stream_1)) == EOF)
+      if ((c = fsi->getchar(input_stream_1)) == EOF)
         break;
   }
 
@@ -1731,22 +1732,22 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
   // At EOF? If so, close stream and return last length.
   if (c == EOF)
   {
-    fclose(input_stream_1);
+    fsi->closefile(input_stream_1);
     input_stream_1_active = false;
     input_stream_1 = NULL;
     return input_length;
   }
 
   // Check if there's something behind the '\n'.
-  c = fgetc(input_stream_1);
+  c = fsi->getchar(input_stream_1);
   if (c == EOF)
   {
     input_stream_1_active = false;
-    fclose(input_stream_1);
+    fsi->closefile(input_stream_1);
     input_stream_1 = NULL;
   }
   else
-    ungetc(c, input_stream_1);
+    fsi->ungetchar(c, input_stream_1);
 
   return input_length;
 }

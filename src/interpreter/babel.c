@@ -48,8 +48,9 @@
 #include "config.h"
 #include "fizmo.h"
 #include "../tools/tracelog.h"
+#include "../tools/filesys.h"
 
-static FILE *timestamp_file;
+static z_file *timestamp_file;
 static struct babel_timestamp_entry *babel_timestamp_entries;
 static char *timestamp_input = NULL;
 static int timestamp_input_size = 0;
@@ -98,34 +99,10 @@ void free_babel_info(struct babel_info *babel)
 }
 
 
-/*
-struct babel_info *load_babel_info_from_blorb(int fd)
-{
-  struct babel_info *result;
-  //char *xmlData = (char*)fizmo_malloc(length);
-  xmlDocPtr babel_doc;
-
-  result = (struct babel_info*)fizmo_malloc(sizeof(struct babel_info));
-
-  if ((babel_doc = xmlReadFd(
-          //fd, NULL, NULL, XML_PARSE_NOWARNING | XML_PARSE_NOERROR))
-      fd, NULL, NULL, 0))
-        != NULL)
-  {
-  }
-  else
-  {
-    printf("xmlerror\n");
-  }
-
-  return result;
-}
-*/
-
 
 #ifndef DISABLE_LIBXML2
 static int add_doc_to_babel_info(xmlDocPtr new_babel_doc,
-    struct babel_info *babel, struct stat *stat_buf, char *filename)
+    struct babel_info *babel, time_t last_mod_timestamp, char *filename)
 {
   xmlXPathContextPtr xpathCtx; 
   xmlXPathObjectPtr xpathObj;
@@ -212,7 +189,7 @@ static int add_doc_to_babel_info(xmlDocPtr new_babel_doc,
 
   new_entry->babel_doc = new_babel_doc;
   new_entry->uses_if_namespace = uses_if_namespace;
-  new_entry->timestamp = stat_buf->st_ctime;
+  new_entry->timestamp = last_mod_timestamp;
   new_entry->filename = fizmo_strdup(filename);
 
   babel->entries[babel->nof_entries] = new_entry;
@@ -224,28 +201,18 @@ static int add_doc_to_babel_info(xmlDocPtr new_babel_doc,
 
 
 #ifndef DISABLE_LIBXML2
-struct babel_info *load_babel_info_from_blorb(FILE *infile, int length,
-    char *filename, struct stat *stat_buf)
+struct babel_info *load_babel_info_from_blorb(z_file *infile, int length,
+    char *filename, time_t last_mod_timestamp)
 {
   struct babel_info *result;
-  //struct babel_doc_entry *new_entry;
   char *xmlData = (char*)fizmo_malloc(length + 1);
   xmlDocPtr babel_doc;
-  //struct stat stat_buf;
 
-  if (fread(xmlData, length, 1, infile) != 1)
+  if (fsi->getchars(xmlData, length, infile) != (size_t)length)
   {
     free(xmlData);
     return NULL;
   }
-
-  /*
-  if ((fstat(fileno(infile), &stat_buf)) != 0)
-  {
-    free(xmlData);
-    return NULL;
-  }
-  */
 
   xmlData[length] = '\0';
 
@@ -259,14 +226,14 @@ struct babel_info *load_babel_info_from_blorb(FILE *infile, int length,
     free(xmlData);
     return NULL;
   }
-  //printf("(%s)\n", xmlData);
 
   result = (struct babel_info*)fizmo_malloc(sizeof(struct babel_info));
   result->entries = NULL;
   result->entries_allocated = 0;
   result->nof_entries = 0;
 
-  if (add_doc_to_babel_info(babel_doc, result, stat_buf, filename) != 0)
+  if (add_doc_to_babel_info(babel_doc, result, last_mod_timestamp, filename)
+      != 0)
   {
     free(result);
     free(xmlData);
@@ -276,8 +243,9 @@ struct babel_info *load_babel_info_from_blorb(FILE *infile, int length,
   return result;
 }
 #else
-struct babel_info *load_babel_info_from_blorb(FILE *UNUSED(infile),
-    int UNUSED(length), char *UNUSED(filename), struct stat *UNUSED(stat_buf))
+struct babel_info *load_babel_info_from_blorb(z_file *UNUSED(infile),
+    int UNUSED(length), char *UNUSED(filename),
+    time_t *UNUSED(last_mod_timestamp))
 {
   return NULL;
 }
@@ -291,21 +259,19 @@ struct babel_info *load_babel_info()
 #ifndef DISABLE_LIBXML2
   char *cwd = NULL;
   char *config_dir_name = get_fizmo_config_dir_name();
-  DIR *config_dir;
-  struct dirent dir_entry;
-  struct dirent* ptr;
-  struct stat stat_buf;
-  int fildes;
-  int return_code;
+  z_dir *config_dir;
+  struct z_dir_ent z_dir_entry;
+  time_t last_mod_timestamp;
+  z_file *new_babel_doc_file;
   xmlDocPtr new_babel_doc;
 
-  if ((config_dir = opendir(config_dir_name)) == NULL)
+  if ((config_dir = fsi->open_dir(config_dir_name)) == NULL)
     return NULL;
 
-  cwd = getcwd(NULL, 0);
-  if (chdir(config_dir_name) != 0)
+  cwd = fsi->get_cwd();
+  if (fsi->ch_dir(config_dir_name) != 0)
   {
-    closedir(config_dir);
+    fsi->close_dir(config_dir);
     free(cwd);
     return NULL;
   }
@@ -316,49 +282,56 @@ struct babel_info *load_babel_info()
   result->entries_allocated = 0;
   result->nof_entries = 0;
 
-  while (
-      (readdir_r(config_dir, &dir_entry, &ptr) == 0)
-      &&
-      (ptr != NULL)
-      )
+  while (fsi->read_dir(&z_dir_entry, config_dir) == 0)
   {
-    if ((fildes = open(dir_entry.d_name, O_RDONLY)) < 0)
-      continue;
-    return_code = fstat(fildes, &stat_buf);
-    close(fildes);
-
     if (
-        (return_code == 0)
+        (fsi->is_filename_directory(z_dir_entry.d_name) == false)
         &&
-        ((stat_buf.st_mode & S_IFDIR) == 0)
-        &&
-        (strlen(dir_entry.d_name) >= 9)
+        (strlen(z_dir_entry.d_name) >= 9)
         &&
         (strcasecmp(
-                    dir_entry.d_name + strlen(dir_entry.d_name) - 9,
+                    z_dir_entry.d_name + strlen(z_dir_entry.d_name) - 9,
                     ".iFiction") == 0)
        )
     {
       if ((new_babel_doc = xmlReadFile(
-              dir_entry.d_name, NULL, XML_PARSE_NOWARNING | XML_PARSE_NOERROR))
+              z_dir_entry.d_name,
+              NULL,
+              XML_PARSE_NOWARNING | XML_PARSE_NOERROR))
           != NULL)
       {
-        if ((add_doc_to_babel_info(
-                new_babel_doc, result, &stat_buf, dir_entry.d_name)) != 0)
+        if ((new_babel_doc_file
+              = fsi->openfile(
+                z_dir_entry.d_name, FILETYPE_DATA, FILEACCESS_READ))
+            == NULL)
         {
           free_babel_info(result);
-          chdir(cwd);
+          fsi->ch_dir(cwd);
           free(cwd);
-          closedir(config_dir);
+          fsi->close_dir(config_dir);
+          return NULL;
+        }
+        last_mod_timestamp
+          = fsi->get_last_file_mod_timestamp(new_babel_doc_file);
+        fsi->closefile(new_babel_doc_file);
+
+        if ((add_doc_to_babel_info(
+                new_babel_doc, result, last_mod_timestamp, z_dir_entry.d_name))
+            != 0)
+        {
+          free_babel_info(result);
+          fsi->ch_dir(cwd);
+          free(cwd);
+          fsi->close_dir(config_dir);
           return NULL;
         }
       }
     }
   }
 
-  chdir(cwd);
+  fsi->ch_dir(cwd);
   free(cwd);
-  closedir(config_dir);
+  fsi->close_dir(config_dir);
 
 #endif
 
@@ -574,7 +547,7 @@ struct babel_story_info *get_babel_story_info(uint16_t UNUSED(release),
 
 void store_babel_info_timestamps(struct babel_info *babel)
 {
-  FILE *out;
+  z_file *out;
   char *config_dir_name = get_fizmo_config_dir_name();
   char *filename;
   char *quoted_filename;
@@ -594,7 +567,8 @@ void store_babel_info_timestamps(struct babel_info *babel)
 
   sprintf(filename, "%s/%s", config_dir_name, BABEL_TIMESTAMP_FILE_NAME);
 
-  if ((out = fopen(filename, "w")) == NULL)
+  if ((out = fsi->openfile(filename, FILETYPE_DATA, FILEACCESS_WRITE))
+      == NULL)
     return;
 
   if (babel)
@@ -602,13 +576,13 @@ void store_babel_info_timestamps(struct babel_info *babel)
     for (i=0; i<babel->nof_entries; i++)
     {
       quoted_filename = quote_special_chars(babel->entries[i]->filename);
-      fprintf(out, "%ld\t%s\n", babel->entries[i]->timestamp,
+      fsi->fileprintf(out, "%ld\t%s\n", babel->entries[i]->timestamp,
           babel->entries[i]->filename);
       free(quoted_filename);
     }
   }
 
-  fclose(out);
+  fsi->closefile(out);
 }
 
 
@@ -622,7 +596,7 @@ void abort_timestamp_input()
     free(unquoted_filename_input);
   if (babel_timestamp_entries != NULL)
     free(babel_timestamp_entries);
-  fclose(timestamp_file);
+  fsi->closefile(timestamp_file);
 }
 
 
@@ -645,23 +619,24 @@ bool babel_files_have_changed(struct babel_info *babel)
   //printf("%s/%s", config_dir_name, BABEL_TIMESTAMP_FILE_NAME);
   sprintf(filename, "%s/%s", config_dir_name, BABEL_TIMESTAMP_FILE_NAME);
 
-  if ((timestamp_file = fopen(filename, "r")) == NULL)
+  if ((timestamp_file = fsi->openfile(
+          filename, FILETYPE_DATA, FILEACCESS_READ)) == NULL)
     return true;
 
-  if ((data = fgetc(timestamp_file)) != EOF)
+  if ((data = fsi->getchar(timestamp_file)) != EOF)
   {
-    ungetc(data, timestamp_file);
+    fsi->ungetchar(data, timestamp_file);
     for(;;)
     {
-      offset = ftell(timestamp_file);
-      while ((data = fgetc(timestamp_file)) != '\t')
+      offset = fsi->getfilepos(timestamp_file);
+      while ((data = fsi->getchar(timestamp_file)) != '\t')
         if (data == EOF)
         {
           abort_timestamp_input();
           return true;
         }
 
-      size = ftell(timestamp_file) - offset - 1;
+      size = fsi->getfilepos(timestamp_file) - offset - 1;
       if (ensure_mem_size(&timestamp_input, &timestamp_input_size, size + 2)
           == -1)
       {
@@ -671,8 +646,9 @@ bool babel_files_have_changed(struct babel_info *babel)
 
       if (size > 0)
       {
-        fseek(timestamp_file, -(size+1), SEEK_CUR);
-        if (fread(timestamp_input, size+1, 1, timestamp_file) != 1)
+        fsi->setfilepos(timestamp_file, -(size+1), SEEK_CUR);
+        if (fsi->getchars(timestamp_input, size+1, timestamp_file)
+            != (size_t)size+1)
         {
           abort_timestamp_input();
           return true;
@@ -680,15 +656,15 @@ bool babel_files_have_changed(struct babel_info *babel)
       }
       timestamp_input[size] = '\0';
 
-      offset = ftell(timestamp_file);
-      while ((data = fgetc(timestamp_file)) != '\n')
+      offset = fsi->getfilepos(timestamp_file);
+      while ((data = fsi->getchar(timestamp_file)) != '\n')
         if (data == EOF)
         {
           abort_timestamp_input();
           return true;
         }
 
-      size = ftell(timestamp_file) - offset - 1;
+      size = fsi->getfilepos(timestamp_file) - offset - 1;
       if (ensure_mem_size(&filename_input, &filename_input_size, size + 2) == -1)
       {
         abort_timestamp_input();
@@ -697,8 +673,9 @@ bool babel_files_have_changed(struct babel_info *babel)
 
       if (size > 0)
       {
-        fseek(timestamp_file, -(size+1), SEEK_CUR);
-        if (fread(filename_input, size+1, 1, timestamp_file) != 1)
+        fsi->setfilepos(timestamp_file, -(size+1), SEEK_CUR);
+        if (fsi->getchars(filename_input, size+1, timestamp_file)
+            != (size_t)size+1)
         {
           abort_timestamp_input();
           return true;
@@ -748,9 +725,9 @@ bool babel_files_have_changed(struct babel_info *babel)
 
       nof_babel_timestamp_entries++;
 
-      if ((data = fgetc(timestamp_file)) == EOF)
+      if ((data = fsi->getchar(timestamp_file)) == EOF)
         break;
-      ungetc(data, timestamp_file);
+      fsi->ungetchar(data, timestamp_file);
     }
   }
 

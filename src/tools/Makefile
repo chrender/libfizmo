@@ -40,8 +40,8 @@ types.o: types.h types.c
 z_ucs.o: z_ucs.h types.h z_ucs.c
 	$(CC) $(CFLAGS) -c z_ucs.c
 
-libtools.a: ../locales/libfizmo_locales.o types.o z_ucs.o stringmap.o i18n.o tracelog.o list.o
-	$(AR) rcs libtools.a types.o z_ucs.o stringmap.o i18n.o tracelog.o list.o ../locales/libfizmo_locales.o
+libtools.a: ../locales/libfizmo_locales.o types.o z_ucs.o stringmap.o i18n.o tracelog.o list.o filesys.o filesys_c.o
+	$(AR) rcs libtools.a types.o z_ucs.o stringmap.o i18n.o tracelog.o list.o filesys.o filesys_c.o ../locales/libfizmo_locales.o
 
 test: tools_test
 	./tools_test
@@ -54,6 +54,12 @@ tools_test.o: tools_test.c
 
 tools_test: libtools.a tools_test.o
 	$(CC) $(CFLAGS) tools_test.o -L. -ltools -o tools_test
+
+filesys.o: filesys.h types.h filesys.c
+	$(CC) $(CFLAGS) -c filesys.c
+
+filesys_c.o: filesys_c.h types.h filesys_c.c
+	$(CC) $(CFLAGS) -c filesys_c.c
 
 clean:
 	rm -f *.o tools_test tracelog.txt

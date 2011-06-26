@@ -30,7 +30,6 @@
  */
 
 
-#include <stdio.h>
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -38,6 +37,7 @@
 
 #include "../tools/tracelog.h"
 #include "../tools/i18n.h"
+#include "../tools/filesys.h"
 #include "misc.h"
 #include "fizmo.h"
 #include "streams.h"
@@ -80,8 +80,8 @@ void opcode_verify(void)
 
   if (file_length * scale - 1 >= 0x40)
   {
-    if (fseek(
-          active_z_story->z_file,
+    if (fsi->setfilepos(
+          active_z_story->z_story_file,
           0x40 + active_z_story->story_file_exec_offset,
           SEEK_SET) != 0)
       i18n_translate_and_exit(
@@ -92,7 +92,7 @@ void opcode_verify(void)
     i = 0x40;
     while (i < file_length * scale)
     {
-      if ((input = fgetc(active_z_story->z_file)) == EOF)
+      if ((input = fsi->getchar(active_z_story->z_story_file)) == EOF)
         i18n_translate_and_exit(
             libfizmo_module_name,
             i18n_libfizmo_FATAL_ERROR_READING_STORY_FILE,

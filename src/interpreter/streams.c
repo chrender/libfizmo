@@ -40,6 +40,8 @@
 #include "../tools/tracelog.h"
 #include "../tools/i18n.h"
 #include "../tools/z_ucs.h"
+#include "../tools/unused.h"
+#include "../tools/filesys.h"
 #include "streams.h"
 #include "config.h"
 #include "fizmo.h"
@@ -48,7 +50,6 @@
 #include "zpu.h"
 #include "output.h"
 #include "../locales/libfizmo_locales.h"
-#include "../tools/unused.h"
 
 #ifndef DISABLE_BLOCKBUFFER
 #include "blockbuf.h"
@@ -64,7 +65,7 @@ bool stream_2_was_already_active = false;
 // stream2 is stored in dynamic memory at z_mem[0x11].
 // stream3 is active when stream_3_current_depth >= -1
 bool stream_4_active = false;
-/*@dependent@*/ /*@null@*/ static FILE *stream_2 = NULL;
+/*@dependent@*/ /*@null@*/ static z_file *stream_2 = NULL;
 /*@only@*/ char *stream_2_filename = NULL;
 static size_t stream_2_filename_size = 0;
 /*@only@*/ static WORDWRAP *stream_2_wrapper = NULL;
@@ -74,7 +75,7 @@ static bool script_wrapper_active = true;
 static uint8_t *stream_3_start[MAXIMUM_STREAM_3_DEPTH];
 static uint8_t *stream_3_index[MAXIMUM_STREAM_3_DEPTH];
 static int stream_3_current_depth = -1;
-FILE *stream_4 = NULL;
+z_file *stream_4 = NULL;
 /*@only@*/ static char *stream_4_filename;
 static size_t stream_4_filename_size = 0;
 z_ucs last_stream_4_filename[MAXIMUM_SCRIPT_FILE_NAME_LENGTH + 1];
@@ -82,7 +83,7 @@ z_ucs last_input_stream_filename[MAXIMUM_SCRIPT_FILE_NAME_LENGTH + 1];
 static bool stream_4_init_underway = false;
 char *input_stream_1_filename = NULL;
 size_t input_stream_1_filename_size = 0;
-FILE *input_stream_1 = NULL;
+z_file *input_stream_1 = NULL;
 static bool input_stream_init_underway = false;
 bool input_stream_1_active = false;
 bool input_stream_1_was_already_active = false;
@@ -118,10 +119,10 @@ static void stream_2_wrapped_output_destination(z_ucs *z_ucs_output,
     while (*z_ucs_output != 0)
     {
       len = zucs_string_to_utf8_string(buf, &z_ucs_output, 128);
-      fwrite(buf, 1, len-1, stream_2);
+      fsi->writechars(buf, len-1, stream_2);
     }
     if (strcmp(get_configuration_value("sync-transcript"), "true") == 0)
-      fflush(stream_2);
+      fsi->flushfile(stream_2);
   }
 }
 /*@+paramuse@*/
@@ -544,13 +545,14 @@ static void stream_2_output(z_ucs *z_ucs_output)
     if (stream_2 == NULL)
     {
       TRACE_LOG("Opening script-file '%s' for writing.\n", stream_2_filename);
-      stream_2 = fopen(stream_2_filename, "ab");
-      fputc('\n', stream_2);
+      stream_2 = fsi->openfile(
+          stream_2_filename, FILETYPE_TRANSCRIPT, FILEACCESS_APPEND);
+      fsi->writechar('\n', stream_2);
       wordwrap_output_left_padding(stream_2_wrapper);
-      fputs("---\n\n", stream_2);
+      fsi->writestring("---\n\n", stream_2);
       wordwrap_output_left_padding(stream_2_wrapper);
       if (strcmp(get_configuration_value("sync-transcript"), "true") == 0)
-        fflush(stream_2);
+        fsi->flushfile(stream_2);
     }
 
     if (bool_equal(lower_window_buffering_active, true))
@@ -740,10 +742,11 @@ void stream_4_latin1_output(char *latin1_output)
     if (stream_4 == NULL)
     {
       TRACE_LOG("Opening script-file '%s' for writing.\n", stream_4_filename);
-      stream_4 = fopen(stream_4_filename, "ab");
+      stream_4 = fsi->openfile(stream_4_filename, FILETYPE_INPUTRECORD,
+          FILEACCESS_APPEND);
     }
 
-    fwrite(latin1_output, 1, strlen(latin1_output), stream_4);
+    fsi->writechars(latin1_output, strlen(latin1_output), stream_4);
   }
 }
 
@@ -767,8 +770,8 @@ static void close_script_file()
     TRACE_LOG("Closing script-file.\n");
 
     wordwrap_flush_output(stream_2_wrapper);
-    fputc('\n', stream_2);
-    (void)fclose(stream_2);
+    fsi->writechar('\n', stream_2);
+    (void)fsi->closefile(stream_2);
     stream_2 = NULL;
   }
 }
@@ -1174,7 +1177,7 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
       {
         if (stream_4 != NULL)
         {
-          (void)fclose(stream_4);
+          (void)fsi->closefile(stream_4);
           stream_4 = NULL;
 	}
       }
@@ -1313,7 +1316,7 @@ void close_streams(z_ucs *error_message)
 
   if (stream_4 != NULL)
   {
-    (void)fclose(stream_4);
+    (void)fsi->closefile(stream_4);
     stream_4 = NULL;
   }
 
@@ -1343,7 +1346,7 @@ void close_input_stream_1(void)
 {
   if (input_stream_1 != NULL)
   {
-    fclose(input_stream_1);
+    fsi->closefile(input_stream_1);
     input_stream_1 = NULL;
   }
 }
