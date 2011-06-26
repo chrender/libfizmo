@@ -35,7 +35,8 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include <time.h>
+#include <time.h> // for time_t
+#include <sys/types.h> // for off_t
 
 #define Z_COLOUR_UNDEFINED -2
 #define Z_COLOUR_UNDER_CURSOR -1
