@@ -570,7 +570,6 @@ static void tokenise(
   uint8_t number_of_input_codes;
   uint8_t *input_codes;
 
-  uint8_t words_parsed = 0;
   uint8_t current_char;
   uint8_t space_found = 0;
   uint8_t non_space_seperator_found = 0;
@@ -622,7 +621,7 @@ static void tokenise(
 
   end_of_line_found = 0;
   //last_token_start_index = 0;
-  while ((words_parsed < maximum_words) && (end_of_line_found == 0))
+  while ((number_of_words_found < maximum_words) && (end_of_line_found == 0))
   {
     TRACE_LOG("Looking at %c/%d.\n", z_text_buffer[z_text_buffer_offset],
         z_text_buffer[z_text_buffer_offset]);
@@ -703,7 +702,7 @@ static void tokenise(
 
       store_ZSCII_as_zchar(current_char);
       zchar_storage_finish();
-      number_of_words_found ++;
+      number_of_words_found++;
 
       (void)locate_dictionary_entry(
           tokenize_buffer,
@@ -730,7 +729,7 @@ static void tokenise(
             z_text_buffer_offset,
             last_token_start_index);
         */
-        number_of_words_found ++;
+        number_of_words_found++;
 
         (void)locate_dictionary_entry(
             tokenize_buffer,
@@ -741,7 +740,6 @@ static void tokenise(
             //z_text_buffer_offset - current_word_start);
             z_text_buffer_offset - current_word_start,
             dont_write_unrecognized_words_to_parse_buffer);
-
       }
     }
 
