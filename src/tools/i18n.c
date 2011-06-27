@@ -458,10 +458,8 @@ static char *get_path_for_locale(z_ucs *locale_name)
             dirname_len = strlen(dirname) + strlen(z_dir_entry.d_name);
             TRACE_LOG("dirname_len: %ld.\n", (long)dirname_len);
             // open-resource:
-            TRACE_LOG("#1\n");
             if ((locale_dir_name = malloc(dirname_len + 2)) == NULL)
             {
-              TRACE_LOG("#2\n");
               // exit-point:
               TRACE_LOG("malloc() returned NULL.\n");
               fsi->close_dir(dir);
@@ -471,7 +469,6 @@ static char *get_path_for_locale(z_ucs *locale_name)
               free(path_ptr);
               return NULL;
             }
-            TRACE_LOG("#3\n");
 
             strcpy(locale_dir_name, dirname);
             strcat(locale_dir_name, "/");
@@ -1210,7 +1207,6 @@ char **get_available_locale_names()
   size_t bufsize = 0, len;
   struct z_dir_ent z_dir_entry;
   char *dirname;
-  char *locale_dir_name = NULL;
   list *result_list = create_list();
   char *new_locale_name;
   int j;
@@ -1281,7 +1277,7 @@ char **get_available_locale_names()
       TRACE_LOG("Path: '%s'\n", dirname);
 
       // open-resource:
-      if ((dir = fsi->open_dir(locale_dir_name)) != NULL)
+      if ((dir = fsi->open_dir(dirname)) != NULL)
       {
         while (fsi->read_dir(&z_dir_entry, dir) == 0)
         {
@@ -1325,9 +1321,6 @@ char **get_available_locale_names()
       // close-resource:
       free(dirname);
     }
-
-    if (locale_dir_name != NULL)
-      break;
 
     path_ptr += len + (colon_index != NULL ? 1 : 0);
   }
