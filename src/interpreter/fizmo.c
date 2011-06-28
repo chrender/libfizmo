@@ -1198,35 +1198,6 @@ static int parse_fizmo_config_file(char *filename)
           {
             set_configuration_value(key, value);
           }
-          /*
-          // If no path was specified, check other libfizmo config options.
-          else if (is_valid_libfizmo_config_key(key) == true)
-          {
-            TRACE_LOG("libfizmo configuration key/value: \"%s\", \"%s\".\n",
-                key, value);
-            set_configuration_value(key, value);
-          }
-          else
-          {
-            TRACE_LOG("key/value forwarded to interface: \"%s\", \"%s\".\n",
-                key, value);
-
-            result = active_interface->parse_config_parameter(key, value);
-            if (result == -1)
-            {
-              i18n_translate_and_exit(
-                  libfizmo_module_name,
-                  i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S,
-                  -0x0101,
-                  key,
-                  value);
-            }
-            else if (result == -2)
-            {
-              // Ignore wrong config values.
-            }   
-          }
-          */
         }
       }
     }
