@@ -1424,7 +1424,7 @@ void fizmo_start(char* input_filename, char *blorb_filename,
 
 #ifndef DISABLE_CONFIGFILES
   parse_fizmo_config_files();
-#endif DISABLE_CONFIGFILES
+#endif // DISABLE_CONFIGFILES
 
   if (get_configuration_value("random-mode") == NULL)
     set_configuration_value("random-mode", "random");
