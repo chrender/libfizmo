@@ -1559,8 +1559,21 @@ static bool process_interpreter_command()
     {
       streams_latin1_output(configuration_options[i].name);
       streams_latin1_output(" = ");
-      streams_latin1_output(
-          get_configuration_value(configuration_options[i].name));
+      if (strcmp(configuration_options[i].name, "background-color") == 0)
+      {
+        streams_latin1_output(
+            get_configuration_value("background-color-name"));
+      }
+      else if (strcmp(configuration_options[i].name, "foreground-color") == 0)
+      {
+        streams_latin1_output(
+            get_configuration_value("foreground-color-name"));
+      }
+      else
+      {
+        streams_latin1_output(
+            get_configuration_value(configuration_options[i].name));
+      }
       streams_latin1_output("\n");
       i++;
     }
