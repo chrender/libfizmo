@@ -1089,14 +1089,13 @@ static int count_files(char *abs_dir_name, bool recursive)
       strcat(dirname, "/");
     strcat(dirname, z_dir_entry.d_name);
 
-
     if (fsi->is_filename_directory(z_dir_entry.d_name) == true)
     {
       if (recursive == true)
         result += count_files(dirname, true);
-      else
-        result++;
     }
+    else
+      result++;
   }
 
   if (dirname != NULL)
@@ -1152,8 +1151,6 @@ static int search_dir(char *abs_dir_name,
        )
       continue;
 
-    //printf("#:%s\n", dir_entry.d_name);
-
     len = strlen(abs_dir_name) + strlen(z_dir_entry.d_name) + 2;
     if (len > dirname_size)
     {
@@ -1170,13 +1167,13 @@ static int search_dir(char *abs_dir_name,
     {
       if (recursive == true)
         search_dir(dirname, update_func, story_list, true, babel);
-      else
-      {
-        if ( (show_progress == true) && (update_func != NULL) )
-          update_func(z_dir_entry.d_name, NULL);
-        detect_and_add_z_file(dirname, NULL, babel, story_list);
-      }
     }
+    else
+    {
+      if ( (show_progress == true) && (update_func != NULL) )
+        update_func(z_dir_entry.d_name, NULL);
+      detect_and_add_z_file(dirname, NULL, babel, story_list);
+      }
   }
 
   if (dirname != NULL)
