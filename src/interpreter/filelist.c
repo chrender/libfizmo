@@ -465,7 +465,7 @@ static char *get_filelist_name()
   char *filename;
 
 #ifndef DISABLE_CONFIGFILES
-  config_dir_name = get_fizmo_config_dir_name();
+  dir_name = get_fizmo_config_dir_name();
 #endif // DISABLE_CONFIGFILES
 
   if (dir_name == NULL)

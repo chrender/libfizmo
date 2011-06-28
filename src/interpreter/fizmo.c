@@ -90,6 +90,8 @@ static int enable_script_after_start = 0;
 #ifndef DISABLE_CONFIGFILES
 char *fizmo_config_dir_name = NULL;
 char *xdg_config_home = NULL;
+static char *default_xdg_config_home = DEFAULT_XDG_CONFIG_HOME;
+static char *default_xdg_config_dirs = DEFAULT_XDG_CONFIG_DIRS;
 static bool fizmo_config_dir_name_initialized = false;
 static bool xdg_config_dir_name_initialized = false;
 static bool config_files_were_parsed = false;
