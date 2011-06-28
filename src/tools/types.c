@@ -5,8 +5,10 @@
 #include <strings.h>
 #include "types.h"
 
-char* z_colour_names[] = { "black", "red", "green", "yellow", "blue",
-  "magenta", "cyan", "white" };
+char* z_colour_names[] = {
+  "current", "default", "black", "red", "green", "yellow", "blue",
+  "magenta", "cyan", "white", "msdos-grey", "amiga-grey", "medium-grey",
+  "drak grey" };
 
 bool is_regular_z_colour(z_colour colour)
 {
