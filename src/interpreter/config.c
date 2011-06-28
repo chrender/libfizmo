@@ -359,8 +359,6 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
 
       // Boolean options
       else if (
-          (strcmp(key, "command-filename") == 0)
-          ||
           (strcmp(key, "disable-external-streams") == 0)
           ||
           (strcmp(key, "disable-restore") == 0)
@@ -435,9 +433,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
     i++;
   }
 
-  if (active_interface == NULL)
-    return -2;
-  else
+  if (active_interface != NULL)
   {
     result = active_interface->parse_config_parameter(key, new_value);
     if (result == -1)
@@ -449,10 +445,26 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           key,
           new_value);
     }
-
-    free(new_value);
-    return result;
   }
+
+  if (active_sound_interface == NULL)
+    return -2;
+  else
+  {
+    result = active_sound_interface->parse_config_parameter(key, new_value);
+    if (result == -1)
+    {
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S,
+          -0x0101,
+          key,
+          new_value);
+      }
+
+  }
+
+  return result;
 }
 
 
@@ -476,6 +488,19 @@ char *get_configuration_value(char *key)
   {
     return get_current_locale_name_in_utf8();
   }
+  else if (
+      (strcmp(key, "background-color-name") == 0)
+      ||
+      (strcmp(key, "foreground-color-name") == 0)
+      )
+  {
+    return z_colour_names[
+      atoi(
+          get_configuration_value(
+            ( strcmp(key, "background-color-name") == 0
+              ? "background-color"
+              : "foreground-color")))];
+  }
   else
   {
     while (configuration_options[i].name != NULL)
@@ -486,8 +511,6 @@ char *get_configuration_value(char *key)
       {
         // Boolean options
         if (
-            (strcmp(key, "command-filename") == 0)
-            ||
             (strcmp(key, "disable-external-streams") == 0)
             ||
             (strcmp(key, "disable-restore") == 0)
@@ -499,8 +522,6 @@ char *get_configuration_value(char *key)
             (strcmp(key, "enable-font3-conversion") == 0)
             ||
             (strcmp(key, "quetzal-umem") == 0)
-            ||
-            (strcmp(key, "random-mode") == 0)
             ||
             (strcmp(key, "restore-after-save-and-quit-file-before-read") == 0)
             ||
@@ -545,11 +566,11 @@ char *get_configuration_value(char *key)
             ||
             (strcmp(key, "command-filename") == 0)
             ||
+            (strcmp(key, "background-color") == 0)
+            ||
             (strcmp(key, "foreground-color") == 0)
             ||
             (strcmp(key, "save-text-history-paragraphs") == 0)
-            ||
-            (strcmp(key, "background-color") == 0)
             )
         {
           TRACE_LOG("Returning value at %p.\n", configuration_options[i].value);
