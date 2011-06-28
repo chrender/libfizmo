@@ -81,15 +81,17 @@ void *fizmo_malloc(size_t size);
 void *fizmo_realloc(void *ptr, size_t size);
 char *fizmo_strdup(char *s1);
 int ensure_mem_size(char **ptr, int *current_size, int size);
-char *get_fizmo_config_dir_name();
 void ensure_dot_fizmo_dir_exists();
-int parse_fizmo_config_files();
 char *quote_special_chars(char *s);
 char *unquote_special_chars(char *s);
 struct z_story_blorb_image *get_image_blorb_index(struct z_story *story,
     int resource_number);
 struct z_story_blorb_sound *get_sound_blorb_index(struct z_story *story,
     int resource_number);
+#ifndef DISABLE_CONFIGFILES
+char *get_fizmo_config_dir_name();
+int parse_fizmo_config_files();
+#endif // DISABLE_CONFIGFILES
 
 #ifndef fizmo_c_INCLUDED 
 extern struct commandline_parameter *interpreter_commandline_parameters[];

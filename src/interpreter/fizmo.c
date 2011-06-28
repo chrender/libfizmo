@@ -87,14 +87,13 @@ uint8_t header_extension_table_size;
 
 static int enable_script_after_start = 0;
 
+#ifndef DISABLE_CONFIGFILES
 char *fizmo_config_dir_name = NULL;
 char *xdg_config_home = NULL;
-static char *default_xdg_config_home = DEFAULT_XDG_CONFIG_HOME;
-static char *default_xdg_config_dirs = DEFAULT_XDG_CONFIG_DIRS;
 static bool fizmo_config_dir_name_initialized = false;
 static bool xdg_config_dir_name_initialized = false;
 static bool config_files_were_parsed = false;
-//static bool story_list_was_updated = false;
+#endif // DISABLE_CONFIGFILES
 
 #ifndef DISABLE_BLOCKBUFFER
 /*@null@*/ BLOCKBUF *upper_window_buffer = NULL;
@@ -414,9 +413,11 @@ static struct z_story *load_z_story(char *input_filename, char *blorb_filename)
   char *ptr, *ptr2;
   char *cwd = NULL;
   long len;
-  struct z_story_list_entry *story_data;
   long story_size = -1;
   long story_file_exec_offset = -1;
+#ifndef DISABLE_FILELIST
+  struct z_story_list_entry *story_data;
+#endif
 
   result = (struct z_story*)fizmo_malloc(sizeof(struct z_story));
 
@@ -740,21 +741,7 @@ static struct z_story *load_z_story(char *input_filename, char *blorb_filename)
   else
     result->max_nof_color_pairs = 0;
 
-  /*
-  if ((story_data = get_z_story_entry_from_list(
-        result->serial_code,
-        result->release_code,
-        result->checksum)) == NULL)
-  {
-    detect_and_add_single_z_file(input_filename, blorb_filename);
-
-    story_data = get_z_story_entry_from_list(
-        result->serial_code,
-        result->release_code,
-        result->checksum);
-  }
-  */
-
+#ifndef DISABLE_FILELIST
   detect_and_add_single_z_file(input_filename, blorb_filename);
 
   if ((story_data = get_z_story_entry_from_list(
@@ -777,6 +764,9 @@ static struct z_story *load_z_story(char *input_filename, char *blorb_filename)
   {
     result->title = NULL;
   }
+#else
+  result->title = NULL;
+#endif
 
   return result;
 }
@@ -886,6 +876,7 @@ int ensure_mem_size(char **ptr, int *current_size, int size)
 }
 
 
+#ifndef DISABLE_CONFIGFILES
 char *get_xdg_config_dir_name()
 {
   char *config_dir_used;
@@ -921,8 +912,10 @@ char *get_xdg_config_dir_name()
 
   return xdg_config_home;
 }
+#endif // DISABLE_CONFIGFILES
 
 
+#ifndef DISABLE_CONFIGFILES
 char *get_fizmo_config_dir_name()
 {
   char *config_dir_used = NULL;
@@ -943,8 +936,10 @@ char *get_fizmo_config_dir_name()
 
   return fizmo_config_dir_name;
 }
+#endif // DISABLE_CONFIGFILES
 
 
+#ifndef DISABLE_CONFIGFILES
 void ensure_dot_fizmo_dir_exists()
 {
   char *dir_name = get_fizmo_config_dir_name();
@@ -976,6 +971,7 @@ void ensure_dot_fizmo_dir_exists()
 
   mkdir(dir_name, S_IRWXU);
 }
+#endif // DISABLE_CONFIGFILES
 
 
 /*@external@*/ void fizmo_new_screen_size(uint8_t width, uint8_t height)
@@ -1133,6 +1129,7 @@ void fizmo_register_sound_interface(
 }
 
 
+#ifndef DISABLE_CONFIGFILES
 static int parse_fizmo_config_file(char *filename)
 {
   char key[MAX_CONFIG_OPTION_LENGTH];
@@ -1236,8 +1233,10 @@ static int parse_fizmo_config_file(char *filename)
   fsi->closefile(config_file);
   return 0;
 }
+#endif // DISABLE_CONFIGFILES
 
 
+#ifndef DISABLE_CONFIGFILES
 int parse_fizmo_config_files()
 {
   char *config_dirs, *dir;
@@ -1292,6 +1291,7 @@ int parse_fizmo_config_files()
 
   return 0;
 }
+#endif // DISABLE_CONFIGFILES
 
 
 // This will quote all newlines, TABs and backslashes which must not appear
@@ -1418,11 +1418,13 @@ void fizmo_start(char* input_filename, char *blorb_filename,
   char *story_file_to_load = NULL;
   char *value;
   bool evaluate_result;
-  struct z_story_list *story_list;
   char *assumed_filename = NULL;
-  int i;
   uint8_t flags2;
   char *str;
+#ifndef DISABLE_FILELIST
+  struct z_story_list *story_list;
+  int i;
+#endif // DISABLE_FILELIST
 
   TRACE_LOG("Startup for input filename \"%s\".\n", input_filename);
 
@@ -1435,12 +1437,9 @@ void fizmo_start(char* input_filename, char *blorb_filename,
   register_i18n_abort_function(
       abort_interpreter);
 
+#ifndef DISABLE_CONFIGFILES
   ensure_dot_fizmo_dir_exists();
-
-  /*
-  if (bool_equal(story_list_was_updated, false))
-    update_fizmo_story_list();
-  */
+#endif // DISABLE_CONFIGFILES
 
   if ((str = getenv("ZCODE_PATH")) == NULL)
     str = getenv("INFOCOM_PATH");
@@ -1450,26 +1449,21 @@ void fizmo_start(char* input_filename, char *blorb_filename,
   if ((str = getenv("ZCODE_ROOT_PATH")) != NULL)
     append_path_value("z-code-root-path", str);
 
+#ifndef DISABLE_CONFIGFILES
   parse_fizmo_config_files();
-
-  /*
-  if (get_configuration_value("locale") == NULL)
-    set_configuration_value("locale", DEFAULT_LOCALE, "fizmo");
-    */
+#endif DISABLE_CONFIGFILES
 
   if (get_configuration_value("random-mode") == NULL)
     set_configuration_value("random-mode", "random");
-
-  /*
-  if (get_configuration_value("system-charset") == NULL)
-    set_configuration_value("system-charset", "utf-8");
-    */
 
   //set_configuration_value("disable-external-streams", "true");
 
   open_streams();
   init_signal_handlers();
 
+#ifndef DISABLE_FILELIST
+  // We can only restore saved games directly from the save file in
+  // case the filelist functionality exists.
   if (
       (restore_on_start_filename == NULL)
       &&
@@ -1495,6 +1489,7 @@ void fizmo_start(char* input_filename, char *blorb_filename,
     restore_on_start_filename = input_filename;
   }
   else
+#endif // DISABLE_FILELIST
     story_file_to_load = input_filename;
 
   if ((in = fsi->openfile(
@@ -1505,6 +1500,7 @@ void fizmo_start(char* input_filename, char *blorb_filename,
   }
   else
   {
+#ifndef DISABLE_FILELIST
     // File does not exist. We'll ask the story list to locate a suitable
     // entry.
     story_list = get_z_story_list();
@@ -1517,10 +1513,13 @@ void fizmo_start(char* input_filename, char *blorb_filename,
         break;
       }
     }
+#endif // DISABLE_FILELIST
 
     if (assumed_filename == NULL)
     {
+#ifndef DISABLE_FILELIST
       free_z_story_list(story_list);
+#endif // DISABLE_FILELIST
 
       i18n_translate_and_exit(
           libfizmo_module_name,

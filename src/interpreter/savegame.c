@@ -852,9 +852,9 @@ void save_game(uint16_t address, uint16_t length, char *filename,
       return;
     }
 
+#ifndef DISABLE_OUTPUT_HISTORY
     nof_paragraphs_to_save = get_paragraph_save_amount();
 
-#ifndef DISABLE_OUTPUT_HISTORY
     if (
         (nof_paragraphs_to_save > 0)
         &&
@@ -1531,9 +1531,10 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
     number_of_stack_frames++;
   }
   TRACE_LOG("Number of stack frames: %d.\n", number_of_stack_frames);
-  nof_paragraphs_to_save = get_paragraph_save_amount();
 
 #ifndef DISABLE_OUTPUT_HISTORY
+  nof_paragraphs_to_save = get_paragraph_save_amount();
+
   if (
       (nof_paragraphs_to_save > 0)
       &&
@@ -1711,6 +1712,7 @@ void opcode_restore_ext(void)
 }
 
 
+#ifndef DISABLE_FILELIST
 bool detect_saved_game(char *file_to_check, char **story_file_to_load)
 {
   z_file *iff_file = open_simple_iff_file(file_to_check,
@@ -1781,8 +1783,7 @@ bool detect_saved_game(char *file_to_check, char **story_file_to_load)
     return true;
   }
 }
-
-
+#endif // DISABLE_FILELIST
 
 #endif /* savegame_c_INCLUDED */
 

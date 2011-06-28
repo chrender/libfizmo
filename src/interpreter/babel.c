@@ -36,19 +36,20 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
 #include <dirent.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
-#endif // DISABLE_LIBXML2
+#endif // DISABLE_BABEL
 
 #include "babel.h"
 #include "config.h"
 #include "fizmo.h"
 #include "../tools/tracelog.h"
 #include "../tools/filesys.h"
+#include "../tools/unused.h"
 
 static z_file *timestamp_file;
 static struct babel_timestamp_entry *babel_timestamp_entries;
@@ -77,7 +78,7 @@ void free_babel_doc_entry(struct babel_doc_entry *entry)
   if (entry == NULL)
     return;
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
   xmlFreeDoc(entry->babel_doc);
 #endif
   free(entry->filename);
@@ -100,7 +101,7 @@ void free_babel_info(struct babel_info *babel)
 
 
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
 static int add_doc_to_babel_info(xmlDocPtr new_babel_doc,
     struct babel_info *babel, time_t last_mod_timestamp, char *filename)
 {
@@ -200,7 +201,7 @@ static int add_doc_to_babel_info(xmlDocPtr new_babel_doc,
 #endif
 
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
 struct babel_info *load_babel_info_from_blorb(z_file *infile, int length,
     char *filename, time_t last_mod_timestamp)
 {
@@ -256,14 +257,18 @@ struct babel_info *load_babel_info()
 {
   struct babel_info *result = NULL;
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
   char *cwd = NULL;
-  char *config_dir_name = get_fizmo_config_dir_name();
+  char *config_dir_name = NULL;
   z_dir *config_dir;
   struct z_dir_ent z_dir_entry;
   time_t last_mod_timestamp;
   z_file *new_babel_doc_file;
   xmlDocPtr new_babel_doc;
+
+#ifndef DISABLE_CONFIGFILES
+  config_dir_name = get_fizmo_config_dir_name();
+#endif // DISABLE_CONFIGFILES
 
   if ((config_dir = fsi->open_dir(config_dir_name)) == NULL)
     return NULL;
@@ -339,7 +344,7 @@ struct babel_info *load_babel_info()
 }
 
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
 static char *getStoryNodeContent(xmlXPathContextPtr xpathCtx, char *nodeName,
     char *namespace)
 {
@@ -429,10 +434,10 @@ static char *getStoryNodeContent(xmlXPathContextPtr xpathCtx, char *nodeName,
 
   return result;
 }
-#endif // DISABLE_LIBXML2
+#endif // DISABLE_BABEL
 
 
-#ifndef DISABLE_LIBXML2
+#ifndef DISABLE_BABEL
 struct babel_story_info *get_babel_story_info(uint16_t release, char *serial,
     uint16_t checksum, struct babel_info *babel, bool babel_from_blorb)
 {
@@ -535,23 +540,27 @@ struct babel_story_info *get_babel_story_info(uint16_t release, char *serial,
 
   return result;
 }
-#else // DISABLE_LIBXML2
+#else // DISABLE_BABEL
 struct babel_story_info *get_babel_story_info(uint16_t UNUSED(release),
     char *UNUSED(serial), uint16_t UNUSED(checksum),
     struct babel_info *UNUSED(babel), bool UNUSED(babel_from_blorb))
 {
   return NULL;
 }
-#endif // DISABLE_LIBXML2
+#endif // DISABLE_BABEL
 
 
 void store_babel_info_timestamps(struct babel_info *babel)
 {
   z_file *out;
-  char *config_dir_name = get_fizmo_config_dir_name();
+  char *config_dir_name = NULL;
   char *filename;
   char *quoted_filename;
   int i;
+
+#ifndef DISABLE_CONFIGFILES
+  config_dir_name = get_fizmo_config_dir_name();
+#endif // DISABLE_CONFIGFILES
 
   /*
   Story list should work even if no babel info is available.
@@ -602,13 +611,17 @@ void abort_timestamp_input()
 
 bool babel_files_have_changed(struct babel_info *babel)
 {
-  char *config_dir_name = get_fizmo_config_dir_name();
+  char *config_dir_name = NULL;
   char *filename;
   int data;
   int nof_babel_timestamp_entries = 0;
   long offset, size;
   long timestamp;
   int i, j;
+
+#ifndef DISABLE_CONFIGFILES
+  config_dir_name = get_fizmo_config_dir_name();
+#endif // DISABLE_CONFIGFILES
 
   if (config_dir_name == NULL)
     return false;
@@ -742,4 +755,12 @@ bool babel_files_have_changed(struct babel_info *babel)
   return false;
 }
 
+bool babel_available()
+{
+#ifndef DISABLE_BABEL
+  return true;
+#else
+  return false;
+#endif
+}
 

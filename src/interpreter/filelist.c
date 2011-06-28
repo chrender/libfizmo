@@ -461,8 +461,12 @@ int parse_next_story_entry()
 
 static char *get_filelist_name()
 {
-  char *dir_name = get_fizmo_config_dir_name();
+  char *dir_name = NULL;
   char *filename;
+
+#ifndef DISABLE_CONFIGFILES
+  config_dir_name = get_fizmo_config_dir_name();
+#endif // DISABLE_CONFIGFILES
 
   if (dir_name == NULL)
     return NULL;
@@ -1292,6 +1296,9 @@ void save_story_list(struct z_story_list *story_list)
 
 struct z_story_list *update_fizmo_story_list()
 {
+#ifdef DISABLE_CONFIGFILES
+  return NULL;
+#else // DISABLE_CONFIGFILES
   struct z_story_list *result;
   struct z_story_list_entry *entry;
   char *str, *path;
@@ -1405,6 +1412,7 @@ struct z_story_list *update_fizmo_story_list()
   free_babel_info(babel);
 
   return result;
+#endif // DISABLE_CONFIGFILES
 }
 
 

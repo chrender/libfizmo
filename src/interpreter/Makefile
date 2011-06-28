@@ -1,12 +1,6 @@
 
 include ../../config.mk
 
-ifneq ($(DISABLE_LIBXML2),)
-CFLAGS_LIBXML2 = -DDISABLE_LIBXML2=
-else
-CFLAGS_LIBXML2 = $(LIBXML2_PKG_CFLAGS) $(LIBXML2_NONPKG_CFLAGS)
-endif
-
 ifneq ($(ENABLE_GDB_SYMBOLS),)
 override CFLAGS += -g
 endif
@@ -25,6 +19,19 @@ endif
 
 ifneq ($(THROW_SIGFAULT_ON_ERROR),)
 override CFLAGS += -DTHROW_SIGFAULT_ON_ERROR=
+endif
+
+ifneq ($(DISABLE_BABEL),)
+CFLAGS_LIBXML2 = -DDISABLE_BABEL=
+else
+CFLAGS_LIBXML2 = $(LIBXML2_PKG_CFLAGS) $(LIBXML2_NONPKG_CFLAGS)
+endif
+
+ifeq ($(DISABLE_FILELIST),)
+FILELIST_DEP_H = filelist.h
+FILELIST_DEP_O = filelist.o
+else
+override CFLAGS += -DDISABLE_FILELIST=
 endif
 
 ifeq ($(DISABLE_BLOCKBUFFER),)
@@ -48,15 +55,19 @@ else
 override CFLAGS += -DDISABLE_OUTPUT_HISTORY
 endif
 
+ifneq ($(DISABLE_CONFIGFILES),)
+override CFLAGS += -DDISABLE_CONFIGFILES=
+endif
+
 
 .PHONY : clean
 
 all: libinterpreter.a
 
-libinterpreter.a: fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o filelist.o babel.o hyphenation.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O)
-	$(AR) rcs libinterpreter.a fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o filelist.o babel.o hyphenation.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O)
+libinterpreter.a: fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o babel.o hyphenation.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O) $(FILELIST_DEP_O)
+	$(AR) rcs libinterpreter.a fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o babel.o hyphenation.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O) $(FILELIST_DEP_O)
 
-fizmo.o: ../tools/tracelog.h fizmo.h zpu.h text.h math.h stack.h ../tools/i18n.h misc.h streams.h config.h savegame.h output.h ../tools/z_ucs.h fizmo.c $(BLOCKBUF_DEP_H) $(OUTPUT_HST_DEP_H)
+fizmo.o: ../tools/tracelog.h fizmo.h zpu.h text.h math.h stack.h ../tools/i18n.h misc.h streams.h config.h savegame.h output.h ../tools/z_ucs.h fizmo.c $(BLOCKBUF_DEP_H) $(OUTPUT_HST_DEP_H) $(FILELIST_DEP_H)
 	$(CC) $(CFLAGS) -c fizmo.c
 
 fizmo.h: ../screen_interface/screen_interface.h
