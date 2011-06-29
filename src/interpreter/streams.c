@@ -143,39 +143,44 @@ static struct wordwrap_target streams_wordwrap_target =
 */
 
 
-//void init_streams(char *stream_2_default_filename)
 void init_streams()
 {
   char *src;
   size_t bytes_required;
+  char *stream_2_line_width = get_configuration_value("stream-2-line-width");
+  char *stream_2_left_margin = get_configuration_value("stream-2-left-margin");
+  int stream2width, stream2margin;
 
-  // This is only initialized once, so no original memory has to be freed.
-  /*@-mustfreeonly@*/
+  stream2width
+    = stream_2_line_width != NULL       
+    ? atoi(stream_2_line_width)
+    : DEFAULT_STREAM_2_LINE_WIDTH;
+
+  stream2margin
+    = stream_2_left_margin != NULL       
+    ? atoi(stream_2_left_margin)
+    : DEFAULT_STREAM_2_LEFT_PADDING;
+
   stream_2_wrapper = wordwrap_new_wrapper(
-      DEFAULT_STREAM_2_LINE_WIDTH,
-      &stream_2_wrapped_output_destination, //&streams_wordwrap_target,
+      stream2width,
+      &stream_2_wrapped_output_destination,
       NULL,
       true,
-      DEFAULT_STREAM_2_LEFT_PADDING,
+      stream2margin,
       (strcmp(get_configuration_value("sync-transcript"), "true") == 0
        ? true
        : false),
-      (strcmp(get_configuration_value("stream2-hyphenation"), "true") == 0
-       ? true
-       : false));
-  /*@+mustfreeonly@*/
+      (strcmp(get_configuration_value("disable-stream-2-hyphenation"),"true")==0
+       ? false
+       : true));
 
-  if (strcmp(get_configuration_value("start-script-when-story-starts"), "true")
-      == 0)
-  {
+  if (strcmp(get_configuration_value("start-script-when-story-starts"),
+        "true") == 0)
     z_mem[0x11] |= 1;
-  }
 
   if (strcmp(get_configuration_value(
           "start-command-recording-when-story-starts"), "true") == 0)
-  {
     stream_4_active = true;
-  }
 
   if ((src = get_configuration_value("transcript-filename")) != NULL)
   {

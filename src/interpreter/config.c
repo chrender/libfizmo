@@ -74,6 +74,8 @@ struct configuration_option configuration_options[] = {
   { "transcript-filename", NULL },
   { "z-code-path", NULL },
   { "z-code-root-path", NULL },
+  { "stream-2-line-width", NULL },
+  { "stream-2-left-margin", NULL },
 
   // Boolean values:
   { "disable-external-streams", NULL },
@@ -88,7 +90,7 @@ struct configuration_option configuration_options[] = {
   { "start-command-recording-when-story-starts", NULL },
   { "start-file-input-when-story-starts", NULL },
   { "start-script-when-story-starts", NULL },
-  { "stream2-hyphenation", NULL },
+  { "disable-stream-2-hyphenation", NULL },
   { "sync-transcript", NULL },
 
   // NULL terminates the option list.
@@ -241,6 +243,9 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
   char *new_value = NULL;
   char buf[BUFSIZE];
   short color_code;
+  long long_value;
+  char *endptr;
+
 
   if (key == NULL)
     return -1;
@@ -327,6 +332,25 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
         return 0;
       }
 
+      // Integer values
+      else if (
+          (strcmp(key, "stream-2-line-width") == 0)
+          ||
+          (strcmp(key, "stream-2-left-margin") == 0)
+          )
+      {
+        if ( (new_value == NULL) || (strlen(new_value) == 0) )
+          return -1;
+        long_value = strtol(new_value, &endptr, 10);
+        if (*endptr != 0)
+        {
+          free(new_value);
+          return -1;
+        }
+        configuration_options[i].value = new_value;
+        return 0;
+      }
+
       // Color options
       else if (strcmp(key, "foreground-color") == 0)
       {
@@ -385,7 +409,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           ||
           (strcmp(key, "start-file-input-when-story-starts") == 0)
           ||
-          (strcmp(key, "stream2-hyphenation") == 0)
+          (strcmp(key, "disable-stream-2-hyphenation") == 0)
           ||
           (strcmp(key, "sync-transcript") == 0)
           )
@@ -535,7 +559,7 @@ char *get_configuration_value(char *key)
             ||
             (strcmp(key, "start-file-input-when-story-starts") == 0)
             ||
-            (strcmp(key, "stream2-hyphenation") == 0)
+            (strcmp(key, "disable-stream-2-hyphenation") == 0)
             ||
             (strcmp(key, "sync-transcript") == 0)
            )
@@ -571,6 +595,10 @@ char *get_configuration_value(char *key)
             (strcmp(key, "foreground-color") == 0)
             ||
             (strcmp(key, "save-text-history-paragraphs") == 0)
+            ||
+            (strcmp(key, "stream-2-line-width") == 0)
+            ||
+            (strcmp(key, "stream-2-left-margin") == 0)
             )
         {
           TRACE_LOG("Returning value at %p.\n", configuration_options[i].value);
