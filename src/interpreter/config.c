@@ -64,7 +64,8 @@ struct configuration_option configuration_options[] = {
 
   // String values:
   { "background-color", NULL },
-  { "command-filename", NULL },
+  { "input-command-filename", NULL },
+  { "record-command-filename", NULL },
   { "foreground-color", NULL },
   { "i18n-search-path", NULL },
   { "locale", NULL },
@@ -323,7 +324,9 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           ||
           (strcmp(key, "save-text-history-paragraphs") == 0)
           ||
-          (strcmp(key, "command-filename") == 0)
+          (strcmp(key, "input-command-filename") == 0)
+          ||
+          (strcmp(key, "record-command-filename") == 0)
           )
       {
         if (configuration_options[i].value != NULL)
@@ -588,7 +591,9 @@ char *get_configuration_value(char *key)
             ||
             (strcmp(key, "transcript-filename") == 0)
             ||
-            (strcmp(key, "command-filename") == 0)
+            (strcmp(key, "input-command-filename") == 0)
+            ||
+            (strcmp(key, "record-command-filename") == 0)
             ||
             (strcmp(key, "background-color") == 0)
             ||

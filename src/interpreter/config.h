@@ -53,7 +53,8 @@
 
 #define MAXIMUM_SCRIPT_FILE_NAME_LENGTH 64
 #define DEFAULT_SCRIPT_FILE_NAME "script.txt"
-#define DEFAULT_COMMAND_FILE_NAME "record.txt"
+#define DEFAULT_INPUT_COMMAND_FILE_NAME "input-script.txt"
+#define DEFAULT_RECORD_COMMAND_FILE_NAME "record.txt"
 
 #define DEFAULT_STREAM_2_LINE_WIDTH 78
 // Note that some games (Aisle may be an example) format their output

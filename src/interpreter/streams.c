@@ -207,7 +207,29 @@ void init_streams()
   TRACE_LOG_Z_UCS(last_script_filename);
   TRACE_LOG("'.\n");
 
-  if ((src = get_configuration_value("command-filename")) != NULL)
+  if ((src = get_configuration_value("input-command-filename")) != NULL)
+  {
+    bytes_required = strlen(src) + 1;
+    if ((input_stream_1_filename == NULL)
+        || (bytes_required > input_stream_1_filename_size))
+    {
+      input_stream_1_filename
+        = (char*)fizmo_realloc(input_stream_1_filename, bytes_required);
+      input_stream_1_filename_size = bytes_required;
+    }
+
+    strcpy(input_stream_1_filename, src);
+    input_stream_1_was_already_active = true;
+  }
+  else
+    src = fizmo_strdup(DEFAULT_INPUT_COMMAND_FILE_NAME);
+
+  (void)latin1_string_to_zucs_string(
+      last_input_stream_filename,
+      src,
+      strlen(src) + 1);
+
+  if ((src = get_configuration_value("record-command-filename")) != NULL)
   {
     bytes_required = strlen(src) + 1;
     if ((stream_4_filename == NULL) || (bytes_required>stream_4_filename_size))
@@ -217,37 +239,20 @@ void init_streams()
       stream_4_filename_size = bytes_required;
     }
 
-    if ((input_stream_1_filename == NULL)
-        || (bytes_required > input_stream_1_filename_size))
-    {
-      input_stream_1_filename
-        = (char*)fizmo_realloc(input_stream_1_filename, bytes_required);
-      input_stream_1_filename_size = bytes_required;
-    }
-
     strcpy(stream_4_filename, src);
-    strcpy(input_stream_1_filename, src);
     stream_4_was_already_active = true;
-    input_stream_1_was_already_active = true;
   }
   else
-    src = fizmo_strdup(DEFAULT_COMMAND_FILE_NAME);
+    src = fizmo_strdup(DEFAULT_RECORD_COMMAND_FILE_NAME);
 
   (void)latin1_string_to_zucs_string(
       last_stream_4_filename,
       src,
       strlen(src) + 1);
 
-  (void)latin1_string_to_zucs_string(
-      last_input_stream_filename,
-      src,
-      strlen(src) + 1);
-
   if (strcmp(get_configuration_value(
           "start-file-input-when-story-starts"), "true") == 0)
-  {
     input_stream_1_active = true;
-  }
 }
 
 
