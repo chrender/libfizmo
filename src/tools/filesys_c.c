@@ -67,7 +67,7 @@ static z_file *openfile_c(const char *filename, int filetype, int fileaccess)
   else
     return NULL;
 
-  TRACE_LOG("Trying to fopen(\"%s\", \"%s\").",
+  TRACE_LOG("Trying to fopen(\"%s\", \"%s\").\n",
       filename, fileaccess_string[access_index]);
 
   if ((result->file_object
