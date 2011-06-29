@@ -40,7 +40,7 @@
 #include "../sound_interface/sound_interface.h"
 #include "blockbuf.h"
 
-#define FIZMO_VERSION "0.7.0-b10"
+#define FIZMO_VERSION "0.7.0-b11"
 
 #define FIZMO_INTERPRETER_NUMBER 6
 /*
