@@ -688,7 +688,8 @@ static void tokenise(
       if (zchar_storage_symbols_stored > 0)
       {
         zchar_storage_finish();
-        number_of_words_found++;
+        if (++number_of_words_found == maximum_words)
+          break;
 
         (void)locate_dictionary_entry(tokenize_buffer,
             &parse_buffer_index,
