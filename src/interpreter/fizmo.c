@@ -365,7 +365,14 @@ static void load_blorb(struct z_story *result, char* blorb_input_filename)
     {
       TRACE_LOG("Unknown sound type: \"%s\".\n", buf);
       // FIXME: Error message.
-      exit(-2);
+
+      // exit(-2);
+      // No exit here, since http://www.ifarchive.org/if-archive/games/zcode/
+      // french/scarabeekatana.zblorb contains a "OggS" sound type which will
+      // cause game startup to abort at this point.
+
+      result->blorb_sounds[i].type = Z_BLORB_SOUND_UNKNOWN;
+      result->blorb_sounds[i].size = size;
     }
   }
 

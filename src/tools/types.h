@@ -128,10 +128,11 @@ struct z_story_blorb_image
 // Blorb specification 12.3: " sound is stored in AIFF (sampled) or Ogg/MOD
 // (music) format.) -> AIFF is a sound effect, OGG and MOD (and song) are
 // considered to contain music.
-#define Z_BLORB_SOUND_AIFF 0
-#define Z_BLORB_SOUND_OGG 1
-#define Z_BLORB_SOUND_MOD 2
-#define Z_BLORB_SOUND_SONG 3
+#define Z_BLORB_SOUND_UNKNOWN 0 // "OggS" in scarabeekatana.zblorb
+#define Z_BLORB_SOUND_AIFF 1
+#define Z_BLORB_SOUND_OGG 2
+#define Z_BLORB_SOUND_MOD 3
+#define Z_BLORB_SOUND_SONG 4
 
 struct z_story_blorb_sound
 {
