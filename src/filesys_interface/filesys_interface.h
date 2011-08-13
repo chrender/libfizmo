@@ -34,12 +34,14 @@
 #define filesys_interface_h_INCLUDED
 
 #include <stdio.h>
+#include <stdarg.h>
 #include "../tools/types.h"
 
 #define FILETYPE_SAVEGAME 0
 #define FILETYPE_TRANSCRIPT 1
 #define FILETYPE_INPUTRECORD 2
 #define FILETYPE_DATA 3
+#define FILETYPE_TEXT 4
 
 #define FILEACCESS_READ 0
 #define FILEACCESS_WRITE 1
@@ -48,7 +50,7 @@
 
 struct z_filesys_interface
 {
-  z_file* (*openfile)(const char *filename, int filetype, int fileaccess);
+  z_file* (*openfile)(char *filename, int filetype, int fileaccess);
   int (*closefile)(z_file *file_to_close);
 
   // Returns -1 on EOF.
@@ -64,7 +66,9 @@ struct z_filesys_interface
 
   int (*writestring)(char *s, z_file *fileref);
   int (*fileprintf)(z_file *fileref, char *format, ...);
+  int (*vfileprintf)(z_file *fileref, char *format, va_list ap);
   int (*filescanf)(z_file *fileref, char *format, ...);
+  int (*vfilescanf)(z_file *fileref, char *format, va_list ap);
 
   off_t (*getfilepos)(z_file *fileref);
   int (*setfilepos)(z_file *fileref, off_t seek, int whence);
