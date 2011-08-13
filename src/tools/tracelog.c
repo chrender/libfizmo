@@ -65,7 +65,7 @@ void turn_on_trace(void)
   }
 
   stream_t = fsi->openfile(
-      DEFAULT_TRACE_FILE_NAME, FILETYPE_DATA, FILEACCESS_WRITE);
+      DEFAULT_TRACE_FILE_NAME, FILETYPE_TEXT, FILEACCESS_WRITE);
 
   if (stream_t == NULL)
     i18n_translate_and_exit(

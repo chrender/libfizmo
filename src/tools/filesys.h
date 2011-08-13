@@ -40,5 +40,8 @@
 extern struct z_filesys_interface *fsi;
 #endif
 
+void fizmo_register_filesys_interface(
+    struct z_filesys_interface *filesys_interface);
+
 #endif /* filesys_h_INCLUDED */
 

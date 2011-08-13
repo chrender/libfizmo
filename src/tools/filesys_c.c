@@ -50,7 +50,7 @@
 static char *fileaccess_string[] = { "r", "w", "a" };
 
 
-static z_file *openfile_c(const char *filename, int filetype, int fileaccess)
+static z_file *openfile_c(char *filename, int filetype, int fileaccess)
 {
   z_file *result;
   int access_index;
@@ -138,6 +138,12 @@ static int fileprintf_c(z_file *fileref, char *format, ...)
 }
 
 
+static int vfileprintf_c(z_file *fileref, char *format, va_list ap)
+{
+  return vfprintf((FILE*)fileref->file_object, format, ap);
+}
+
+
 static int filescanf_c(z_file *fileref, char *format, ...)
 {
   va_list args;
@@ -145,6 +151,12 @@ static int filescanf_c(z_file *fileref, char *format, ...)
   int result = vfscanf((FILE*)fileref->file_object, format, args);
   va_end(args);
   return result;
+}
+
+
+static int vfilescanf_c(z_file *fileref, char *format, va_list ap)
+{
+  return vfscanf((FILE*)fileref->file_object, format, ap);
 }
 
 
@@ -277,7 +289,9 @@ struct z_filesys_interface z_filesys_interface_c =
   &writechars_c,
   &writestring_c,
   &fileprintf_c,
+  &vfileprintf_c,
   &filescanf_c,
+  &vfilescanf_c,
   &getfilepos_c,
   &setfilepos_c,
   &ungetchar_c,

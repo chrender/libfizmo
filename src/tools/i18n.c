@@ -48,6 +48,14 @@
 
 #define LATIN1_TO_Z_UCS_BUFFER_SIZE 64
 
+static char *locale_aliases[4][5] =
+{
+  { "en_US", "en-GB", "en-US", "en", NULL },
+  { "de_DE", "de", NULL },
+  { "fr_FR", "fr", NULL },
+  { NULL }
+};
+
 //z_ucs *active_locale = NULL;
 static z_ucs *current_locale_name = NULL;
 static char *current_locale_name_in_utf8 = NULL;
@@ -1359,6 +1367,37 @@ int set_current_locale_name(char *new_locale_name)
   char *locale_dir_name = NULL;
   z_ucs *locale_dup;
   char *locale_dup_utf8;
+  int i, j;
+
+  if (new_locale_name == NULL)
+    return -1;
+
+  // Check if the locale name given was an alias: If, in case "en" was
+  // given as locale name, this should be interpreted as "en_US" instead --
+  // see the "locale_aliases" definition above.
+  i = 0;
+  while (locale_aliases[i][0] != NULL)
+  {
+    // Test all aliases for current locale name:
+    j = 1;
+    while (locale_aliases[i][j] != NULL)
+    {
+      if (strcmp(locale_aliases[i][j], new_locale_name) == 0)
+        break;
+      j++;
+    }
+
+    if (locale_aliases[i][j] != NULL)
+    {
+      // We've found an alias.
+      new_locale_name = locale_aliases[i][0];
+      TRACE_LOG("Locale name \"%s\" is an alias for \"%s\".\n",
+          new_locale_name, new_locale_name);
+      break;
+    }
+
+    i++;
+  }
 
   if ((locale_dup =
         dup_utf8_string_to_zucs_string(new_locale_name)) == NULL)
