@@ -38,6 +38,7 @@
 
 #include "../screen_interface/screen_interface.h"
 #include "../sound_interface/sound_interface.h"
+#include "../blorb_interface/blorb_interface.h"
 #include "blockbuf.h"
 
 #define FIZMO_VERSION "0.7.0-b11"
@@ -72,9 +73,12 @@ void fizmo_register_screen_interface(
     struct z_screen_interface *screen_interface);
 void fizmo_register_sound_interface(
     struct z_sound_interface *sound_interface);
+void fizmo_register_blorb_interface(
+    struct z_blorb_interface *blorb_interface);
 void write_interpreter_info_into_header();
-void fizmo_start(char* z_story_filename, char *blorb_filename,
-    char *restore_on_start_filename);
+//void fizmo_start(char* z_story_filename, char *blorb_filename);
+void fizmo_start(z_file *story_stream, z_file *blorb_stream,
+    z_file *restore_on_start_file);
 void fizmo_new_screen_size(uint8_t width, uint8_t height);
 int close_interface(z_ucs /*@null@*/ *error_message);
 void *fizmo_malloc(size_t size);
@@ -84,10 +88,12 @@ int ensure_mem_size(char **ptr, int *current_size, int size);
 void ensure_dot_fizmo_dir_exists();
 char *quote_special_chars(char *s);
 char *unquote_special_chars(char *s);
+/*
 struct z_story_blorb_image *get_image_blorb_index(struct z_story *story,
     int resource_number);
 struct z_story_blorb_sound *get_sound_blorb_index(struct z_story *story,
     int resource_number);
+*/
 #ifndef DISABLE_CONFIGFILES
 char *get_fizmo_config_dir_name();
 int parse_fizmo_config_files();

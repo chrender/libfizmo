@@ -51,6 +51,7 @@ struct z_story_list_entry
   uint8_t z_code_version;
   char *title;
   char *author;
+  char *language;
   char *description;
   char *filename;
   char *blorbfile;

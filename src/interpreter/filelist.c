@@ -54,6 +54,8 @@ static char *title_input = NULL;
 static int title_input_size = 0;
 static char *author_input = NULL;
 static int author_input_size = 0;
+static char *language_input = NULL;
+static int language_input_size = 0;
 static char *description_input = NULL;
 static int description_input_size = 0;
 static char *filename_input = NULL;
@@ -66,6 +68,7 @@ static int filetype_input_size = 0;
 static char *unquoted_serial_input = NULL;
 static char *unquoted_title_input = NULL;
 static char *unquoted_author_input = NULL;
+static char *unquoted_language_input = NULL;
 static char *unquoted_description_input = NULL;
 static char *unquoted_filename_input = NULL;
 static char *unquoted_blorbfile_input = NULL;
@@ -79,7 +82,8 @@ static long storyfile_timestamp_input;
 static int length_input;
 static uint16_t checksum_input;
 static int version_input;
-z_file *in;
+static z_file *in;
+static bool in_zfile_open = false;
 static int nof_files_searched;
 static bool show_progress = false;
 
@@ -129,6 +133,11 @@ void free_unquote_buffers()
     free(unquoted_author_input);
     unquoted_author_input = NULL;
   }
+  if (unquoted_language_input != NULL)
+  {
+    free(unquoted_language_input);
+    unquoted_language_input = NULL;
+  }
   if (unquoted_description_input != NULL)
   {
     free(unquoted_description_input);
@@ -175,6 +184,13 @@ void abort_entry_input()
   }
   author_input_size = 0;
 
+  if (language_input != NULL)
+  {
+    free(language_input);
+    language_input = NULL;
+  }
+  language_input_size = 0;
+
   if (description_input != NULL)
   {
     free(description_input);
@@ -205,7 +221,11 @@ void abort_entry_input()
 
   free_unquote_buffers();
 
-  fsi->closefile(in);
+  if (in_zfile_open == true)
+  {
+    fsi->closefile(in);
+    in_zfile_open = false;
+  }
 }
 
 
@@ -217,6 +237,8 @@ void free_z_story_list_entry(struct z_story_list_entry *entry)
     free(entry->title);
   if (entry->author != NULL)
     free(entry->author);
+  if (entry->language != NULL)
+    free(entry->language);
   if (entry->description != NULL)
     free(entry->description);
   if (entry->filename != NULL)
@@ -368,6 +390,22 @@ int parse_next_story_entry()
 
   offset = fsi->getfilepos(in);
   while ((data = fsi->getchar(in)) != '\t')
+    if (data == EOF) { abort_entry_input(); TRACE_LOG("#15\n"); return -1; }
+  size = fsi->getfilepos(in) - offset - 1;
+  if (ensure_mem_size(&language_input, &language_input_size, size + 2) == -1)
+  { abort_entry_input(); TRACE_LOG("#16\n"); return -1; }
+  if (size > 0)
+  {
+    fsi->setfilepos(in, -(size+1), SEEK_CUR);
+    if (fsi->getchars(language_input, size+1, in) != (size_t)size+1)
+    { abort_entry_input(); TRACE_LOG("#17\n"); return -1; }
+  }
+  language_input[size] = '\0';
+  unquoted_language_input = unquote_special_chars(language_input);
+  //printf("language:[%s]\n", language_input);
+
+  offset = fsi->getfilepos(in);
+  while ((data = fsi->getchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#18\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -510,6 +548,7 @@ struct z_story_list_entry *store_current_entry()
   result->checksum = checksum_input;
   result->title = fizmo_strdup(unquoted_title_input);
   result->author = fizmo_strdup(unquoted_author_input);
+  result->language = fizmo_strdup(unquoted_language_input);
   result->description = fizmo_strdup(unquoted_description_input);
   result->filename = fizmo_strdup(unquoted_filename_input);
   result->blorbfile = fizmo_strdup(unquoted_blorbfile_input);
@@ -522,7 +561,7 @@ struct z_story_list_entry *store_current_entry()
 
 
 struct z_story_list_entry *add_entry_to_story_list(
-    struct z_story_list *story_list, char *title, char *author,
+    struct z_story_list *story_list, char *title, char *author, char *language,
     char *description, char *serial, int version, int length,
     uint16_t checksum, uint16_t release, char *story_filename,
     char *story_blorbfile, char *story_filetype, long storyfile_timestamp)
@@ -534,7 +573,8 @@ struct z_story_list_entry *add_entry_to_story_list(
 
   //printf("Adding %d:%s\n", story_list->nof_entries, story_filename);
 
-  TRACE_LOG("New story: %s, \"%s\".\n",
+  TRACE_LOG("Adding new story entry #%d: %s, \"%s\".\n",
+      story_list->nof_entries,
       story_filename,
       description != NULL ? description : "");
 
@@ -544,14 +584,20 @@ struct z_story_list_entry *add_entry_to_story_list(
             story_list->entries,
             sizeof(struct z_story_list_entry*)
             * (story_list->nof_entries_allocated + 10))) == NULL)
-      return NULL;
+      {
+        TRACE_LOG("Cannot realloc.\n");
+        return NULL;
+      }
 
     story_list->entries = ptr;
     story_list->nof_entries_allocated += 10;
   }
 
   if ((result = malloc(sizeof(struct z_story_list_entry))) == NULL)
+  {
+    TRACE_LOG("Cannot malloc.\n");
     return NULL;
+  }
 
   result->release_number = release;
   result->serial = fizmo_strdup(serial);
@@ -560,6 +606,7 @@ struct z_story_list_entry *add_entry_to_story_list(
   result->checksum = checksum;
   result->title = fizmo_strdup(title);
   result->author = fizmo_strdup(author);
+  result->language = fizmo_strdup(language);
   result->description = fizmo_strdup(description);
   result->filename = fizmo_strdup(story_filename);
   result->blorbfile
@@ -574,9 +621,14 @@ struct z_story_list_entry *add_entry_to_story_list(
       break;
     insert_index++;
   }
+  TRACE_LOG("Insert index: %d.\n", insert_index);
 
   if (insert_index < story_list->nof_entries)
   {
+    TRACE_LOG("Move to %p from %p.\n",
+        story_list->entries + insert_index + 1,
+        story_list->entries + insert_index);
+
     memmove(
         story_list->entries + insert_index + 1,
         story_list->entries + insert_index,
@@ -613,6 +665,7 @@ struct z_story_list *get_z_story_list()
 
   if ((in = open_story_list(false)) == NULL)
     return result;
+  in_zfile_open = true;
 
   for(;;)
   {
@@ -634,6 +687,7 @@ struct z_story_list *get_z_story_list()
         result,
         unquoted_title_input,
         unquoted_author_input,
+        unquoted_language_input,
         unquoted_description_input,
         unquoted_serial_input,
         version_input,
@@ -702,6 +756,7 @@ struct z_story_list_entry *get_z_story_entry_from_list(char *serial,
 
   if ((in = open_story_list(false)) == NULL)
     return NULL;
+  in_zfile_open = true;
 
   for(;;)
   {
@@ -775,6 +830,7 @@ static int detect_and_add_z_file(char *filename, char *blorb_filename,
   struct babel_story_info *b_info = NULL;
   char *title;
   char *author;
+  char *language;
   char *description;
   char *ptr, *ptr2;
   int length;
@@ -973,6 +1029,7 @@ static int detect_and_add_z_file(char *filename, char *blorb_filename,
   {
     title = (b_info->title == NULL ? empty_string : b_info->title);
     author = (b_info->author == NULL ? empty_string : b_info->author);
+    language = (b_info->language == NULL ? empty_string : b_info->language);
     description
       = (b_info->description != NULL)
       ? b_info->description
@@ -1005,6 +1062,7 @@ static int detect_and_add_z_file(char *filename, char *blorb_filename,
     }
 
     author = empty_string;
+    language = empty_string;
     description = empty_string;
   }
 
@@ -1012,6 +1070,7 @@ static int detect_and_add_z_file(char *filename, char *blorb_filename,
       story_list,
       title,
       author,
+      language,
       description,
       serial,
       version,
@@ -1227,6 +1286,7 @@ void save_story_list(struct z_story_list *story_list)
   char *quoted_serial = NULL;
   char *quoted_title = NULL;
   char *quoted_author = NULL;
+  char *quoted_language = NULL;
   char *quoted_description = NULL;
   char *quoted_filename = NULL;
   char *quoted_blorbname = NULL;
@@ -1242,6 +1302,7 @@ void save_story_list(struct z_story_list *story_list)
     quoted_serial = quote_special_chars(entry->serial);
     quoted_title = quote_special_chars(entry->title);
     quoted_author = quote_special_chars(entry->author);
+    quoted_language = quote_special_chars(entry->language);
     quoted_description = quote_special_chars(entry->description);
     quoted_filename = quote_special_chars(entry->filename);
     quoted_blorbname = quote_special_chars(entry->blorbfile);
@@ -1251,7 +1312,7 @@ void save_story_list(struct z_story_list *story_list)
 
     fsi->fileprintf(
         out,
-        "%d\t%s\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%ld\n",
+        "%d\t%s\t%d\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%ld\n",
         entry->release_number,
         quoted_serial,
         entry->length,
@@ -1259,6 +1320,7 @@ void save_story_list(struct z_story_list *story_list)
         entry->z_code_version,
         (quoted_title == NULL ? "" : quoted_title),
         (quoted_author == NULL ? "" : quoted_author),
+        (quoted_language == NULL ? "" : quoted_language),
         (quoted_description == NULL ? "" : quoted_description),
         quoted_filename,
         (quoted_blorbname == NULL ? "" : quoted_blorbname),
@@ -1273,6 +1335,9 @@ void save_story_list(struct z_story_list *story_list)
 
     if (quoted_author != NULL)
       free(quoted_author);
+
+    if (quoted_language != NULL)
+      free(quoted_language);
 
     if (quoted_description != NULL)
       free(quoted_description);

@@ -74,6 +74,27 @@ static int read_four_chars(z_file *iff_file)
 }
 
 
+bool detect_simple_iff_stream(z_file *iff_file)
+{
+  if (fsi->setfilepos(iff_file, 0, SEEK_SET) == -1)
+    return false;
+
+  if (read_four_chars(iff_file) != 0)
+    return false;
+
+  if (strcmp(four_chars, "FORM") != 0)
+    return false;
+
+  if (read_chunk_length(iff_file) != 0)
+    return false;
+
+  if (read_four_chars(iff_file) != 0)
+    return false;
+
+  return true;
+}
+
+
 z_file *open_simple_iff_file(char *filename, int mode)
 {
   z_file *iff_file;
@@ -95,41 +116,11 @@ z_file *open_simple_iff_file(char *filename, int mode)
     if (iff_file == NULL)
       return NULL;
 
-    if (read_four_chars(iff_file) != 0)
+    if (detect_simple_iff_stream(iff_file) == false)
     {
       (void)fsi->closefile(iff_file);
       return NULL;
     }
-
-    if (strcmp(four_chars, "FORM") != 0)
-    {
-      (void)fsi->closefile(iff_file);
-      return NULL;
-    }
-
-    if (read_chunk_length(iff_file) != 0)
-    {
-      (void)fsi->closefile(iff_file);
-      return NULL;
-    }
-
-    //current_form_length = last_chunk_length;
-
-    //TRACE_LOG("IFF FORM chunk length: %d.\n", current_form_length);
-
-    if (read_four_chars(iff_file) != 0)
-    {
-      (void)fsi->closefile(iff_file);
-      return NULL;
-    }
-
-    /*
-    if (strcmp(four_chars, "IFZS") != 0)
-    {
-      (void)fsi->closefile(iff_file);
-      return NULL;
-    }
-    */
   }
   else if ( (mode == IFF_MODE_WRITE) || (mode == IFF_MODE_WRITE_SAVEGAME) )
   {

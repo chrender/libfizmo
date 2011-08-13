@@ -64,8 +64,8 @@ endif
 
 all: libinterpreter.a
 
-libinterpreter.a: fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o babel.o hyphenation.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O) $(FILELIST_DEP_O)
-	$(AR) rcs libinterpreter.a fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o babel.o hyphenation.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O) $(FILELIST_DEP_O)
+libinterpreter.a: fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o babel.o hyphenation.o blorb.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O) $(FILELIST_DEP_O)
+	$(AR) rcs libinterpreter.a fizmo.o zpu.o stack.o streams.o routine.o variable.o object.o property.o text.o savegame.o iff.o misc.o mt19937ar.o math.o output.o sound.o wordwrap.o table.o config.o undo.o babel.o hyphenation.o blorb.o $(BLOCKBUF_DEP_O) $(CMD_HST_DEP_O) $(OUTPUT_HST_DEP_O) $(FILELIST_DEP_O)
 
 fizmo.o: ../tools/tracelog.h fizmo.h zpu.h text.h math.h stack.h ../tools/i18n.h misc.h streams.h config.h savegame.h output.h ../tools/z_ucs.h fizmo.c $(BLOCKBUF_DEP_H) $(OUTPUT_HST_DEP_H) $(FILELIST_DEP_H)
 	$(CC) $(CFLAGS) -c fizmo.c
@@ -150,6 +150,9 @@ babel.o: babel.h fizmo.h ../tools/tracelog.h babel.c
 
 hyphenation.o: hyphenation.h ../tools/tracelog.h hyphenation.c
 	$(CC) $(CFLAGS) -c hyphenation.c
+
+blorb.o: blorb.h ../tools/tracelog.h blorb.c
+	$(CC) $(CFLAGS) -c blorb.c
 
 clean:
 	rm -f *.o

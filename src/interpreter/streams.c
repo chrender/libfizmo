@@ -196,7 +196,7 @@ void init_streams()
     stream_2_was_already_active = true;
   }
   else
-    src = fizmo_strdup(DEFAULT_SCRIPT_FILE_NAME);
+    src = fizmo_strdup(DEFAULT_TRANSCRIPT_FILE_NAME);
 
   (void)latin1_string_to_zucs_string(
       last_script_filename,

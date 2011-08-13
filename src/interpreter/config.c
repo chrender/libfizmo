@@ -93,6 +93,7 @@ struct configuration_option configuration_options[] = {
   { "start-script-when-story-starts", NULL },
   { "disable-stream-2-hyphenation", NULL },
   { "sync-transcript", NULL },
+  { "dont-set-locale-from-config", NULL },
 
   // NULL terminates the option list.
   { NULL, NULL }
@@ -275,7 +276,12 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
 
       if (strcmp(key, "locale") == 0)
       {
-        return_code = set_current_locale_name(new_value);
+        TRACE_LOG("Trying to set locale to \"%s\".\n", new_value);
+        return_code
+          = (strcmp(get_configuration_value(
+                  "dont-set-locale-from-config"), "true") == 0)
+          ? 0
+          : set_current_locale_name(new_value);
         free(new_value);
         return return_code;
       }
@@ -415,6 +421,8 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "disable-stream-2-hyphenation") == 0)
           ||
           (strcmp(key, "sync-transcript") == 0)
+          ||
+          (strcmp(key, "dont-set-locale-from-config") == 0)
           )
       {
         if (
@@ -565,6 +573,8 @@ char *get_configuration_value(char *key)
             (strcmp(key, "disable-stream-2-hyphenation") == 0)
             ||
             (strcmp(key, "sync-transcript") == 0)
+            ||
+            (strcmp(key, "dont-set-locale-from-config") == 0)
            )
         {
           if (configuration_options[i].value == NULL)
