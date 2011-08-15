@@ -46,7 +46,7 @@ install-dev:: libfizmo.a
 	echo >>$(PKGFILE)
 	echo 'Name: libfizmo' >>$(PKGFILE)
 	echo 'Description: libfizmo' >>$(PKGFILE)
-	echo 'Version: 0.7.0-b11' >>$(PKGFILE)
+	echo 'Version: 0.7.0-b12' >>$(PKGFILE)
 ifeq ($(LIBFIZMO_REQS),)
 	echo 'Requires:' >>$(PKGFILE)
 else

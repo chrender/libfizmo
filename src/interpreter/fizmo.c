@@ -133,6 +133,7 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
       // The IFF file we've received is not an (Z-)executable blorb file
       // so there's nothing we can start. The IFF file can also not be
       // a savegame, since this case has already been handled in fizmo_start.
+      TRACE_LOG("No executable blorb.");
       return NULL;
     }
 
@@ -187,28 +188,10 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
     result->blorb_file = blorb_stream;
   }
 
-  if (result->blorb_file != NULL)
-  {
-    TRACE_LOG("Initialiting blorb map.\n");
-    result->blorb_map
-      = active_blorb_interface->init_blorb_map(result->blorb_file);
-    /*
-    len = active_blorb_interface->get_blorb_offset(
-        result->blorb_map, Z_BLORB_TYPE_PICT, 1);
-    TRACE_LOG("%ld\n", len);
-    fsi->setfilepos(result->blorb_file, len-8, SEEK_SET);
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    TRACE_LOG("%c\n", fsi->getchar(result->blorb_file));
-    */
-  }
-  else
-    result->blorb_map = NULL;
+  result->blorb_map
+    = result->blorb_file != NULL
+    ? active_blorb_interface->init_blorb_map(result->blorb_file)
+    : NULL;
 
   // At this point we're sure that "input_filename" contains either the name
   // of a .zcode or a .zblorb file.
