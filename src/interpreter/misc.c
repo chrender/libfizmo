@@ -146,7 +146,7 @@ void abort_interpreter(int exit_code, z_ucs *error_message)
   // available to a waiting parent process. [Option End]
   //  -> Thus, we print the exit code seperately.
   TRACE_LOG("Output exit code.\n");
-  fprintf(stderr, "Exit code: %d.\n", exit_code);
+  //fprintf(stderr, "Exit code: %d.\n", exit_code);
 
   //(void)signal(SIGSEGV, SIG_DFL);
 
