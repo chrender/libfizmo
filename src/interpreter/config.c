@@ -59,6 +59,9 @@ char config_true_value[] = "true";
 char config_false_value[] = "false";
 char empty_string[] = "";
 
+bool foreground_color_was_changed = false;
+bool background_color_was_changed = false;
+
 
 struct configuration_option configuration_options[] = {
 
@@ -373,6 +376,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           return -1;
         configuration_options[i].value = fizmo_strdup(buf);
         default_foreground_colour = color_code;
+        foreground_color_was_changed = true;
         return 0;
       }
       else if (strcmp(key, "background-color") == 0)
@@ -387,6 +391,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           return -1;
         configuration_options[i].value = fizmo_strdup(buf);
         default_background_colour = color_code;
+        background_color_was_changed = true;
         return 0;
       }
 

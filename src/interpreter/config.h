@@ -98,6 +98,8 @@ extern bool skip_active_routines_stack_check_warning;
 extern char config_true_value[];
 extern char config_false_value[];
 extern struct configuration_option configuration_options[];
+extern bool foreground_color_was_changed;
+extern bool background_color_was_changed;
 #endif /* config_c_INCLUDED */
 
 int set_configuration_value(char *key, char* new_value);
