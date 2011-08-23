@@ -76,11 +76,11 @@ void fizmo_register_sound_interface(
 void fizmo_register_blorb_interface(
     struct z_blorb_interface *blorb_interface);
 void write_interpreter_info_into_header();
-//void fizmo_start(char* z_story_filename, char *blorb_filename);
-void fizmo_start(z_file *story_stream, z_file *blorb_stream,
-    z_file *restore_on_start_file);
+void fizmo_start(z_file* story_stream, z_file *blorb_stream,
+    z_file *restore_on_start_file, z_colour screen_default_foreground_color,
+    z_colour screen_default_background_color);
 void fizmo_new_screen_size(uint8_t width, uint8_t height);
-int close_interface(z_ucs /*@null@*/ *error_message);
+int close_interface(z_ucs *error_message);
 void *fizmo_malloc(size_t size);
 void *fizmo_realloc(void *ptr, size_t size);
 char *fizmo_strdup(char *s1);
@@ -88,12 +88,6 @@ int ensure_mem_size(char **ptr, int *current_size, int size);
 void ensure_dot_fizmo_dir_exists();
 char *quote_special_chars(char *s);
 char *unquote_special_chars(char *s);
-/*
-struct z_story_blorb_image *get_image_blorb_index(struct z_story *story,
-    int resource_number);
-struct z_story_blorb_sound *get_sound_blorb_index(struct z_story *story,
-    int resource_number);
-*/
 #ifndef DISABLE_CONFIGFILES
 char *get_fizmo_config_dir_name();
 int parse_fizmo_config_files();
@@ -109,7 +103,7 @@ extern uint8_t *header_extension_table;
 extern uint8_t header_extension_table_size;
 
 #ifndef DISABLE_BLOCKBUFFER
-/*@null@*/ extern BLOCKBUF *upper_window_buffer;
+extern BLOCKBUF *upper_window_buffer;
 #endif /* DISABLE_BLOCKBUFFER */
 
 #endif /* fizmo_c_INCLUDED */
