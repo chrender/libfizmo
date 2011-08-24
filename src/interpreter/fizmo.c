@@ -1243,8 +1243,8 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
               restore_on_start_file,
               evaluate_result) == 2)
         {
-          TRACE_LOG("Redrawing screen from history.\n");
-          active_interface->game_was_restored_and_history_modified();
+          //TRACE_LOG("Redrawing screen from history.\n");
+          //active_interface->game_was_restored_and_history_modified();
 
           interpret_resume();
         }

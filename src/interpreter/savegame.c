@@ -1516,7 +1516,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
         }
       }
 
-      //active_interface->game_was_restored_and_history_modified();
+      active_interface->game_was_restored_and_history_modified();
     }
   }
 #endif // DISABLE_OUTPUT_HISTORY
