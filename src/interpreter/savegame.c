@@ -468,6 +468,7 @@ void save_game(uint16_t address, uint16_t length, char *filename,
           _store_save_or_restore_result(0);
         return;
       }
+      str = save_file->filename;
       //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
     }
   }
@@ -480,27 +481,31 @@ void save_game(uint16_t address, uint16_t length, char *filename,
         _store_save_or_restore_result(0);
       return;
     }
+    str = save_file->filename;
     //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
   }
 
   if (save_file == NULL)
   {
-    if (i18n_translate(
-          libfizmo_module_name,
-          i18n_libfizmo_COULD_NOT_OPEN_FILE_NAMED_P0S, str)
-        == (size_t)-1)
-      i18n_translate_and_exit(
-          libfizmo_module_name,
-          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
-          -0x0100,
-          "i18n_translate");
+    if (str != NULL)
+    {
+      if (i18n_translate(
+            libfizmo_module_name,
+            i18n_libfizmo_COULD_NOT_OPEN_FILE_NAMED_P0S, str)
+          == (size_t)-1)
+        i18n_translate_and_exit(
+            libfizmo_module_name,
+            i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
+            -0x0100,
+            "i18n_translate");
 
-    if (streams_latin1_output("\n") != 0)
-      i18n_translate_and_exit(
-          libfizmo_module_name,
-          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
-          -0x0100,
+      if (streams_latin1_output("\n") != 0)
+        i18n_translate_and_exit(
+            libfizmo_module_name,
+            i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
+            -0x0100,
           "streams_latin1_output");
+    }
 
     if (bool_equal(evaluate_result, true))
       _store_save_or_restore_result(0);
@@ -1589,6 +1594,7 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
           return _store_save_or_restore_result(0);
       }
       //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
+      str = save_file->filename;
     }
   }
   else
@@ -1599,6 +1605,7 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
       if (bool_equal(evaluate_result, true))
         return _store_save_or_restore_result(0);
     }
+    str = save_file->filename;
     //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
   }
 
