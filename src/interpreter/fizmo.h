@@ -75,11 +75,21 @@ void fizmo_register_sound_interface(
     struct z_sound_interface *sound_interface);
 void fizmo_register_blorb_interface(
     struct z_blorb_interface *blorb_interface);
-void write_interpreter_info_into_header();
+
+int (*ask_user_for_file)(zscii *filename_buffer, int buffer_len,
+    int preload_len, int filetype_or_mode, int fileaccess, z_file **result_file,
+    char *directory);
+void fizmo_register_ask_user_for_file_function(
+    int (*ask_user_for_file)(zscii *filename_suggestion,
+      int buffer_len, int preload_len, int filetype_or_mode, int fileaccess,
+      z_file **result_file, char* directory));
+   
 void fizmo_start(z_file* story_stream, z_file *blorb_stream,
     z_file *restore_on_start_file, z_colour screen_default_foreground_color,
     z_colour screen_default_background_color);
 void fizmo_new_screen_size(uint8_t width, uint8_t height);
+
+void write_interpreter_info_into_header();
 int close_interface(z_ucs *error_message);
 void *fizmo_malloc(size_t size);
 void *fizmo_realloc(void *ptr, size_t size);

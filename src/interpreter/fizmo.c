@@ -61,6 +61,7 @@
 #include "../tools/i18n.h"
 #include "../tools/tracelog.h"
 #include "../tools/filesys.h"
+#include "../tools/unused.h"
 #include "../locales/libfizmo_locales.h"
 
 #ifndef DISABLE_OUTPUT_HISTORY
@@ -78,6 +79,14 @@ struct z_story *active_z_story;
 
 struct z_screen_interface *active_interface = NULL;
 struct z_sound_interface *active_sound_interface = NULL;
+
+int ask_user_for_file_default_function(zscii *filename_buffer, int buffer_len,
+    int preload_len, int filetype_or_mode, int fileaccess, z_file **result_file,
+    char *directory);
+int (*ask_user_for_file)(zscii *filename_buffer, int buffer_len,
+    int preload_len, int filetype_or_mode, int fileaccess, z_file **result_file,
+    char *directory
+    ) = &ask_user_for_file_default_function;
 
 uint8_t ver = 0;
 uint8_t *header_extension_table;
@@ -824,6 +833,70 @@ void fizmo_register_blorb_interface(
 }
 
 
+void fizmo_register_ask_user_for_file_function(
+    int (*ask_user_for_file_function)(zscii *filename_buffer,
+      int buffer_len, int preload_len, int filetype_or_mode,
+      int fileaccess, z_file **result_file,
+      char *directory))
+{
+  ask_user_for_file = ask_user_for_file_function;
+}
+
+
+int ask_user_for_file_default_function(zscii *filename_buffer, int buffer_len,
+    int preload_len, int filetype_or_mode, int fileaccess, z_file **result_file,
+    char *directory)
+{
+  int input_length;
+  z_ucs filename[buffer_len + 1];
+  char *filename_utf8, *prefixed_filename;
+  int i;
+
+  input_length = active_interface->read_line(
+      (uint8_t*)filename_buffer,
+      buffer_len,
+      0,
+      0,
+      preload_len,
+      NULL,
+      true,
+      true);
+
+  if (input_length < 1)
+    return input_length;
+
+  i = 0;
+  while (i <= (int)input_length)
+  {
+    filename[i] = zscii_input_char_to_z_ucs(filename_buffer[i]);
+    i++;
+  }
+  filename[i] = 0;
+  filename_utf8 = dup_zucs_string_to_utf8_string(filename);
+
+  if (directory != NULL)
+  {
+    prefixed_filename
+      = fizmo_malloc(strlen(filename_utf8) + strlen(directory) + 2);
+    strcpy(prefixed_filename, directory);
+    strcat(prefixed_filename, "/");
+    strcat(prefixed_filename, filename_utf8);
+  }
+  else
+    prefixed_filename = filename_utf8;
+
+  TRACE_LOG("prefixed filename: \"%s\"\n.", prefixed_filename);
+
+  *result_file = fsi->openfile(prefixed_filename, filetype_or_mode, fileaccess);
+
+  if (directory != NULL)
+    free(prefixed_filename);
+  free(filename_utf8);
+
+  return *result_file == NULL ? -1 : input_length;
+}
+
+
 #ifndef DISABLE_CONFIGFILES
 static int parse_fizmo_config_file(char *filename)
 {
@@ -1084,8 +1157,9 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   char *value;
   bool evaluate_result;
   uint8_t flags2;
-  char *str;
+  char *str, *default_savegame_filename = DEFAULT_SAVEGAME_FILENAME;
   z_colour default_colour;
+
 
   //TRACE_LOG("Startup for input filename \"%s\".\n", input_filename);
 
@@ -1145,11 +1219,15 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   ver = active_z_story->version;
 
   init_opcode_functions();
-  init_streams(DEFAULT_SAVEGAME_FILENAME);
+
+  if ((str = get_configuration_value("savegame-default-filename")) != NULL)
+    default_savegame_filename = str;
+
+  init_streams(default_savegame_filename);
 
   (void)latin1_string_to_zucs_string(
       last_savegame_filename,
-      DEFAULT_SAVEGAME_FILENAME,
+      default_savegame_filename,
       MAXIMUM_SAVEGAME_NAME_LENGTH + 1);
 
   TRACE_LOG("Converted savegame default filename: '");

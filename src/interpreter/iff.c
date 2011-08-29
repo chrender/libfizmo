@@ -95,6 +95,15 @@ bool detect_simple_iff_stream(z_file *iff_file)
 }
 
 
+int init_empty_file_for_iff_write(z_file *file_to_init)
+{
+  if ((fsi->writechars("FORM\0\0\0\0IFZS", 12, file_to_init)) != 12)
+    return -1;
+  else
+    return 0;
+}
+
+
 z_file *open_simple_iff_file(char *filename, int mode)
 {
   z_file *iff_file;
@@ -132,7 +141,7 @@ z_file *open_simple_iff_file(char *filename, int mode)
     if (iff_file == NULL)
       return NULL;
 
-    if ((fsi->writechars("FORM\0\0\0\0IFZS", 12, iff_file)) != 12)
+    if (init_empty_file_for_iff_write(iff_file) == -1)
     {
       (void)fsi->closefile(iff_file);
       return NULL;

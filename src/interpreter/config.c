@@ -72,6 +72,7 @@ struct configuration_option configuration_options[] = {
   { "random-mode", NULL },
   { "save-text-history-paragraphs", NULL },
   { "savegame-path", NULL },
+  { "savegame-default-filename", NULL },
   { "transcript-filename", NULL },
   { "z-code-path", NULL },
   { "z-code-root-path", NULL },
@@ -325,6 +326,8 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "z-code-root-path") == 0)
           ||
           (strcmp(key, "savegame-path") == 0)
+          ||
+          (strcmp(key, "savegame-default-filename") == 0)
           ||
           (strcmp(key, "transcript-filename") == 0)
           ||
@@ -598,6 +601,8 @@ char *get_configuration_value(char *key)
             (strcmp(key, "z-code-root-path") == 0)
             ||
             (strcmp(key, "savegame-path") == 0)
+            ||
+            (strcmp(key, "savegame-default-filename") == 0)
             ||
             (strcmp(key, "transcript-filename") == 0)
             ||

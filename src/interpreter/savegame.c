@@ -185,7 +185,8 @@ static int save_stack_frame(uint16_t *current_frame_index,
 }
 
 
-static int ask_for_filename(char *filename_suggestion)
+static int ask_for_filename(char *filename_suggestion, z_file **result_file,
+    char *directory, int filetype_or_mode, int fileaccess)
 {
   int16_t input_length;
   int length = 0;
@@ -218,16 +219,9 @@ static int ask_for_filename(char *filename_suggestion)
     {
       current_savegame_filename_buffer[i]
         = latin1_char_to_zucs_char(filename_suggestion[i]);
-
-      /*
-      savegame_output_buffer[i] =
-        latin1_char_to_zucs_char(filename_suggestion[i]);
-      */
-
       i++;
     }
     current_savegame_filename_buffer[i] = 0;
-    //savegame_output_buffer[i] = 0;
     length = i;
   }
   else
@@ -239,22 +233,9 @@ static int ask_for_filename(char *filename_suggestion)
     {
       current_savegame_filename_buffer[i]
         = unicode_char_to_zscii_input_char(last_savegame_filename[i]);
-
-      /*
-      savegame_output_buffer[i]
-        = last_savegame_filename[i];
-      */
-
       i++;
     }
     current_savegame_filename_buffer[i] = 0;
-    /*
-    savegame_output_buffer[i] = 0;
-    length = i;
-    TRACE_LOG("conv:");
-    TRACE_LOG_Z_UCS(savegame_output_buffer);
-    TRACE_LOG("\n");
-    */
   }
 
   if (i18n_translate(
@@ -288,15 +269,14 @@ static int ask_for_filename(char *filename_suggestion)
   TRACE_LOG("Prompting for filename.\n");
   // Prompt for filename
   input_length
-    = active_interface->read_line(
+    = ask_user_for_file(
         (uint8_t*)current_savegame_filename_buffer,
         MAXIMUM_SAVEGAME_NAME_LENGTH,
-        0,
-        0,
         length,
-        NULL,
-        true,
-        true);
+        filetype_or_mode,
+        fileaccess,
+        result_file,
+        directory);
 
   if (input_length == -2)
   {
@@ -464,46 +444,44 @@ void save_game(uint16_t address, uint16_t length, char *filename,
     if (bool_equal(skip_asking_for_filename, true))
     {
       system_filename = filename;
+      if (directory != NULL)
+      {
+        str = fizmo_malloc(strlen(system_filename) + strlen(directory) + 2);
+        strcpy(str, directory);
+        strcat(str, "/");
+        strcat(str, system_filename);
+      }
+      else
+        str = system_filename;
+      TRACE_LOG("Filename to save to: \"%s\".\n", str);
+      save_file = fsi->openfile(str, FILETYPE_SAVEGAME, FILEACCESS_WRITE);
+      if (directory != NULL)
+        free(str);
+      free(system_filename);
     }
     else
     {
-      if ((ask_for_filename(filename)) < 0)
+      if ((ask_for_filename(filename, &save_file, directory,
+              FILETYPE_SAVEGAME, FILEACCESS_WRITE)) < 0)
       {
         if (bool_equal(evaluate_result, true))
           _store_save_or_restore_result(0);
         return;
       }
-
-      system_filename = dup_zucs_string_to_utf8_string(last_savegame_filename);
+      //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
     }
   }
   else
   {
-    if ((ask_for_filename(NULL)) < 0)
+    if ((ask_for_filename(NULL, &save_file, directory,
+            FILETYPE_SAVEGAME, FILEACCESS_WRITE)) < 0)
     {
       if (bool_equal(evaluate_result, true))
         _store_save_or_restore_result(0);
       return;
     }
-    system_filename = dup_zucs_string_to_utf8_string(last_savegame_filename);
+    //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
   }
-
-  if (directory != NULL)
-  {
-    str = fizmo_malloc(strlen(system_filename) + strlen(directory) + 2);
-    strcpy(str, directory);
-    strcat(str, "/");
-    strcat(str, system_filename);
-  }
-  else
-    str = system_filename;
-
-  TRACE_LOG("Filename to save to: \"%s\".\n", str);
-
-  if (address != 0)
-    save_file = fsi->openfile(str, FILETYPE_SAVEGAME, FILEACCESS_WRITE);
-  else
-    save_file = open_simple_iff_file(str, IFF_MODE_WRITE_SAVEGAME);
 
   if (save_file == NULL)
   {
@@ -523,10 +501,6 @@ void save_game(uint16_t address, uint16_t length, char *filename,
           i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
           -0x0100,
           "streams_latin1_output");
-
-    if (directory != NULL)
-      free(str);
-    free(system_filename);
 
     if (bool_equal(evaluate_result, true))
       _store_save_or_restore_result(0);
@@ -556,9 +530,7 @@ void save_game(uint16_t address, uint16_t length, char *filename,
   }
   else
   {
-    if (directory != NULL)
-      free(str);
-    free(system_filename);
+    init_empty_file_for_iff_write(save_file);
 
     if (start_new_chunk("IFhd", save_file) != 0)
     {
@@ -1077,6 +1049,14 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_COULD_NOT_READ_CHECKSUM, iff_file, false);
 
+  TRACE_LOG("release_number: %x\n", release_number[0]<<8 | release_number[1]);
+  TRACE_LOG("serial_number: \"%6s\"\n", serial_number);
+  TRACE_LOG("checksum: %x\n", checksum[0]<<8 | checksum[1]);
+
+  TRACE_LOG("mem-release_number: %x\n", (*(z_mem+2)<<8)|*(z_mem+3));
+  TRACE_LOG("mem-serial_number: \"%6s\"\n", z_mem+0x12);
+  TRACE_LOG("mem-checksum: %x\n", (*(z_mem+0x1c)<<8)|(*(z_mem+0x1d)))
+
   if (
       (memcmp(release_number, z_mem+2, 2) != 0)
       ||
@@ -1573,7 +1553,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
 int restore_game(uint16_t address, uint16_t length, char *filename, 
     bool skip_asking_for_filename, bool evaluate_result, char *directory)
 {
-  z_file *iff_file;
+  z_file *save_file;
   char *str;
   char *system_filename;
 
@@ -1584,42 +1564,45 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
     if (bool_equal(skip_asking_for_filename, true))
     {
       system_filename = filename;
+      if (directory != NULL)
+      {
+        str = fizmo_malloc(strlen(directory) + strlen(system_filename) + 2);
+        strcpy(str, directory);
+        strcat(str, "/");
+        strcat(str, system_filename);
+      }
+      else
+        str = system_filename;
+      save_file = open_simple_iff_file(
+          str,
+          IFF_MODE_READ_SAVEGAME);
+      if (directory != NULL)
+        free(str);
+      free(system_filename);
     }
     else
     {
-      if ((ask_for_filename(NULL)) < 0)
+      if ((ask_for_filename(NULL, &save_file, directory,
+              FILETYPE_SAVEGAME, FILEACCESS_READ)) < 0)
       {
         if (bool_equal(evaluate_result, true))
           return _store_save_or_restore_result(0);
       }
-      system_filename = dup_zucs_string_to_utf8_string(last_savegame_filename);
+      //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
     }
   }
   else
   {
-    if ((ask_for_filename(NULL)) < 0)
+    if ((ask_for_filename(NULL, &save_file, directory,
+            FILETYPE_SAVEGAME, FILEACCESS_READ)) < 0)
     {
       if (bool_equal(evaluate_result, true))
         return _store_save_or_restore_result(0);
     }
-    system_filename = dup_zucs_string_to_utf8_string(last_savegame_filename);
+    //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
   }
 
-  if (directory != NULL)
-  {
-    str = fizmo_malloc(strlen(directory) + strlen(system_filename) + 2);
-    strcpy(str, directory);
-    strcat(str, "/");
-    strcat(str, system_filename);
-  }
-  else
-    str = system_filename;
-
-  iff_file = open_simple_iff_file(
-      str,
-      IFF_MODE_READ_SAVEGAME);
-
-  if (iff_file == NULL)
+  if (save_file == NULL)
   {
     if (i18n_translate(
           libfizmo_module_name,
@@ -1637,21 +1620,16 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
           i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
           -0x0100,
           "streams_latin1_output");
-
-    if (directory != NULL)
-      free(str);
-    free(system_filename);
     if (bool_equal(evaluate_result, true))
       return _store_save_or_restore_result(0);
   }
 
-  if (directory != NULL)
-    free(str);
-
+  /*
   if ( (filename == NULL) || (bool_equal(skip_asking_for_filename, false)) )
     free(system_filename);
+    */
 
-  return restore_game_from_stream(address, length, iff_file, evaluate_result);
+  return restore_game_from_stream(address, length, save_file, evaluate_result);
 }
 
 

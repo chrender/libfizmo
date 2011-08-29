@@ -43,6 +43,7 @@
 #define IFF_MODE_WRITE_SAVEGAME 3
 
 bool detect_simple_iff_stream(z_file *iff_file);
+int init_empty_file_for_iff_write(z_file *file_to_init);
 z_file *open_simple_iff_file(char *filename, int mode);
 int start_new_chunk(char *id, z_file *iff_file);
 int end_current_chunk(z_file *iff_file);
