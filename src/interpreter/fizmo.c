@@ -862,6 +862,9 @@ int ask_user_for_file_default_function(zscii *filename_buffer, int buffer_len,
       true,
       true);
 
+  if (input_length == 0)
+    *result_file = NULL;
+
   if (input_length < 1)
     return input_length;
 
@@ -893,7 +896,7 @@ int ask_user_for_file_default_function(zscii *filename_buffer, int buffer_len,
     free(prefixed_filename);
   free(filename_utf8);
 
-  return *result_file == NULL ? -1 : input_length;
+  return input_length;
 }
 
 

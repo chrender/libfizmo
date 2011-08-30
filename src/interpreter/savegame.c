@@ -191,6 +191,7 @@ static int ask_for_filename(char *filename_suggestion, z_file **result_file,
   int16_t input_length;
   int length = 0;
   bool stream_1_active_buf;
+  char *filename_utf8;
   int i;
 
   TRACE_LOG("last:\"");
@@ -328,9 +329,7 @@ static int ask_for_filename(char *filename_suggestion, z_file **result_file,
       = zscii_output_char_to_z_ucs(current_savegame_filename_buffer[i]);
     i++;
   }
-
   last_savegame_filename[i] = 0;
-
   TRACE_LOG("From ZSCII translated filename: \"");
   TRACE_LOG_Z_UCS(last_savegame_filename);
   TRACE_LOG("\".\n");
@@ -348,7 +347,34 @@ static int ask_for_filename(char *filename_suggestion, z_file **result_file,
         -0x0100,
         "streams_latin1_output");
 
-  return 0;
+  if (*result_file == NULL)
+  {
+    filename_utf8 = dup_zucs_string_to_utf8_string(last_savegame_filename);
+    if (i18n_translate(
+          libfizmo_module_name,
+          i18n_libfizmo_COULD_NOT_OPEN_FILE_NAMED_P0S, filename_utf8)
+        == (size_t)-1)
+    {
+      free(filename_utf8);
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
+          -0x0100,
+          "i18n_translate");
+    }
+    free(filename_utf8);
+
+    if (streams_latin1_output("\n") != 0)
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
+          -0x0100,
+          "streams_latin1_output");
+
+    return -1;
+  }
+
+  return input_length;
 }
 
 
@@ -461,56 +487,30 @@ void save_game(uint16_t address, uint16_t length, char *filename,
     }
     else
     {
-      if ((ask_for_filename(filename, &save_file, directory,
-              FILETYPE_SAVEGAME, FILEACCESS_WRITE)) < 0)
+        if ( ((ask_for_filename(filename, &save_file, directory,
+                  FILETYPE_SAVEGAME, FILEACCESS_WRITE)) < 0)
+            || (save_file == NULL) )
       {
         if (bool_equal(evaluate_result, true))
           _store_save_or_restore_result(0);
         return;
       }
       str = save_file->filename;
-      //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
+      TRACE_LOG("filename from ask_for_filename: \"%s\".\n", str);
     }
   }
   else
   {
-    if ((ask_for_filename(NULL, &save_file, directory,
-            FILETYPE_SAVEGAME, FILEACCESS_WRITE)) < 0)
+    if ( ((ask_for_filename(NULL, &save_file, directory,
+              FILETYPE_SAVEGAME, FILEACCESS_WRITE)) < 0)
+        || (save_file == NULL) )
     {
       if (bool_equal(evaluate_result, true))
         _store_save_or_restore_result(0);
       return;
     }
     str = save_file->filename;
-    //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
-  }
-
-  if (save_file == NULL)
-  {
-    if (str != NULL)
-    {
-      if (i18n_translate(
-            libfizmo_module_name,
-            i18n_libfizmo_COULD_NOT_OPEN_FILE_NAMED_P0S, str)
-          == (size_t)-1)
-        i18n_translate_and_exit(
-            libfizmo_module_name,
-            i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
-            -0x0100,
-            "i18n_translate");
-
-      if (streams_latin1_output("\n") != 0)
-        i18n_translate_and_exit(
-            libfizmo_module_name,
-            i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
-            -0x0100,
-          "streams_latin1_output");
-    }
-
-    if (bool_equal(evaluate_result, true))
-      _store_save_or_restore_result(0);
-
-    return;
+    TRACE_LOG("filename from ask_for_filename: \"%s\".\n", str);
   }
 
   if (address != 0)
@@ -1054,13 +1054,13 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_COULD_NOT_READ_CHECKSUM, iff_file, false);
 
-  TRACE_LOG("release_number: %x\n", release_number[0]<<8 | release_number[1]);
-  TRACE_LOG("serial_number: \"%6s\"\n", serial_number);
-  TRACE_LOG("checksum: %x\n", checksum[0]<<8 | checksum[1]);
+  //TRACE_LOG("release_number: %x\n", release_number[0]<<8 | release_number[1]);
+  //TRACE_LOG("serial_number: \"%6s\"\n", serial_number);
+  //TRACE_LOG("checksum: %x\n", checksum[0]<<8 | checksum[1]);
 
-  TRACE_LOG("mem-release_number: %x\n", (*(z_mem+2)<<8)|*(z_mem+3));
-  TRACE_LOG("mem-serial_number: \"%6s\"\n", z_mem+0x12);
-  TRACE_LOG("mem-checksum: %x\n", (*(z_mem+0x1c)<<8)|(*(z_mem+0x1d)))
+  //TRACE_LOG("mem-release_number: %x\n", (*(z_mem+2)<<8)|*(z_mem+3));
+  //TRACE_LOG("mem-serial_number: \"%6s\"\n", z_mem+0x12);
+  //TRACE_LOG("mem-checksum: %x\n", (*(z_mem+0x1c)<<8)|(*(z_mem+0x1d)))
 
   if (
       (memcmp(release_number, z_mem+2, 2) != 0)
@@ -1587,54 +1587,31 @@ int restore_game(uint16_t address, uint16_t length, char *filename,
     }
     else
     {
-      if ((ask_for_filename(NULL, &save_file, directory,
-              FILETYPE_SAVEGAME, FILEACCESS_READ)) < 0)
+      if ( ((ask_for_filename(NULL, &save_file, directory,
+                FILETYPE_SAVEGAME, FILEACCESS_READ)) < 0)
+        || (save_file == NULL) )
       {
         if (bool_equal(evaluate_result, true))
-          return _store_save_or_restore_result(0);
+          _store_save_or_restore_result(0);
+        return -1;
       }
-      //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
       str = save_file->filename;
+      TRACE_LOG("filename from ask_for_filename: \"%s\".\n", str);
     }
   }
   else
   {
-    if ((ask_for_filename(NULL, &save_file, directory,
-            FILETYPE_SAVEGAME, FILEACCESS_READ)) < 0)
+    if ( ((ask_for_filename(NULL, &save_file, directory,
+              FILETYPE_SAVEGAME, FILEACCESS_READ)) < 0)
+        || (save_file == NULL) )
     {
       if (bool_equal(evaluate_result, true))
-        return _store_save_or_restore_result(0);
+        _store_save_or_restore_result(0);
+      return -1;
     }
     str = save_file->filename;
-    //system_filename=dup_zucs_string_to_utf8_string(last_savegame_filename);
+    TRACE_LOG("filename from ask_for_filename: \"%s\".\n", str);
   }
-
-  if (save_file == NULL)
-  {
-    if (i18n_translate(
-          libfizmo_module_name,
-          i18n_libfizmo_COULD_NOT_OPEN_FILE_NAMED_P0S, str)
-        == (size_t)-1)
-      i18n_translate_and_exit(
-          libfizmo_module_name,
-          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
-          -0x0100,
-          "i18n_translate");
-
-    if (streams_latin1_output("\n") != 0)
-      i18n_translate_and_exit(
-          libfizmo_module_name,
-          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
-          -0x0100,
-          "streams_latin1_output");
-    if (bool_equal(evaluate_result, true))
-      return _store_save_or_restore_result(0);
-  }
-
-  /*
-  if ( (filename == NULL) || (bool_equal(skip_asking_for_filename, false)) )
-    free(system_filename);
-    */
 
   return restore_game_from_stream(address, length, save_file, evaluate_result);
 }
