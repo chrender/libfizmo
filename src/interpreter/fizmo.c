@@ -868,12 +868,8 @@ int ask_user_for_file_default_function(zscii *filename_buffer, int buffer_len,
   if (input_length < 1)
     return input_length;
 
-  i = 0;
-  while (i <= (int)input_length)
-  {
+  for (i=0; i<(int)input_length; i++)
     filename[i] = zscii_input_char_to_z_ucs(filename_buffer[i]);
-    i++;
-  }
   filename[i] = 0;
   filename_utf8 = dup_zucs_string_to_utf8_string(filename);
 
