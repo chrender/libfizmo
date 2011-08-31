@@ -7,8 +7,8 @@ TMPLIBDIR = libfizmotmp
 ifeq ($(DEV_INSTALL_PREFIX),)
   DEV_INSTALL_PREFIX="$(INSTALL_PREFIX)"
 endif
-PKG_DIR = "$(DEV_INSTALL_PREFIX)/lib/pkgconfig"
-PKGFILE = "$(PKG_DIR)/libfizmo.pc"
+PKG_DIR = $(DEV_INSTALL_PREFIX)/lib/pkgconfig
+PKGFILE = $(PKG_DIR)/libfizmo.pc
 
 all: libfizmo.a
 
