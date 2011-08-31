@@ -38,7 +38,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <pwd.h>
+//#include <pwd.h>
 
 #include "../tools/tracelog.h"
 #include "config.h"
@@ -58,6 +58,8 @@ bool skip_active_routines_stack_check_warning = false;
 char config_true_value[] = "true";
 char config_false_value[] = "false";
 char empty_string[] = "";
+bool user_homedir_initialized = false;
+char *user_homedir = NULL;
 
 
 struct configuration_option configuration_options[] = {
@@ -104,9 +106,8 @@ struct configuration_option configuration_options[] = {
 
 static char *expand_configuration_value(char *unexpanded_value)
 {
-  static char *homedir = NULL;
-  static int homedir_len = -1;
-  struct passwd *pw_entry;
+  static char *homedir;
+  static int homedir_len;
   char *ptr = unexpanded_value;
   int resultlen;
   char *result, *resultindex;
@@ -116,17 +117,11 @@ static char *expand_configuration_value(char *unexpanded_value)
   if (unexpanded_value == NULL)
     return NULL;
 
-  TRACE_LOG("Value to expand: \"%s\".\n", unexpanded_value);
+  if ((homedir = get_user_homedir()) == NULL)
+    homedir = empty_string;
+  homedir_len = strlen(homedir);
 
-  if (homedir == NULL)
-  {
-    pw_entry = getpwuid(getuid());
-    if (pw_entry->pw_dir == NULL)
-      homedir = empty_string;
-    else
-      homedir = strdup(pw_entry->pw_dir);
-    homedir_len = strlen(homedir);
-  }
+  TRACE_LOG("Value to expand: \"%s\".\n", unexpanded_value);
 
   resultlen = 0;
   while (*ptr != 0)
@@ -721,6 +716,28 @@ bool is_valid_libfizmo_config_key(char *key)
   }
   return false;
 }
+
+
+char *get_user_homedir()
+{
+  if (user_homedir_initialized == false)
+  {
+#if !defined (__WIN32__)
+    pw_entry = getpwuid(getuid());
+    if (pw_entry->pw_dir == NULL)
+      user_homedir = NULL;
+    else
+      user_homedir = strdup(pw_entry->pw_dir);
+#else
+    if ((user_homedir = getenv("HOME")) == NULL)
+      user_homedir = getenv("HOMEPATH");
+#endif // !defined (__WIN32__)
+    user_homedir_initialized = true;
+  }
+
+  return user_homedir;
+}
+
 
 #endif /* config_c_INCLUDED */
 

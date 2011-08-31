@@ -107,6 +107,7 @@ int append_path_value(char *key, char *value_to_append);
 char *get_configuration_value(char *key);
 //char **get_valid_configuration_options(char *key, ...);
 bool is_valid_libfizmo_config_key(char *key);
+char *get_user_homedir();
 
 #endif /* config_h_INCLUDED */
 
