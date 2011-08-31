@@ -48,7 +48,9 @@
 #include "../locales/libfizmo_locales.h"
 
 
+#if !defined(__WIN32__)
 static struct sigaction fizmo_sigactions;
+#endif // defined(__WIN32__)
 
 
 void opcode_restart(void)
@@ -155,10 +157,15 @@ void abort_interpreter(int exit_code, z_ucs *error_message)
 #ifdef THROW_SIGFAULT_ON_ERROR
   x = *((int*)NULL);
 #endif
+
+#if defined(__WIN32__)
+  exit_code = 0;
+#endif // !defined(__WIN32__)
   exit(exit_code);
 }
 
 
+#if !defined(__WIN32__)
 static void catch_signal_and_abort(int sig_num)
 {
   TRACE_LOG("Caught signal %d.\n", sig_num);
@@ -169,10 +176,12 @@ static void catch_signal_and_abort(int sig_num)
       -1,
       (long)sig_num);
 }
+#endif // defined(__WIN32__)
 
 
 void init_signal_handlers(void)
 {
+#if !defined(__WIN32__)
   TRACE_LOG("Initialiazing signal handlers.\n");
 
   sigemptyset(&fizmo_sigactions.sa_mask);
@@ -185,5 +194,6 @@ void init_signal_handlers(void)
   sigaction(SIGQUIT, &fizmo_sigactions, NULL);
   sigaction(SIGBUS, &fizmo_sigactions, NULL);
   sigaction(SIGILL, &fizmo_sigactions, NULL);
+#endif // !defined(__WIN32__)
 }
 
