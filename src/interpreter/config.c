@@ -722,6 +722,10 @@ bool is_valid_libfizmo_config_key(char *key)
 
 char *get_user_homedir()
 {
+#if !defined (__WIN32__)
+  struct passwd *pw_entry;
+#endif // !defined (__WIN32__)
+
   if (user_homedir_initialized == false)
   {
 #if !defined (__WIN32__)
