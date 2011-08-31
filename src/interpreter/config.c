@@ -38,7 +38,9 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
-//#include <pwd.h>
+#if !defined (__WIN32__)
+#include <pwd.h>
+#endif // !defined (__WIN32__)
 
 #include "../tools/tracelog.h"
 #include "config.h"
