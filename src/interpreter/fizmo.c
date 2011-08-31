@@ -37,7 +37,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-#include <pwd.h>
+//#include <pwd.h>
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -121,6 +121,7 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
   long len;
   long story_size = -1;
   char *absolute_directory_name;
+  char *story_filename;
 #ifndef DISABLE_FILELIST
   struct z_story_list_entry *story_data;
 #endif
@@ -274,12 +275,15 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
 
   *(result->memory) = result->version;
 
-  //TRACE_LOG("Loading %li bytes from \"%s\".\n", story_size, input_filename);
+  TRACE_LOG("Loading %li bytes from \"%s\".\n",
+      story_size-1, story_stream->filename);
 
   if (fsi->getchars(
         result->memory+1, (size_t)(story_size - 1), result->z_story_file)
       != (size_t)(story_size - 1))
   {
+    story_filename = strdup(story_stream->filename);
+
     if (fsi->closefile(result->z_story_file) == EOF)
       (void)i18n_translate(
           libfizmo_module_name,
@@ -291,7 +295,8 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
         libfizmo_module_name,
         i18n_libfizmo_ERROR_WHILE_READING_FILE_P0S,
         -0x0106,
-        story_stream->filename);
+        story_filename);
+    free(story_filename);
   }
 
   result->high_memory_end = result->memory + story_size - 1;
@@ -581,8 +586,7 @@ int ensure_mem_size(char **ptr, int *current_size, int size)
 #ifndef DISABLE_CONFIGFILES
 char *get_xdg_config_dir_name()
 {
-  char *config_dir_used;
-  struct passwd *pw_entry;
+  char *config_dir_used, *home_dir;
 
   if (xdg_config_dir_name_initialized == true)
     return xdg_config_home;
@@ -591,17 +595,18 @@ char *get_xdg_config_dir_name()
   if ( (config_dir_used == NULL) || (strlen(config_dir_used) == 0) )
     config_dir_used = default_xdg_config_home;
 
+  // In case we don't have an absolute path here, resolve using home
+  // directory.
   if (*config_dir_used != '/')
   {
-    pw_entry = getpwuid(getuid());
-    if (pw_entry->pw_dir == NULL)
+    if ((home_dir = get_user_homedir()) == NULL)
       return NULL;
 
     xdg_config_home = (char*)fizmo_malloc(
-        strlen(pw_entry->pw_dir)
+        strlen(home_dir)
         + strlen(config_dir_used)
         + 2);
-    sprintf(xdg_config_home, "%s/%s", pw_entry->pw_dir, config_dir_used);
+    sprintf(xdg_config_home, "%s/%s", home_dir, config_dir_used);
   }
   else
   {
@@ -646,7 +651,7 @@ void ensure_dot_fizmo_dir_exists()
 {
   char *dir_name = get_fizmo_config_dir_name();
   char *xdg_config_dir_name;
-  DIR *dir;
+  z_dir *dir;
 
   // XDG guide says: If, when attempting to write a file, the destination
   // directory is non-existant an attempt should be made to create it with
@@ -655,23 +660,23 @@ void ensure_dot_fizmo_dir_exists()
   if (dir_name == NULL)
     return;
 
-  if ((dir = opendir(dir_name)) != NULL)
+  if ((dir = fsi->open_dir(dir_name)) != NULL)
   {
-    closedir(dir);
+    fsi->close_dir(dir);
     return;
   }
 
   xdg_config_dir_name = get_xdg_config_dir_name();
 
-  if ((dir = opendir(xdg_config_dir_name)) == NULL)
+  if ((dir = fsi->open_dir(xdg_config_dir_name)) == NULL)
   {
-    if (mkdir(xdg_config_dir_name, S_IRWXU) == -1)
+    if (fsi->make_dir(xdg_config_dir_name) == -1)
       return;
   }
   else
-    closedir(dir);
+    fsi->close_dir(dir);
 
-  mkdir(dir_name, S_IRWXU);
+  fsi->make_dir(dir_name);
 }
 #endif // DISABLE_CONFIGFILES
 
@@ -1104,16 +1109,17 @@ char *unquote_special_chars(char *s)
 
   len = strlen(s) + 1;
   ptr = s;
+
   while (*ptr != '\0')
   {
-    if (
-        (*ptr == '\n')
-        ||
-        (*ptr == '\t')
-        ||
-        (*ptr == '\\')
-       )
-      len--;
+    if (*ptr == '\\')
+    {
+      ptr++;
+      if ( (*ptr == 'n') || (*ptr == 't') || (*ptr = '\\') )
+        len--;
+      else
+        fprintf(stderr, "Invalid input: \"\\%c\".", *s);
+    }
     ptr++;
   }
 
@@ -1125,25 +1131,19 @@ char *unquote_special_chars(char *s)
     if (*s == '\\')
     {
       s++;
-      if (*s == '\\')
-        *ptr = '\\';
-      else if (*s == 'n')
+      if (*s == 'n')
         *ptr = '\n';
       else if (*s == 't')
         *ptr = '\t';
-      else
-      {
-        fprintf(stderr, "Invalid input: \"\\%c\".", *s);
-      }
+      else if (*s== '\\')
+        *ptr = '\\';
     }
     else
-    {
       *ptr = *s;
-    }
     ptr++;
     s++;
   }
-  *ptr = '\0';
+  *ptr = 0;
 
   return result;
 }
