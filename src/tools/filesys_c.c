@@ -47,7 +47,11 @@
 #include "types.h"
 #include "../filesys_interface/filesys_interface.h"
 
+#if defined (__WIN32__)
+static char *fileaccess_string[] = { "rb", "wb", "ab" };
+#else
 static char *fileaccess_string[] = { "r", "w", "a" };
+#endif // defined (__WIN32__)
 
 
 static z_file *openfile_c(char *filename, int filetype, int fileaccess)
@@ -160,15 +164,15 @@ static int vfilescanf_c(z_file *fileref, char *format, va_list ap)
 }
 
 
-static off_t getfilepos_c(z_file *fileref)
+static long getfilepos_c(z_file *fileref)
 {
-  return ftello((FILE*)fileref->file_object);
+  return ftell((FILE*)fileref->file_object);
 }
 
 
-static int setfilepos_c(z_file *fileref, off_t seek, int whence)
+static int setfilepos_c(z_file *fileref, long seek, int whence)
 {
-  return fseeko((FILE*)fileref->file_object, seek, whence);
+  return fseek((FILE*)fileref->file_object, seek, whence);
 }
 
 
@@ -246,6 +250,16 @@ static int read_dir_c(struct z_dir_ent *result, z_dir *dirref)
 }
 
 
+static int make_dir_c(char *path)
+{
+  return mkdir(path
+#if !defined (__WIN32__)
+    ,S_IRWXU
+#endif // !defined (__WIN32__)
+  );
+}
+
+
 static char* get_cwd_c()
 {
   return getcwd(NULL, 0);
@@ -304,6 +318,7 @@ struct z_filesys_interface z_filesys_interface_c =
   &open_dir_c,
   &close_dir_c,
   &read_dir_c,
+  &make_dir_c,
   &is_filename_directory_c
 };
 
