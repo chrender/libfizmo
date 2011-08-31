@@ -70,8 +70,8 @@ struct z_filesys_interface
   int (*filescanf)(z_file *fileref, char *format, ...);
   int (*vfilescanf)(z_file *fileref, char *format, va_list ap);
 
-  off_t (*getfilepos)(z_file *fileref);
-  int (*setfilepos)(z_file *fileref, off_t seek, int whence);
+  long (*getfilepos)(z_file *fileref);
+  int (*setfilepos)(z_file *fileref, long seek, int whence);
 
   int (*ungetchar)(int c, z_file *fileref);
   int (*flushfile)(z_file *fileref);
@@ -85,6 +85,7 @@ struct z_filesys_interface
   z_dir* (*open_dir)(char *dirname);
   int (*close_dir)(z_dir *dirref);
   int (*read_dir)(struct z_dir_ent *dir_ent, z_dir *dirref);
+  int (*make_dir)(char *path);
 
   bool (*is_filename_directory)(char *filename);
 };
