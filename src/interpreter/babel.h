@@ -85,7 +85,7 @@ struct babel_info *load_babel_info_from_blorb(z_file *infile, int length,
 #else
 struct babel_info *load_babel_info_from_blorb(z_file *UNUSED(infile),
     int UNUSED(length), char *UNUSED(filename),
-    time_t *UNUSED(last_mod_timestamp));
+    time_t UNUSED(last_mod_timestamp));
 #endif
 
 #endif /* babel_h_INCLUDED */
