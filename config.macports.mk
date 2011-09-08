@@ -6,12 +6,11 @@ CFLAGS = -Wall -Wextra
 ifneq ($(DESTDIR),)
 INSTALL_PREFIX = $(DESTDIR)
 else
-#INSTALL_PREFIX = /usr/local
-INSTALL_PREFIX = $(HOME)/opt/fizmo
+INSTALL_PREFIX = /opt/local
 endif
 
 # Uncomment to install binaries to $(INSTALL_PREFIX)/$(FIZMO_BIN_DIR).
-#FIZMO_BIN_DIR = bin
+FIZMO_BIN_DIR = bin
 
 
 # -----
