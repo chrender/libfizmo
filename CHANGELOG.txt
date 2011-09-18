@@ -1,5 +1,5 @@
 
-   From 0.6.9 to 0.7.0
+   Version 0.7.0
  + 0.7.0 was finished at about Sun Sep 18 08:41:18 CEST 2011.
  - Module name change: The ncursesw- and console-interface, the sdl-sound
    interface and the X11-specific code have been moved into separate modules
