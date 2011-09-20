@@ -1,7 +1,7 @@
 
 CC = gcc
 AR = ar
-CFLAGS = -Wall -Wextra
+override CFLAGS = -Wall -Wextra
 
 ifneq ($(DESTDIR),)
 INSTALL_PREFIX = $(DESTDIR)
