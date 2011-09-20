@@ -3,11 +3,7 @@ CC = gcc
 AR = ar
 override CFLAGS += -Wall -Wextra
 
-ifneq ($(DESTDIR),)
-INSTALL_PREFIX = $(DESTDIR)
-else
-INSTALL_PREFIX = /opt/local
-endif
+INSTALL_PREFIX = $(DESTDIR)/opt/local
 
 # Uncomment to install binaries to $(INSTALL_PREFIX)/$(FIZMO_BIN_DIR).
 FIZMO_BIN_DIR = bin
