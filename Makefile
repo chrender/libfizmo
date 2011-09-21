@@ -10,6 +10,7 @@ endif
 PKG_DIR = $(fizmo_build_prefix)/lib/pkgconfig
 PKGFILE = $(PKG_DIR)/libfizmo.pc
 
+
 all: libfizmo.a
 
 libfizmo.a: src/tools/libtools.a src/interpreter/libinterpreter.a
