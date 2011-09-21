@@ -3,10 +3,11 @@ CC = gcc
 AR = ar
 override CFLAGS += -Wall -Wextra
 
-INSTALL_PREFIX = $(DESTDIR)/opt/local
-
-# Uncomment to install binaries to $(INSTALL_PREFIX)/$(FIZMO_BIN_DIR).
-FIZMO_BIN_DIR = bin
+prefix = /opt/local
+bindir = $(prefix)/bin
+datarootdir = $(prefix)/share
+mandir = $(datarootdir)/man
+localedir = $(datarootdir)/fizmo/locales
 
 
 # -----
