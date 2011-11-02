@@ -1001,8 +1001,6 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
   int bytes_read;
   int chunk_length;
   uint16_t stack_word;
-  uint8_t previous_number_of_locals;
-  uint16_t previous_stack_usage;
   int data, data2;
   int copylength;
   uint8_t *restored_story_mem;
@@ -1288,8 +1286,6 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
   saved_stack = create_new_stack();
 
   bytes_read = 0;
-  previous_number_of_locals = 0;
-  previous_stack_usage = 0;
   number_of_stack_frames = 0;
 
   while (bytes_read < chunk_length)
