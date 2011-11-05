@@ -36,6 +36,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#define DEBUGGER_PORT 2048
+
 void add_breakpoint(uint32_t breakpoint_pc);
 void debugger_story_has_been_loaded();
 void do_breakpoint_actions();
