@@ -35,47 +35,30 @@
 
 #define DEBUGGER_INPUT_BUFFER_SIZE 1024
 
-/*
-#include <stdlib.h>
-#include <string.h>
-*/
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/select.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#include <sys/wait.h>
-#include <signal.h>
 
 #include "../tools/tracelog.h"
 #include "../tools/list.h"
+#include "debugger.h"
 #include "zpu.h"
 #include "streams.h"
 #include "text.h"
 #include "fizmo.h"
-#include "debugger.h"
-#include "string.h"
 #include "variable.h"
 #include "config.h"
 #include "stack.h"
-/*
-#include "../tools/i18n.h"
-#include "debugger.h"
-#include "routine.h"
-#include "../locales/libfizmo_locales.h"
-*/
 
 #define BUFFER_SIZE 256 // Must not be set below 256.
 
