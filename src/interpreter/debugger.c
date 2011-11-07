@@ -135,14 +135,15 @@ void debugger_story_has_been_loaded()
   bzero((char *) &serv_addr, sizeof(struct sockaddr_in));
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(DEBUGGER_PORT);
-  inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr.s_addr);
+  inet_pton(AF_INET, DEBUGGER_IP_ADDRESS, &serv_addr.sin_addr.s_addr);
   if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
     exit(-1);
   listen(sockfd,5);
   clilen = sizeof(cli_addr);
 
-  streams_latin1_output("\nPlease connect to port ");
-  sprintf(buffer, "%d", DEBUGGER_PORT);
+  streams_latin1_output("\nPlease connect to ");
+  streams_latin1_output(DEBUGGER_IP_ADDRESS);
+  sprintf(buffer, ":%d", DEBUGGER_PORT);
   streams_latin1_output(buffer);
   streams_latin1_output(" to start.\n");
 
