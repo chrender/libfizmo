@@ -37,6 +37,7 @@
 #include <stdbool.h>
 
 #define DEBUGGER_PORT 2048
+#define DEBUGGER_IP_ADDRESS "127.0.0.1"
 
 void add_breakpoint(uint32_t breakpoint_pc);
 void debugger_story_has_been_loaded();
