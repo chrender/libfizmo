@@ -134,10 +134,9 @@ void debugger_story_has_been_loaded()
     exit(-1);
   bzero((char *) &serv_addr, sizeof(struct sockaddr_in));
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = INADDR_ANY;
   serv_addr.sin_port = htons(DEBUGGER_PORT);
-  if (bind(sockfd, (struct sockaddr *) &serv_addr,
-        sizeof(serv_addr)) < 0) 
+  inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr.s_addr);
+  if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
     exit(-1);
   listen(sockfd,5);
   clilen = sizeof(cli_addr);
