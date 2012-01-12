@@ -353,7 +353,7 @@ static void interpret(/*@null@*/ int frame_index_to_quit_on)
       {
         variable_number = *pc;
         TRACE_LOG("Reading variable with code %x.\n", variable_number);
-        current_operand_value = get_variable(variable_number);
+        current_operand_value = get_variable(variable_number, false);
       }
       else
         i18n_translate_and_exit(
@@ -437,7 +437,7 @@ uint16_t interpret_from_call(uint32_t routine_address)
 {
   call_routine(routine_address, 0, false, 0);
   interpret(number_of_stack_frames - 1);
-  return get_variable(0);
+  return get_variable(0, false);
 }
 
 

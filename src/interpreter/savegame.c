@@ -388,7 +388,7 @@ static int _store_save_or_restore_result(uint16_t result_code)
   else
   {
     read_z_result_variable();
-    set_variable(z_res_var, result_code);
+    set_variable(z_res_var, result_code, false);
   }
 
   return result_code;
