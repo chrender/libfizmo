@@ -1339,6 +1339,8 @@ void opcode_new_line(void)
 }
 
 
+#ifndef DISABLE_PREFIX_COMMANDS
+
 static bool process_interpreter_command()
 {
   z_ucs *prefixed_command;
@@ -1635,6 +1637,8 @@ static bool process_interpreter_command()
     return false;
   }
 }
+
+#endif // DISABLE_PREFIX_COMMANDS
 
 
 int save_and_quit_if_required(bool force_save)
@@ -2106,6 +2110,7 @@ void opcode_read(void)
             false);
       }
 
+#ifndef DISABLE_PREFIX_COMMANDS
       if (first_word_found == 0)
       {
         interpreter_command_found = process_interpreter_command();
@@ -2128,6 +2133,7 @@ void opcode_read(void)
             return;
         }
       }
+#endif // DISABLE_PREFIX_COMMANDS
 
       // In case no lexical analysis is required and we've found no interpreter
       // command, we can quite the loop.
