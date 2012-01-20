@@ -247,20 +247,19 @@ void opcode_store(void)
 
 void opcode_storew(void)
 {
-  uint8_t *address = z_mem + op[0] + ((int16_t)op[1])*2;
+  uint8_t *address = z_mem + (uint16_t)(op[0] + ((int16_t)op[1])*2);
 
   TRACE_LOG("Opcode: STOREW.\n");
 
   if (address > active_z_story->dynamic_memory_end)
   {
-    TRACE_LOG("Trying to storew to %x which is above dynamic memory.",
-        op[0] + ((int16_t)op[1])*2);
+    TRACE_LOG("Trying to storew to %x which is above dynamic memory.\n",
+        address);
   }
   else
   {
-    TRACE_LOG("Storing %x at %x + %x*2 = %x.\n",
-        op[2], op[0], (int16_t)op[1], op[0]+((int16_t)op[1])*2);
-    store_word(z_mem + op[0] + ((int16_t)op[1])*2, op[2]);
+    TRACE_LOG("Storing %x to %x.\n", op[2], address);
+    store_word(z_mem + (uint16_t)(op[0] + ((int16_t)op[1])*2), op[2]);
   }
 }
 
@@ -268,7 +267,7 @@ void opcode_storew(void)
 void opcode_loadw(void)
 {
   uint16_t value;
-  uint8_t *address = z_mem + op[0] + ((int16_t)op[1])*2;
+  uint8_t *address = z_mem + (uint16_t)(op[0] + ((int16_t)op[1])*2);
 
   TRACE_LOG("Opcode: LOADW.\n");
 
@@ -277,16 +276,13 @@ void opcode_loadw(void)
   if (address > active_z_story->static_memory_end)
   {
     TRACE_LOG("ERROR: Trying to loadw from %x which is above static memory.\n",
-        op[0] + ((int16_t)op[1])*2);
+        address);
     set_variable(z_res_var, 0, false);
   }
   else
   {
     value = load_word(address);
-    TRACE_LOG("Loading %x at %x + %x*2 = %x to var %x.\n",
-        value, op[0], (int16_t)op[1],
-        op[0]+((int16_t)op[1])*2,
-        z_res_var);
+    TRACE_LOG("Loading %x from %x var %x.\n", value, address, z_res_var);
     set_variable(z_res_var, value, false);
   }
 }
@@ -294,28 +290,25 @@ void opcode_loadw(void)
 
 void opcode_storeb(void)
 {
-  uint8_t *address = z_mem + op[0] + (int16_t)op[1];
+  uint8_t *address = z_mem + (uint16_t)(op[0] + ((int16_t)op[1]));
 
   TRACE_LOG("Opcode: STOREB.\n");
 
   if (address > active_z_story->dynamic_memory_end)
   {
-    TRACE_LOG("Trying to storeb to %x which is above dynamic memory.",
-        op[0] + (int16_t)op[1]);
+    TRACE_LOG("Trying to storeb to %x which is above dynamic memory.", address);
   }
   else
   {
-    TRACE_LOG("Storing $%x at $%x + $%x = %x.\n",
-        op[2], op[0], (int16_t)op[1], op[0]+((int16_t)op[1]));
-
-    *(z_mem + op[0] + ((int16_t)op[1])) = op[2];
+    TRACE_LOG("Storing %x to %x.\n", op[2], address);
+    *(z_mem + (uint16_t)(op[0] + (int16_t)op[1])) = op[2];
   }
 }
 
 
 void opcode_loadb(void)
 {
-  uint8_t *address = z_mem + op[0] + (int16_t)op[1];
+  uint8_t *address = z_mem + (uint16_t)(op[0] + (int16_t)op[1]);
 
   TRACE_LOG("Opcode: LOADB.\n");
 
@@ -323,17 +316,15 @@ void opcode_loadb(void)
 
   if (address > active_z_story->static_memory_end)
   {
-    TRACE_LOG("Trying to loadb from %x which is above static memory.",
-        op[0] + (int16_t)op[1]);
+    TRACE_LOG("Static memory end: %x.\n", active_z_story->static_memory_end);
+    TRACE_LOG("Trying to loadb from %x which is above static memory.\n",
+        address);
     set_variable(z_res_var, 0, false);
   }
   else
   {
-    TRACE_LOG("Loading %x at %x[%x] = %x to var %x.\n",
+    TRACE_LOG("Loading from %x to var %x.\n",
         *address,
-        op[0],
-        op[1],
-        op[0] + (int16_t)op[1],
         z_res_var);
     set_variable(z_res_var, *address, false);
   }
