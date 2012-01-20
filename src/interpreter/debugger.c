@@ -241,6 +241,8 @@ void debugger()
     {
       debugger_output(newsockfd, "Valid commands:\n");
       debugger_output(newsockfd, " - stack:       Dump stack contents.\n");
+      debugger_output(newsockfd, 
+          " - story:       Print story file information.\n");
       debugger_output(newsockfd, " - exit, quit:  Leave debugger.\n");
     }
     else if (strcmp(buffer, "stack") == 0)
@@ -263,6 +265,29 @@ void debugger()
         i++;
       }
       debugger_output(newsockfd, "\n");
+    }
+    else if (strcmp(buffer, "story") == 0)
+    {
+      sprintf(buffer, "Z-Story version: %d.\n", active_z_story->version);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "Release code: %d.\n", active_z_story->release_code);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "Serial code: %s.\n", active_z_story->serial_code);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "Checksum: %d.\n", active_z_story->checksum);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "Dynamic memory end: $%x.\n",
+          active_z_story->dynamic_memory_end - z_mem);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "Static memory end: $%x.\n",
+          active_z_story->static_memory_end - z_mem);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "High memory: $%x.\n",
+          active_z_story->high_memory - z_mem);
+      debugger_output(newsockfd, buffer);
+      sprintf(buffer, "High memory end: $%x.\n",
+          active_z_story->high_memory_end - z_mem);
+      debugger_output(newsockfd, buffer);
     }
     else
     {
