@@ -3,9 +3,10 @@ CC = gcc
 AR = ar
 override CFLAGS += -Wall -Wextra
 
-prefix = $(DESTDIR)/usr/local
-bindir = $(prefix)/games
-datarootdir = $(prefix)/share
+prefix = /usr/local
+destprefix = $(DESTDIR)$(prefix)
+bindir = $(destprefix)/bin
+datarootdir = $(destprefix)/share
 mandir = $(datarootdir)/man
 localedir = $(datarootdir)/fizmo/locales
 
