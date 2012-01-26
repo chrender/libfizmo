@@ -3,7 +3,7 @@ CC = gcc
 AR = ar
 override CFLAGS += -Wall -Wextra
 
-prefix = /opt/local
+prefix = $(DESTDIR)/opt/local
 bindir = $(prefix)/bin
 datarootdir = $(prefix)/share
 mandir = $(datarootdir)/man
