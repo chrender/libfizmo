@@ -4,7 +4,7 @@ AR = ar
 override CFLAGS += -Wall -Wextra
 
 prefix = /usr/local
-bindir = $(prefix)/bin
+bindir = $(prefix)/games
 datarootdir = $(prefix)/share
 mandir = $(datarootdir)/man
 localedir = $(datarootdir)/fizmo/locales
