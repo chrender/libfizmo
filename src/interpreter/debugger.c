@@ -190,12 +190,22 @@ void debugger()
 {
   int n, i;
   fd_set input_set;
+  uint8_t dbg_z_instr;
+  uint8_t dbg_z_instr_form;
+  uint8_t dbg_number_of_operands;
+  uint8_t *dbg_pc = pc;
 
   debugger_output(newsockfd, "\nEntering debugger.\n");
 
   for(;;)
   {
-    sprintf(buffer, "\nPC: %lx\n", pc - z_mem);
+    parse_opcode(
+        &dbg_z_instr,
+        &dbg_z_instr_form,
+        &dbg_number_of_operands,
+        &dbg_pc);
+    sprintf(buffer, "\n: %6lx: %d %d %d\n", pc - z_mem,
+        dbg_z_instr, dbg_z_instr_form, dbg_number_of_operands);
     debugger_output(newsockfd, buffer);
     for (i=0; i<number_of_locals_active; i++)
     {
@@ -276,16 +286,16 @@ void debugger()
       debugger_output(newsockfd, buffer);
       sprintf(buffer, "Checksum: %d.\n", active_z_story->checksum);
       debugger_output(newsockfd, buffer);
-      sprintf(buffer, "Dynamic memory end: $%x.\n",
+      sprintf(buffer, "Dynamic memory end: $%lx.\n",
           active_z_story->dynamic_memory_end - z_mem);
       debugger_output(newsockfd, buffer);
-      sprintf(buffer, "Static memory end: $%x.\n",
+      sprintf(buffer, "Static memory end: $%lx.\n",
           active_z_story->static_memory_end - z_mem);
       debugger_output(newsockfd, buffer);
-      sprintf(buffer, "High memory: $%x.\n",
+      sprintf(buffer, "High memory: $%lx.\n",
           active_z_story->high_memory - z_mem);
       debugger_output(newsockfd, buffer);
-      sprintf(buffer, "High memory end: $%x.\n",
+      sprintf(buffer, "High memory end: $%lx.\n",
           active_z_story->high_memory_end - z_mem);
       debugger_output(newsockfd, buffer);
     }
