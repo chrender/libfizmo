@@ -1,10 +1,12 @@
 
    Version 0.7.2
- + 0.7.2 was finished at about (?)
+ + 0.7.2 was finished at about Fri Mar 9 21:01:12 CET 2012.
  - Made fizmo comply to "praxix.z5" test.
  - Merged zarf's DISABLE_PREFIX_COMMANDS functionality.
  - Fixed missing $(DESTDIR) variable -- should already have been present
    since version 0.7.1.
+ - Fixed an error which would occur for empty pathnames when starting
+   up a game on 32-bit platforms, thanks to Samuel Verschelde.
 
    Version 0.7.1
  + 0.7.1 was finished at about Sun Nov 6 22:44:17 CET 2011.
