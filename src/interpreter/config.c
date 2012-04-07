@@ -67,6 +67,7 @@ char *user_homedir = NULL;
 struct configuration_option configuration_options[] = {
 
   // String values:
+  { "autosave-filename", NULL },
   { "background-color", NULL },
   { "input-command-filename", NULL },
   { "record-command-filename", NULL },
@@ -320,6 +321,8 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "z-code-path") == 0)
           ||
           (strcmp(key, "z-code-root-path") == 0)
+          ||
+          (strcmp(key, "autosave-filename") == 0)
           ||
           (strcmp(key, "savegame-path") == 0)
           ||
@@ -595,6 +598,8 @@ char *get_configuration_value(char *key)
             (strcmp(key, "z-code-path") == 0)
             ||
             (strcmp(key, "z-code-root-path") == 0)
+            ||
+            (strcmp(key, "autosave-filename") == 0)
             ||
             (strcmp(key, "savegame-path") == 0)
             ||
