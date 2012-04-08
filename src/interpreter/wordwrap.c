@@ -670,6 +670,7 @@ void wordwrap_insert_metadata(WORDWRAP *wrapper,
 }
 
 
+/*
 void wordwrap_output_left_padding(WORDWRAP *wrapper)
 {
   if (wrapper->left_side_padding > 0)
@@ -677,6 +678,7 @@ void wordwrap_output_left_padding(WORDWRAP *wrapper)
         wrapper->padding_buffer,
         wrapper->destination_parameter);
 }
+*/
 
 
 void wordwrap_adjust_line_length(WORDWRAP *wrapper, size_t new_line_length)

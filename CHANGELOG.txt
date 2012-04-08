@@ -4,7 +4,7 @@
  - Merged Andrew Plotkin's iOS-fizmo changes: No more raw exit() calls,
    added screeninterface-specific filename prompt, new screeninterface-specific
    filename prompt replaces fizmo_register_ask_user_for_file_function, fixed
-   autosave-functionality.
+   autosave-functionality, added "disable-stream-2-wrap" config option.
 
    Version 0.7.2
  + 0.7.2 was finished at about Fri Mar 9 21:01:12 CET 2012.

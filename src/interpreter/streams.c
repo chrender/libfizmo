@@ -94,6 +94,8 @@ bool input_stream_1_was_already_active = false;
 bool stream_output_has_occured = false;
 static bool stream_2_init_underway = false;
 static bool stream_4_was_already_active = false;
+static bool stream_2_wrapping_disabled;
+static int stream2margin;
 
 
 
@@ -149,7 +151,9 @@ void init_streams()
   size_t bytes_required;
   char *stream_2_line_width = get_configuration_value("stream-2-line-width");
   char *stream_2_left_margin = get_configuration_value("stream-2-left-margin");
-  int stream2width, stream2margin;
+  stream_2_wrapping_disabled
+    = (strcmp(get_configuration_value("disable-stream-2-wrap"), "true") == 0);
+  int stream2width;
 
   stream2width
     = stream_2_line_width != NULL       
@@ -161,18 +165,20 @@ void init_streams()
     ? atoi(stream_2_left_margin)
     : DEFAULT_STREAM_2_LEFT_PADDING;
 
-  stream_2_wrapper = wordwrap_new_wrapper(
-      stream2width,
-      &stream_2_wrapped_output_destination,
-      NULL,
-      true,
-      stream2margin,
-      (strcmp(get_configuration_value("sync-transcript"), "true") == 0
-       ? true
-       : false),
-      (strcmp(get_configuration_value("disable-stream-2-hyphenation"),"true")==0
-       ? false
-       : true));
+  if (stream_2_wrapping_disabled == false)
+    stream_2_wrapper = wordwrap_new_wrapper(
+        stream2width,
+        &stream_2_wrapped_output_destination,
+        NULL,
+        true,
+        stream2margin,
+        (strcmp(get_configuration_value("sync-transcript"), "true") == 0
+         ? true
+         : false),
+        (strcmp(get_configuration_value("disable-stream-2-hyphenation")
+                ,"true") == 0
+         ? false
+         : true));
 
   if (strcmp(get_configuration_value("start-script-when-story-starts"),
         "true") == 0)
@@ -532,6 +538,36 @@ void ask_for_stream2_filename()
 }
 
 
+static void stream_2_output_write(z_ucs *z_ucs_output)
+{
+  if (stream_2_wrapping_disabled == true)
+    stream_2_wrapped_output_destination(z_ucs_output, NULL);
+  else
+    wordwrap_wrap_z_ucs(stream_2_wrapper, z_ucs_output);
+}
+
+
+static void stream_2_print_header() //int stream2margin)
+{
+  z_ucs dashes[] = { '-', '-', '-', '\n', '\n', 0 };
+  //z_ucs space[] = { ' ', 0 };
+  int i;
+
+  //z_ucs stream_2_header[] = { '\n', '-', '-', '-', '\n', '\n', 0 };
+  //
+  stream_2_output_write(z_ucs_newline_string);
+  /*
+  for (i=0; i<stream2margin; i++)
+    stream_2_output_write(space);
+    */
+  stream_2_output_write(dashes);
+  /*
+  for (i=0; i<stream2margin; i++)
+    stream_2_output_write(space);
+    */
+}
+
+
 static void stream_2_output(z_ucs *z_ucs_output)
 {
   int return_code;
@@ -573,14 +609,8 @@ static void stream_2_output(z_ucs *z_ucs_output)
     else
     {
       stream_2 = transcript_stream;
-
       stream_2_was_already_active = true;
-      fsi->writechar('\n', stream_2);
-      wordwrap_output_left_padding(stream_2_wrapper);
-      fsi->writestring("---\n\n", stream_2);
-      wordwrap_output_left_padding(stream_2_wrapper);
-      if (strcmp(get_configuration_value("sync-transcript"), "true") == 0)
-        fsi->flushfile(stream_2);
+      stream_2_print_header(stream2margin);
     }
   }
 
@@ -591,12 +621,7 @@ static void stream_2_output(z_ucs *z_ucs_output)
       TRACE_LOG("Opening script-file '%s' for writing.\n", stream_2_filename);
       stream_2 = fsi->openfile(
           stream_2_filename, FILETYPE_TRANSCRIPT, FILEACCESS_APPEND);
-      fsi->writechar('\n', stream_2);
-      wordwrap_output_left_padding(stream_2_wrapper);
-      fsi->writestring("---\n\n", stream_2);
-      wordwrap_output_left_padding(stream_2_wrapper);
-      if (strcmp(get_configuration_value("sync-transcript"), "true") == 0)
-        fsi->flushfile(stream_2);
+      stream_2_print_header(stream2margin);
     }
 
     if (bool_equal(lower_window_buffering_active, true))
@@ -605,13 +630,14 @@ static void stream_2_output(z_ucs *z_ucs_output)
       {
         script_wrapper_active = true;
       }
-      wordwrap_wrap_z_ucs(stream_2_wrapper, z_ucs_output);
+      stream_2_output_write(z_ucs_output);
     }
     else
     {
       if (bool_equal(script_wrapper_active, true))
       {
-        wordwrap_flush_output(stream_2_wrapper);
+        if (stream_2_wrapping_disabled == false)
+          wordwrap_flush_output(stream_2_wrapper);
         script_wrapper_active = false;
       }
       stream_2_wrapped_output_destination(z_ucs_output, NULL);
@@ -836,7 +862,8 @@ static void close_script_file()
   {
     TRACE_LOG("Closing script-file.\n");
 
-    wordwrap_flush_output(stream_2_wrapper);
+    if (stream_2_wrapping_disabled == false)
+      wordwrap_flush_output(stream_2_wrapper);
     fsi->writechar('\n', stream_2);
     (void)fsi->closefile(stream_2);
     stream_2 = NULL;
