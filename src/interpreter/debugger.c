@@ -66,6 +66,8 @@
 // function "debugger_story_has_been_loaded" has been called. From then on,
 // breakspoints are stored as pointers relative to z_mem in order to
 // speed up searching.
+list *pcs = NULL;
+list *breakpoints = NULL;
 bool story_has_been_loaded = false;
 int sockfd;
 struct sockaddr_in serv_addr;
