@@ -1824,7 +1824,8 @@ void opcode_read(void)
   uint16_t timed_routine_offset = op[3];
   bool interpreter_command_found;
   int i;
-  z_ucs *current_line;
+  // TODO: Implement permanent buffer for current_line.
+  z_ucs *current_line = NULL;
   bool stream_1_active_buf;
   int offset;
   size_t bytes_required;
@@ -1844,7 +1845,6 @@ void opcode_read(void)
 
   TRACE_LOG("Reading input (%x, %x).\n", op[0], parsebuffer_offset);
 
-  // FIXME: Implement permanent buffer for current_line.
 #ifndef DISABLE_OUTPUT_HISTORY
   current_line = get_current_line(outputhistory[active_window_number]);
   if (current_line != NULL)
@@ -1853,8 +1853,6 @@ void opcode_read(void)
     TRACE_LOG_Z_UCS(current_line);
     TRACE_LOG("'.\n");
   }
-#else
-  current_line = NULL;
 #endif /* DISABLE_OUTPUT_HISTORY */
 
   if (ver >= 5)
@@ -1969,6 +1967,7 @@ void opcode_read(void)
               TRACE_LOG(
                   "Invoking verification routine, 1/10s counter: %d(%d).\n",
                   tenth_seconds_to_delay , tenth_seconds);
+#ifndef DISABLE_OUTPUT_HISTORY
               if ((stream_output_has_occured == true) && (current_line != NULL))
               {
                 TRACE_LOG("Restoring original prompt: '");
@@ -1977,6 +1976,7 @@ void opcode_read(void)
                 (void)streams_z_ucs_output(current_line);
                 stream_output_has_occured = false;
               }
+#endif // DISABLE_OUTPUT_HISTORY
               if ((timed_routine_retval=interpret_from_call(
                       get_packed_routinecall_address(timed_routine_offset)))!=0)
               {
@@ -2010,7 +2010,13 @@ void opcode_read(void)
         }
 
         if (terminate_interpreter != INTERPRETER_QUIT_NONE)
+        {
+#ifndef DISABLE_OUTPUT_HISTORY
+          if (current_line != NULL)
+            free(current_line);
+#endif // DISABLE_OUTPUT_HISTORY
           return;
+        }
 
         // input_length always defined, since "i18n_translate_and_exit" does
         // not return.
@@ -2144,6 +2150,7 @@ void opcode_read(void)
 
         if (bool_equal(interpreter_command_found, true))
         {
+#ifndef DISABLE_OUTPUT_HISTORY
           if (current_line != NULL)
           {
             TRACE_LOG("Restoring original prompt: '");
@@ -2152,6 +2159,7 @@ void opcode_read(void)
             (void)streams_z_ucs_output(current_line);
           }
           else
+#endif // DISABLE_OUTPUT_HISTORY
             (void)streams_latin1_output(">");
 
           z_text_buffer[1] = 0;
@@ -2178,6 +2186,7 @@ void opcode_read(void)
   // interpreter, not the story, we'll continue with the input.
   while (interpreter_command_found != false);
 
+#ifndef DISABLE_OUTPUT_HISTORY
   if (current_line != NULL)
   {
     TRACE_LOG("Free current line (%p): '", current_line);
@@ -2185,6 +2194,7 @@ void opcode_read(void)
     TRACE_LOG("'.\n");
     free(current_line);
   }
+#endif // DISABLE_OUTPUT_HISTORY
 
   number_of_commands++;
 }

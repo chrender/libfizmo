@@ -59,6 +59,33 @@ static struct undo_frame* undo_frames[MAX_UNDO_STEPS];
 static int undo_index = 0;
 
 
+static struct undo_frame *create_new_undo_frame()
+{
+  struct undo_frame *result;
+
+  if ((result = (struct undo_frame*)malloc(sizeof(struct undo_frame))) == NULL)
+    return NULL;
+
+  result->dynamic_memory = NULL;
+  result->stack = NULL;
+
+  return result;
+}
+
+
+static void delete_undo_frame(struct undo_frame *frame)
+{
+  if (frame != NULL)
+  {
+    if (frame->dynamic_memory != NULL)
+      free(frame->dynamic_memory);
+    if (frame->stack != NULL)
+      free(frame->stack);
+    free(frame);
+  }
+}
+
+
 void opcode_save_undo(void)
 {
   size_t dynamic_memory_size;
@@ -72,8 +99,7 @@ void opcode_save_undo(void)
   {
     result = 0;
   }
-  else if ((new_undo_frame
-        = (struct undo_frame*)malloc(sizeof(struct undo_frame))) == NULL)
+  else if ((new_undo_frame = create_new_undo_frame()) == NULL)
   {
     result = 0;
   }
@@ -85,7 +111,7 @@ void opcode_save_undo(void)
     if ( (new_undo_frame->dynamic_memory = malloc(dynamic_memory_size))
         == NULL)
     {
-      free(new_undo_frame);
+      delete_undo_frame(new_undo_frame);
       result = 0;
     }
     else
@@ -95,17 +121,14 @@ void opcode_save_undo(void)
       if ((new_undo_frame->stack
             = (uint16_t*)malloc(nof_stack_bytes_in_use)) == NULL)
       {
-        free(new_undo_frame->dynamic_memory);
-        free(new_undo_frame);
+        delete_undo_frame(new_undo_frame);
         result = 0;
       }
       else
       {
         if (undo_index == MAX_UNDO_STEPS)
         {
-          free(undo_frames[0]->stack);
-          free(undo_frames[0]->dynamic_memory);
-          free(undo_frames[0]);
+          delete_undo_frame(new_undo_frame);
 
           memmove(
               undo_frames,
@@ -146,6 +169,7 @@ void opcode_save_undo(void)
   read_z_result_variable();
   set_variable(z_res_var, (uint16_t)result, false);
 }
+
 
 void opcode_restore_undo(void)
 {
@@ -192,9 +216,7 @@ void opcode_restore_undo(void)
         frame_to_restore->dynamic_memory,
         dynamic_memory_size);
 
-    free(frame_to_restore->stack);
-    free(frame_to_restore->dynamic_memory);
-    free(frame_to_restore);
+    delete_undo_frame(frame_to_restore);
 
     write_interpreter_info_into_header();
 
@@ -222,6 +244,16 @@ size_t get_allocated_undo_memory_size(void)
     result += undo_frames[i++]->z_stack_size * sizeof(uint16_t);
 
   return result;
+}
+
+
+void free_undo_memory(void)
+{
+  while (undo_index > 0)
+  {
+    delete_undo_frame(undo_frames[undo_index]);
+    undo_index--;
+  }
 }
 
 

@@ -56,6 +56,8 @@
 #include "routine.h"
 #include "variable.h"
 #include "blorb.h"
+#include "hyphenation.h"
+#include "undo.h"
 #include "../tools/z_ucs.h"
 #include "../tools/types.h"
 #include "../tools/i18n.h"
@@ -108,6 +110,7 @@ static bool config_files_were_parsed = false;
 #endif // DISABLE_BLOCKBUFFER
 
 
+// "load_z_story" returns malloc()ed z_story, may be freed using free_z_story().
 static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
 {
   struct z_story *result;
@@ -228,6 +231,7 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
   if (cwd != NULL)
     fsi->ch_dir(cwd);
   free(cwd);
+  free(ptr);
 
   if ((fsi->setfilepos(
           result->z_story_file, result->story_file_exec_offset, SEEK_SET)) != 0)
@@ -488,6 +492,8 @@ static void free_z_story(struct z_story *story)
     free(story->title);
   if (story->blorb_map != NULL)
     active_blorb_interface->free_blorb_map(story->blorb_map);
+  if (story->blorb_file != NULL)
+    fsi->closefile(story->blorb_file);
   free(story->absolute_file_name);
   free(story);
 }
@@ -628,8 +634,6 @@ char *get_xdg_config_dir_name()
   {
     xdg_config_home = fizmo_strdup(config_dir_used);
   }
-
-  // REVISIT: free(xdg_config_home) on end.
 
   xdg_config_dir_name_initialized = true;
 
@@ -1367,17 +1371,39 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 #endif // ENABLE_DEBUGGER
 
   free_z_story(active_z_story);
+  active_z_story = NULL;
 
+#ifndef DISABLE_BLOCKBUFFER
   if (upper_window_buffer != NULL)
     destroy_blockbuffer(upper_window_buffer);
+  upper_window_buffer = NULL;
+#endif // DISABLE_BLOCKBUFFER
+
+#ifndef DISABLE_OUTPUT_HISTORY
+  destroy_outputhistory(outputhistory[0]);
+#endif // DISABLE_OUTPUT_HISTORY
 
   if (active_sound_interface != NULL)
     active_sound_interface->close_sound();
 
   // Close all streams, this will also close the active interface.
   close_streams(NULL);
+  free_undo_memory();
+  free_hyphenation_memory();
+  free_i18n_memory();
 
-  // TODO: Free memory.
+#ifndef DISABLE_CONFIGFILES
+  if (xdg_config_home == NULL)
+  {
+    free(xdg_config_home);
+    xdg_config_home = NULL;
+  }
+  if (fizmo_config_dir_name != NULL)
+  {
+    free(fizmo_config_dir_name);
+    fizmo_config_dir_name = NULL;
+  }
+#endif // DISABLE_CONFIGFILES
 }
 
 #endif /* fizmo_c_INCLUDED */
