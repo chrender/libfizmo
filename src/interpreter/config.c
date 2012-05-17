@@ -73,6 +73,7 @@ struct configuration_option configuration_options[] = {
   { "i18n-search-path", NULL },
   { "input-command-filename", NULL },
   { "locale", NULL },
+  { "max-undo-steps", NULL },
   { "random-mode", NULL },
   { "record-command-filename", NULL },
   { "save-text-history-paragraphs", NULL },
@@ -352,6 +353,8 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "stream-2-line-width") == 0)
           ||
           (strcmp(key, "stream-2-left-margin") == 0)
+          ||
+          (strcmp(key, "max-undo-steps") == 0)
           )
       {
         if (new_value == NULL)
@@ -639,6 +642,8 @@ char *get_configuration_value(char *key)
             (strcmp(key, "stream-2-line-width") == 0)
             ||
             (strcmp(key, "stream-2-left-margin") == 0)
+            ||
+            (strcmp(key, "max-undo-steps") == 0)
             )
         {
           TRACE_LOG("Returning value at %p.\n", configuration_options[i].value);
