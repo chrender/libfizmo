@@ -55,6 +55,7 @@
 #include "filelist.h"
 #include "routine.h"
 #include "variable.h"
+#include "undo.h"
 #include "blorb.h"
 #include "hyphenation.h"
 #include "undo.h"
@@ -703,6 +704,13 @@ void ensure_dot_fizmo_dir_exists()
 
 /*@external@*/ void fizmo_new_screen_size(uint8_t width, uint8_t height)
 {
+  if (!z_mem)
+  {
+    /* This shouldn't be called before z_mem is allocated. However, the
+       startup sequence is complicated and I want to be extra careful. */
+    return;
+  }
+
   if (ver >= 4)
   {
     TRACE_LOG("Writing %d to $20, %d to $21.\n", height, width);
@@ -732,7 +740,7 @@ void write_interpreter_info_into_header()
 {
   uint16_t width, height;
 
-  if (active_interface == NULL)
+  if (active_interface == NULL || z_mem == NULL)
     return;
 
   TRACE_LOG("Linking interface \"%s\" to active story.\n",
@@ -1113,6 +1121,7 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   char *value;
   bool evaluate_result;
   uint8_t flags2;
+  int val;
   char *str, *default_savegame_filename = DEFAULT_SAVEGAME_FILENAME;
   z_colour default_colour;
 
@@ -1182,6 +1191,11 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 
   if ((str = get_configuration_value("savegame-default-filename")) != NULL)
     default_savegame_filename = str;
+
+  val = DEFAULT_MAX_UNDO_STEPS;
+  if ((str = get_configuration_value("max-undo-steps")) != NULL)
+    val = atoi(str);
+  set_max_undo_steps(val);
 
   init_streams(default_savegame_filename);
 
@@ -1372,6 +1386,7 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 
   free_z_story(active_z_story);
   active_z_story = NULL;
+  z_mem = NULL;
 
 #ifndef DISABLE_BLOCKBUFFER
   if (upper_window_buffer != NULL)
@@ -1393,7 +1408,7 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   free_i18n_memory();
 
 #ifndef DISABLE_CONFIGFILES
-  if (xdg_config_home == NULL)
+  if (xdg_config_home != NULL)
   {
     free(xdg_config_home);
     xdg_config_home = NULL;
