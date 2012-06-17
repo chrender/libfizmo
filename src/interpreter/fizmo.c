@@ -702,7 +702,7 @@ void ensure_dot_fizmo_dir_exists()
 #endif // DISABLE_CONFIGFILES
 
 
-/*@external@*/ void fizmo_new_screen_size(uint8_t width, uint8_t height)
+ void fizmo_new_screen_size(uint8_t width, uint8_t height)
 {
   if (!z_mem)
   {
@@ -710,6 +710,15 @@ void ensure_dot_fizmo_dir_exists()
        startup sequence is complicated and I want to be extra careful. */
     return;
   }
+
+#ifndef DISABLE_BLOCKBUFFER
+  if ( (ver >= 3) && (upper_window_buffer != NULL)
+      && (upper_window_buffer->height > 0) )
+    blockbuf_resize(
+        upper_window_buffer,
+        (int)width,
+        upper_window_buffer->height);
+#endif // DISABLE_BLOCKBUFFER
 
   if (ver >= 4)
   {
@@ -1262,6 +1271,16 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   // REVISIT: Implement general initalization for restore / restart etc.
   active_window_number = 0;
   current_font = Z_FONT_NORMAL;
+
+#ifndef DISABLE_BLOCKBUFFER
+  if (ver >= 3)
+    upper_window_buffer
+      = create_blockbuffer(
+          Z_STYLE_ROMAN,
+          Z_FONT_NORMAL,
+          current_foreground_colour,
+          current_background_colour);
+#endif // DISABLE_BLOCKBUFFER
 
 #ifndef DISABLE_OUTPUT_HISTORY
   outputhistory[0]

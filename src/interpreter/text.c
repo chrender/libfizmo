@@ -1519,8 +1519,7 @@ static bool process_interpreter_command()
       (void)i18n_translate(
           libfizmo_module_name,
           i18n_libfizmo_P0D_BYTES_USED_BY_BLOCK_BUFFER,
-          sizeof(struct blockbuf_char) * upper_window_buffer->width
-          * upper_window_buffer->height);
+          count_allocated_blockbuf_memory(upper_window_buffer));
       (void)streams_latin1_output("\n");
     }
 #endif
