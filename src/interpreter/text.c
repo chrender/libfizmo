@@ -68,7 +68,6 @@
 #include "cmd_hst.h"
 #endif /* DISABLE_COMMAND_HISTORY */
 
-
 static uint16_t zchar_storage_word;
 static uint16_t zchar_storage_symbols_stored;
 static uint8_t *zchar_storage_output;
@@ -179,7 +178,15 @@ static void zchar_storage_start(uint8_t *output, uint16_t output_buffer_size)
 //   * -1 in case the given five_bits could not be stored. These will be lost.
 static int zchar_storage_write(unsigned int five_bits)
 {
+  if (zchar_storage_output_index >= zchar_storage_index_behind)
+  {
+    TRACE_LOG("zchar_storage_write ran out of space.\n");
+    return -1;
+  }
+
   five_bits &= 0x1f;
+
+  TRACE_LOG("zchar: Storing five bits %x.\n", five_bits);
 
   if (zchar_storage_word_index == 0)
     zchar_storage_word |= (five_bits << 10);
@@ -192,8 +199,10 @@ static int zchar_storage_write(unsigned int five_bits)
 
   if (++zchar_storage_word_index == 3)
   {
-    if (zchar_storage_output_index == zchar_storage_index_behind)
-      return -1;
+    TRACE_LOG("zchar: storing word %x at %x, end at %x.\n",
+        zchar_storage_word,
+        zchar_storage_output_index,
+        zchar_storage_index_behind);
 
     store_word(zchar_storage_output_index, zchar_storage_word);
     zchar_storage_output_index += 2;
@@ -201,10 +210,16 @@ static int zchar_storage_write(unsigned int five_bits)
     zchar_storage_word_index = 0;
   }
 
-  if (zchar_storage_output_index == zchar_storage_index_behind)
+  if (zchar_storage_output_index >= zchar_storage_index_behind)
+  {
+    TRACE_LOG("No more space remains for zchar-storage.\n");
     return 1;
+  }
   else
+  {
+    TRACE_LOG("Space remains for zchar-storage.\n");
     return 0;
+  }
 }
 
 
@@ -233,31 +248,57 @@ void zchar_storage_reset()
 // This function will finish the current Z-Char-String in production by
 // setting bit 15 on the last word, padding it with 5s if required and
 // storing it in the output buffer.
-static void zchar_storage_finish()
+// Return value:
+// -0 In case there was still enough space and string finalization succeeded.
+// -1 in case there was not enough buffer storage to write the string.
+static int zchar_storage_finish()
 {
   if (zchar_storage_word_index == 0)
     // In case we arrive here, there's no output in the current word. We'll
     // check if there's any output already stored in the output buffer.
     if (zchar_storage_output_index != zchar_storage_output)
+    {
       // In case there's some output, write the string termination to the
       // last word of the output.
+      TRACE_LOG("Successfully finalized full word.");
       *(zchar_storage_output_index-2) |= 0x80;
+    }
     else
+    {
       // In case the buffer is completely empty, write an empty word
       // padded with 5s and terminated with bit 15 set.
+      if (zchar_storage_output_index >= zchar_storage_index_behind)
+      {
+        TRACE_LOG("zchar_storage_finish ran out of space.\n");
+        return -1;
+      }
+
+      TRACE_LOG("zchar: storing word %x at %x.\n",
+          zchar_storage_word, 0x94a5);
       store_word(zchar_storage_output, 0x94a5);
+    }
 
   else
   {
     // In case the current word has some content, we'll just have pad it
     // up with 5s and store it.
+    if (zchar_storage_output_index >= zchar_storage_index_behind)
+    {
+      TRACE_LOG("zchar_storage_finish ran out of space.\n");
+      return -1;
+    }
+
     if (zchar_storage_word_index == 1)
       zchar_storage_word |= (5 << 5);
 
     zchar_storage_word |= 0x8005;
 
+    TRACE_LOG("zchar: storing word %x at %x.\n",
+        zchar_storage_word, zchar_storage_output_index);
     store_word(zchar_storage_output_index, zchar_storage_word);
   }
+
+  return 0;
 }
 
 
@@ -565,12 +606,8 @@ static void tokenise(
     uint8_t *dictionary,
     bool dont_write_unrecognized_words_to_parse_buffer)
 {
-  // One normal input byte will result in a maximum of three Z-Chars: one
-  // for the '6' header chars, then 2 Z-Chars containing the value. Thus
-  // we'll need ((n*3)/3)*2 = n*2 bytes of input length: input_length * 3
-  // gives the maximum possible number of Z-Chars. One word will take up
-  // 3 Z-Chars, so we'll need a maximum of (n*3)/3 words, meaning n*2 bytes.
-  uint8_t tokenize_buffer_length = input_length * 2;
+  uint16_t dictionary_word_length = ver >= 4 ? 9 : 6;
+  uint8_t tokenize_buffer_length = ver >= 4 ? 6 : 4;
   uint8_t tokenize_buffer[tokenize_buffer_length];
 
   // The number and values of non-space-seperating input codes:
@@ -586,10 +623,10 @@ static void tokenise(
   uint8_t current_word_start = z_text_buffer_offset;
   uint8_t *parse_buffer_index = z_parse_buffer + 2;
   uint8_t i;
-  //int last_token_start_index;
 
-  TRACE_LOG("Parse buffer at %lx.\n",
-    (unsigned long int)(z_parse_buffer - z_mem));
+  TRACE_LOG("Parse buffer at %lx, %d bytes for tokenize_buffer at %x.\n",
+    (unsigned long int)(z_parse_buffer - z_mem), tokenize_buffer_length,
+    &tokenize_buffer);
 
   maximum_words = *z_parse_buffer;
   parse_buffer_index = z_parse_buffer + 2;
@@ -621,13 +658,9 @@ static void tokenise(
   TRACE_LOG("Number entries: %d.\n", number_of_dictionary_entries);
 #endif /* ENABLE_TRACING */
 
-  // tokenize_buffer does not have to be defined, is output buffer.
-  /*@-compdef@*/
   zchar_storage_start(tokenize_buffer, tokenize_buffer_length);
-  /*@-compdef@*/
 
   end_of_line_found = 0;
-  //last_token_start_index = 0;
   while ((number_of_words_found < maximum_words) && (end_of_line_found == 0))
   {
     TRACE_LOG("Looking at %c/%d.\n", z_text_buffer[z_text_buffer_offset],
@@ -637,18 +670,18 @@ static void tokenise(
 
     current_char = z_text_buffer[z_text_buffer_offset];
 
+    // First, determine char, if we're at the end of the input line, whether
+    // char it's a space or if char as a non-space separator.
+
     if (
         (current_char == 0)
         ||
         ( (ver >= 5) && (z_text_buffer_offset -2 == input_length) )
        )
       end_of_line_found = 1;
-
     else if (current_char == 32)
       space_found = 1;
-
     else
-    {
       for (i=0; i<number_of_input_codes; i++)
         if (current_char == input_codes[i])
         {
@@ -656,11 +689,7 @@ static void tokenise(
           break;
         }
 
-      /*
-      if ((non_space_seperator_found == 0) && (last_token_start_index == -1))
-        last_token_start_index = z_text_buffer_offset;
-        */
-    }
+    // Second, evaluate this input.
 
     if (space_found == 1)
     {
@@ -677,7 +706,6 @@ static void tokenise(
             &parse_buffer_index,
             current_word_start,
             z_text_buffer_offset - current_word_start,
-            //z_text_buffer_offset - last_token_start_index - 1,
             dont_write_unrecognized_words_to_parse_buffer);
 
         zchar_storage_start(tokenize_buffer, tokenize_buffer_length);
@@ -685,7 +713,6 @@ static void tokenise(
       space_found = 0;
       current_word_start = z_text_buffer_offset + 1;
     }
-
     else if (non_space_seperator_found == 1)
     {
       // Non-space-seperator are a bit more work, since they also count
@@ -702,12 +729,14 @@ static void tokenise(
             &parse_buffer_index,
             current_word_start,
             z_text_buffer_offset - current_word_start,
-            //z_text_buffer_offset - last_token_start_index - 1,
             dont_write_unrecognized_words_to_parse_buffer);
 
         zchar_storage_start(tokenize_buffer, tokenize_buffer_length);
       }
 
+      // No length check for dictionary_word_length required, since we
+      // either just started a new zchar_storage above, or otherwise
+      // zchar_storage_symbols_stored == 0 due to if above.
       store_ZSCII_as_zchar(current_char);
       zchar_storage_finish();
       number_of_words_found++;
@@ -723,36 +752,36 @@ static void tokenise(
       non_space_seperator_found = 0;
       current_word_start = z_text_buffer_offset + 1;
     }
-
     else if (end_of_line_found == 1)
     {
       zchar_storage_finish();
       if (zchar_storage_symbols_stored != 0)
       {
-        /*
-        TRACE_LOG("%x / %x / %d / %d / %d\n",
+        TRACE_LOG("%x / %x / %d / %d\n",
             tokenize_buffer,
             parse_buffer_index,
             current_word_start,
-            z_text_buffer_offset,
-            last_token_start_index);
-        */
+            z_text_buffer_offset);
         number_of_words_found++;
 
         (void)locate_dictionary_entry(
             tokenize_buffer,
             &parse_buffer_index,
             current_word_start,
-            //z_text_buffer_offset - last_token_start_index - 1);
-            // line above from "kill troll ###" bug.
-            //z_text_buffer_offset - current_word_start);
             z_text_buffer_offset - current_word_start,
             dont_write_unrecognized_words_to_parse_buffer);
       }
     }
-
     else
-      store_ZSCII_as_zchar(current_char);
+    {
+      TRACE_LOG("Symbols stored: %d.\n", zchar_storage_symbols_stored);
+      if (zchar_storage_symbols_stored < dictionary_word_length)
+        store_ZSCII_as_zchar(current_char);
+      else
+      {
+        TRACE_LOG("Maximum word length %d reached.\n", dictionary_word_length);
+      }
+    }
 
     z_text_buffer_offset++;
   }
