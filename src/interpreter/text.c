@@ -68,14 +68,14 @@
 #include "cmd_hst.h"
 #endif /* DISABLE_COMMAND_HISTORY */
 
-static uint16_t zchar_storage_word;
-static uint16_t zchar_storage_symbols_stored;
-static uint8_t *zchar_storage_output;
-static uint8_t *zchar_storage_output_index;
-static uint8_t *zchar_storage_index_behind;
-static uint8_t zchar_storage_word_index;
+static uint16_t zchar_storage_word = 0;
+static uint16_t zchar_storage_symbols_stored = 0;
+static uint8_t *zchar_storage_output = NULL;
+static uint8_t *zchar_storage_output_index = NULL;
+static uint8_t *zchar_storage_index_behind = NULL;
+static uint8_t zchar_storage_word_index = 0;
 static size_t interpreter_command_buffer_size = 0;
-/*@only@*/ /*@null@*/ z_ucs *interpreter_command_buffer = NULL;
+z_ucs *interpreter_command_buffer = NULL;
 
 // The following two variables will keep track of the src pointer in
 // the various abbreviation depths. In case we return from processing
@@ -92,11 +92,6 @@ static int zchar_to_z_ucs_abbreviation_level;
 static uint32_t number_of_commands = 0;
 static uint8_t first_word_found;
 static z_ucs z_ucs_output_buffer[Z_UCS_OUTPUT_BUFFER_SIZE];
-
-static uint8_t dictionary_entry_length;
-static int16_t number_of_dictionary_entries;
-static bool dictionary_is_unsorted;
-static uint8_t *dictionary_start;
 
 z_ucs z_ucs_newline_string[] = { Z_UCS_NEWLINE, 0 };
 
@@ -245,6 +240,17 @@ void zchar_storage_reset()
 }
 
 
+static void zchar_storage_clear()
+{
+  zchar_storage_word = 0;
+  zchar_storage_output = NULL;
+  zchar_storage_output_index = NULL;
+  zchar_storage_index_behind = NULL;
+  zchar_storage_word_index = 0;
+  zchar_storage_symbols_stored = 0;
+}
+
+
 // This function will finish the current Z-Char-String in production by
 // setting bit 15 on the last word, padding it with 5s if required and
 // storing it in the output buffer.
@@ -253,7 +259,9 @@ void zchar_storage_reset()
 // -1 in case there was not enough buffer storage to write the string.
 static int zchar_storage_finish()
 {
+  TRACE_LOG("zchar_storage_word_index: %d.\n", zchar_storage_word_index);
   if (zchar_storage_word_index == 0)
+  {
     // In case we arrive here, there's no output in the current word. We'll
     // check if there's any output already stored in the output buffer.
     if (zchar_storage_output_index != zchar_storage_output)
@@ -277,7 +285,7 @@ static int zchar_storage_finish()
           zchar_storage_word, 0x94a5);
       store_word(zchar_storage_output, 0x94a5);
     }
-
+  }
   else
   {
     // In case the current word has some content, we'll just have pad it
@@ -485,11 +493,17 @@ static uint8_t locate_dictionary_entry(
     uint8_t **parse_position,
     uint8_t word_position,
     uint8_t token_length,
+    uint8_t *dictionary_start,
+    int16_t number_of_dictionary_entries,
+    uint8_t dictionary_entry_length,
+    bool dictionary_is_unsorted,
     bool dont_write_unrecognized_words_to_parse_buffer)
 {
   uint8_t *dictionary_index = dictionary_start;
   uint16_t i,j;
   uint16_t word_length;
+  int16_t word_found_at_index = -1;
+  int search_mid_index, search_end_index;
 
   // "Dictionarize" entry.
   if (ver >= 4)
@@ -527,40 +541,76 @@ static uint8_t locate_dictionary_entry(
     }
   }
 
-  // FIXME: Improve searching (use "dictionary_is_unsorted").
-  for (i=0; i<number_of_dictionary_entries; i++)
+  TRACE_LOG("dict-start: %x\n", dictionary_start - z_mem);
+
+  if (dictionary_is_unsorted == true)
   {
-    /*
-    TRACE_LOG("%d (at %x): %x%x%x%x / %x%x%x%x\n",
-        i,
-        dictionary_index - z_mem,
-        text_buffer[0],
-        text_buffer[1],
-        text_buffer[2],
-        text_buffer[3],
-        dictionary_index[0],
-        dictionary_index[1],
-        dictionary_index[2],
-        dictionary_index[3]);
-    */
+    for (i=0; i<number_of_dictionary_entries; i++)
+    {
+      for (j=0; j<word_length; j++) {
+        TRACE_LOG("%d/%x: %x %x\n",
+            j, dictionary_index-z_mem, text_buffer[j], dictionary_index[j]);
+        if (text_buffer[j] != dictionary_index[j])
+          break;
+      }
 
-    for (j=0; j<word_length; j++)
-      if (text_buffer[j] != dictionary_index[j])
+      if (j == word_length)
+        word_found_at_index = i;
+
+      dictionary_index += dictionary_entry_length;
+    }
+  }
+  else
+  {
+    i = 0;
+    search_end_index = number_of_dictionary_entries;
+
+    while (i != search_end_index)
+    {
+      search_mid_index
+        = (i + search_end_index) / 2;
+
+      TRACE_LOG("binchop-search: start:%d, mid:%d, end:%d.\n",
+          i, search_mid_index, search_end_index);
+
+      dictionary_index
+        = dictionary_start + (search_mid_index * dictionary_entry_length);
+
+      for (j=0; j<word_length; j++) {
+        TRACE_LOG("%d/%x: %x %x\n",
+            j, dictionary_index-z_mem, text_buffer[j], dictionary_index[j]);
+        if (text_buffer[j] != dictionary_index[j])
+          break;
+      }
+
+      if (j == word_length)
+      {
+        word_found_at_index = search_mid_index;
         break;
+      }
 
-    if (j == word_length)
-      break;
-
-    dictionary_index += dictionary_entry_length;
+      if (text_buffer[j] < dictionary_index[j]) {
+        TRACE_LOG("Word at %d is behind search term.\n", search_mid_index);
+        search_end_index = search_mid_index;
+      }
+      else {
+        TRACE_LOG("Word at %d is before search term.\n", search_mid_index);
+        i = search_mid_index + 1;
+      }
+    }
   }
 
-  if (i != number_of_dictionary_entries)
+  if (word_found_at_index != -1)
   {
-    TRACE_LOG("Found string at index %d.\n", i);
+    TRACE_LOG("Found string at index %d.\n", word_found_at_index);
+    /*
     TRACE_LOG("Storing %lx at %lx.\n",
-        (unsigned long int)(dictionary_index - z_mem),
+        (unsigned long int)
+        (dictionary_start[word_found_at_index] * dictionary_entry_length),
         (unsigned long int)(*parse_position - z_mem));
-    store_word(*parse_position, (uint16_t)(dictionary_index - z_mem));
+    */
+    store_word(*parse_position, (uint16_t)((dictionary_start
+          + (word_found_at_index * dictionary_entry_length)) - z_mem));
     (*parse_position) += 2;
   }
   else
@@ -606,7 +656,7 @@ static void tokenise(
     uint8_t *dictionary,
     bool dont_write_unrecognized_words_to_parse_buffer)
 {
-  uint16_t dictionary_word_length = ver >= 4 ? 9 : 6;
+ uint16_t dictionary_word_length = ver >= 4 ? 9 : 6;
   uint8_t tokenize_buffer_length = ver >= 4 ? 6 : 4;
   uint8_t tokenize_buffer[tokenize_buffer_length];
 
@@ -614,6 +664,11 @@ static void tokenise(
   uint8_t number_of_input_codes;
   uint8_t *input_codes;
 
+  uint8_t dictionary_entry_length;
+  int16_t number_of_dictionary_entries;
+  bool dictionary_is_unsorted;
+  uint8_t *dictionary_start;
+ 
   uint8_t current_char;
   uint8_t space_found = 0;
   uint8_t non_space_seperator_found = 0;
@@ -701,11 +756,15 @@ static void tokenise(
         zchar_storage_finish();
         number_of_words_found++;
 
-        (void)locate_dictionary_entry(
+        locate_dictionary_entry(
             tokenize_buffer,
             &parse_buffer_index,
             current_word_start,
             z_text_buffer_offset - current_word_start,
+            dictionary_start,
+            number_of_dictionary_entries,
+            dictionary_entry_length,
+            dictionary_is_unsorted,
             dont_write_unrecognized_words_to_parse_buffer);
 
         zchar_storage_start(tokenize_buffer, tokenize_buffer_length);
@@ -725,10 +784,14 @@ static void tokenise(
         if (++number_of_words_found == maximum_words)
           break;
 
-        (void)locate_dictionary_entry(tokenize_buffer,
+        locate_dictionary_entry(tokenize_buffer,
             &parse_buffer_index,
             current_word_start,
             z_text_buffer_offset - current_word_start,
+            dictionary_start,
+            number_of_dictionary_entries,
+            dictionary_entry_length,
+            dictionary_is_unsorted,
             dont_write_unrecognized_words_to_parse_buffer);
 
         zchar_storage_start(tokenize_buffer, tokenize_buffer_length);
@@ -741,11 +804,15 @@ static void tokenise(
       zchar_storage_finish();
       number_of_words_found++;
 
-      (void)locate_dictionary_entry(
+      locate_dictionary_entry(
           tokenize_buffer,
           &parse_buffer_index,
           z_text_buffer_offset,
           1,
+          dictionary_start,
+          number_of_dictionary_entries,
+          dictionary_entry_length,
+          dictionary_is_unsorted,
           dont_write_unrecognized_words_to_parse_buffer);
       zchar_storage_start(tokenize_buffer, tokenize_buffer_length);
 
@@ -764,11 +831,15 @@ static void tokenise(
             z_text_buffer_offset);
         number_of_words_found++;
 
-        (void)locate_dictionary_entry(
+        locate_dictionary_entry(
             tokenize_buffer,
             &parse_buffer_index,
             current_word_start,
             z_text_buffer_offset - current_word_start,
+            dictionary_start,
+            number_of_dictionary_entries,
+            dictionary_entry_length,
+            dictionary_is_unsorted,
             dont_write_unrecognized_words_to_parse_buffer);
       }
     }
@@ -785,6 +856,8 @@ static void tokenise(
 
     z_text_buffer_offset++;
   }
+
+  zchar_storage_clear();
 
   TRACE_LOG("Found %d word(s), storing %d to %lx.\n", number_of_words_found,
       number_of_words_found,
@@ -1157,9 +1230,7 @@ static void tokenise(
 
 void opcode_tokenise(void)
 {
-  /*@-nullderef@*/
   uint8_t *dictionary_table = active_z_story->dictionary_table;
-  /*@-nullderef@*/
 
   bool dont_write_unrecognized_words_to_parse_buffer = false;
   int offset = (ver >= 5 ? 2 : 1);
@@ -2165,7 +2236,7 @@ void opcode_read(void)
         tokenise(
             z_text_buffer,
             (uint8_t)(ver >= 5 ? 2 : 1),
-            /*@-usedef@*/ (uint16_t)input_length /*@+usedef@*/,
+            (uint16_t)input_length,
             z_mem + parsebuffer_offset,
             active_z_story->dictionary_table,
             false);
@@ -2475,6 +2546,7 @@ void opcode_encode_text(void)
   }
 
   zchar_storage_finish();
+  zchar_storage_clear();
 }
 
 
