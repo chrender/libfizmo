@@ -203,7 +203,7 @@ void blockbuf_resize(BLOCKBUF *buffer, int new_width, int new_height)
       buffer->content, new_buffer_size);
 
   // Realign existing lines.
-  if (buffer->width != new_width)
+  if (buffer->width < new_width)
   {
     for (y=buffer->height-1; y>=0; y--)
     {
@@ -254,8 +254,16 @@ void blockbuf_resize(BLOCKBUF *buffer, int new_width, int new_height)
     }
   }
 
-  buffer->width = new_width;
-  buffer->height = new_height;
+  if (new_width > buffer->width) {
+    buffer->width = new_width;
+  }
+
+  if (new_height > buffer->height) {
+    buffer->height = new_height;
+  }
+
+  TRACE_LOG("New blockbuffer dimensions: %d * %d.\n",
+      buffer->width,  buffer->height);
 }
 
 
