@@ -127,12 +127,16 @@ void set_blockbuf_cursor(BLOCKBUF *buffer, int x, int y)
 {
   TRACE_LOG("Set blockbuffer-cursor to x:%d, y:%d.\n", x, y);
 
-  if (x < buffer->width)
+  if (x < 0)
+    buffer->xpos = 0;
+  else if (x < buffer->width)
     buffer->xpos = x;
   else
     buffer->xpos = buffer->width - 1;
 
-  if (y < buffer->height)
+  if (y < 0)
+    buffer->ypos = 0;
+  else if (y < buffer->height)
     buffer->ypos = y;
   else
     buffer->ypos = buffer->height - 1;
