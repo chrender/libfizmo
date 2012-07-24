@@ -637,7 +637,7 @@ static uint8_t locate_dictionary_entry(
     (*parse_position)++;
   }
 
-  if (i != number_of_dictionary_entries)
+  if (word_found_at_index != -1)
   {
     if (word_position == 1)
       first_word_found = 1;
