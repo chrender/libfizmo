@@ -10,7 +10,7 @@
  all non-version-6 games quite well without any known bugs. 
 
  Dependencies:
- libxml2 for parsing of .ifiction files
+ libxml2 for parsing of .ifiction files (optional)
 
 
  Please send bug reports (or other requests) to fizmo@spellbreaker.org.

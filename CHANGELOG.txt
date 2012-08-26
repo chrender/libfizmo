@@ -1,4 +1,8 @@
 
+   Version 0.7.4
+ + 0.7.4 was finished at about (?).
+   Implemented new build system based on autoconf/automake.
+
    Version 0.7.3
  + 0.7.3 was finished at about Wed Aug 1 21:42:17 CEST 2012.
  - Merged Andrew Plotkin's iOS-fizmo changes: No more raw exit() calls,
