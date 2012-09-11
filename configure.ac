@@ -66,7 +66,6 @@ AC_ARG_ENABLE([debugger],
  [],
  [enable_debugger=no])
 
-
 AC_INIT([libfizmo], [0.7.4])
 
 m4_include(config-libs.m4)
