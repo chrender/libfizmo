@@ -14,7 +14,7 @@ PKGFILE = $(PKG_DIR)/libfizmo.pc
 SUBDIRS = src/tools src/interpreter .
 noinst_LIBRARIES = libfizmo.a
 
-libfizmo.a:
+libfizmo.a::
 	cd src/tools ; make
 	cd src/interpreter ; make
 	mkdir -p "$(tmplibdir)" ; \
