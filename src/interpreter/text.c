@@ -1921,6 +1921,7 @@ void opcode_read(void)
   uint16_t parsebuffer_offset = op[1];
   uint16_t tenth_seconds = op[2];
   uint16_t timed_routine_offset = op[3];
+  zscii nof_preloaded_chars;
   bool interpreter_command_found;
   int i;
   // TODO: Implement permanent buffer for current_line.
@@ -2028,7 +2029,8 @@ void opcode_read(void)
 #endif // ENABLE_TRACING
 
       // Preloaded input is only availiable in version 5.
-      if (z_text_buffer[1] >  0)
+      nof_preloaded_chars = z_text_buffer[1];
+      if (nof_preloaded_chars > 0)
       {
         if (active_interface->is_preloaded_input_available() == false)
           i18n_translate_and_exit(
@@ -2037,9 +2039,10 @@ void opcode_read(void)
               -1,
               active_interface->get_interface_name());
 
-        TRACE_LOG("Removing %d chars from history.\n", z_text_buffer[1]);
+        TRACE_LOG("Removing %d chars from history.\n", nof_preloaded_chars);
+        stream_2_remove_chars(nof_preloaded_chars);
 #ifndef DISABLE_OUTPUT_HISTORY
-        remove_chars_from_history(outputhistory[0], z_text_buffer[1]);
+        remove_chars_from_history(outputhistory[0], nof_preloaded_chars);
 #endif // DISABLE_OUTPUT_HISTORY
       }
 

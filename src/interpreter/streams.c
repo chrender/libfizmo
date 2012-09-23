@@ -87,6 +87,11 @@ z_file *input_stream_1 = NULL;
 static bool input_stream_init_underway = false;
 bool input_stream_1_active = false;
 bool input_stream_1_was_already_active = false;
+static z_ucs stream_2_preload_buffer[STREAM_2_PRELOAD_BUFFER_SIZE];
+static z_ucs *stream_2_preload_buffer_index = stream_2_preload_buffer;
+static z_ucs *stream_2_preload_output_start = stream_2_preload_buffer;
+static z_ucs *stream_2_preload_buffer_last_index = (
+    stream_2_preload_buffer + STREAM_2_PRELOAD_BUFFER_SIZE - 1);
 
 // This flag is used for the timed input. Since the verification routine
 // may print some text to the screen, the interpreter must be able to
@@ -107,7 +112,7 @@ void open_streams()
 }
 
 
-static void stream_2_wrapped_output_destination(z_ucs *z_ucs_output,
+static void stream_2_output_destination(z_ucs *z_ucs_output,
     void *UNUSED(dummy))
 {
   if (*z_ucs_output != 0)
@@ -116,6 +121,132 @@ static void stream_2_wrapped_output_destination(z_ucs *z_ucs_output,
     if (strcmp(get_configuration_value("sync-transcript"), "true") == 0)
       fsi->flushfile(stream_2);
   }
+}
+
+
+static void flush_stream_2_buffer_output() {
+  z_ucs *index;
+  z_ucs *newline_index = NULL;
+  z_ucs buf;
+
+  TRACE_LOG("stream_2_preload_flush:\n");
+
+  index
+    = stream_2_preload_buffer_index == stream_2_preload_buffer
+    ? stream_2_preload_buffer_last_index - 1
+    : stream_2_preload_buffer_index -1;
+
+  while (index != stream_2_preload_output_start) {
+    if (*index == '\n') {
+      newline_index = index;
+      break;
+    }
+    if (index == stream_2_preload_buffer) {
+      index = stream_2_preload_buffer_last_index;
+    }
+    index--;
+  }
+
+  if (newline_index == NULL) {
+    index = stream_2_preload_output_start + (STREAM_2_PRELOAD_BUFFER_SIZE / 2);
+    if (index >= stream_2_preload_buffer_last_index) {
+      index = stream_2_preload_buffer
+        + (index - stream_2_preload_buffer_last_index);
+    }
+  }
+  else {
+    if ((index = newline_index + 1) == stream_2_preload_buffer_last_index) {
+      index = stream_2_preload_buffer;
+    }
+  }
+
+  if (stream_2_preload_output_start > index) {
+    TRACE_LOG("stream_2_preload in wrap-around.\n");
+    TRACE_LOG("flushs2: \"");
+    TRACE_LOG_Z_UCS(stream_2_preload_output_start);
+    TRACE_LOG("\".\n");
+    // In wrap-around
+    stream_2_output_destination(stream_2_preload_output_start, NULL);
+    stream_2_preload_output_start = stream_2_preload_buffer;
+  }
+
+  buf = *index;
+  *index = 0;
+  TRACE_LOG("flushs2:\"");
+  TRACE_LOG_Z_UCS(stream_2_preload_output_start);
+  TRACE_LOG("\".\n");
+  stream_2_output_destination(stream_2_preload_output_start, NULL);
+  *index = buf;
+  stream_2_preload_output_start = index;
+}
+
+
+static void stream_2_buffer_output(z_ucs *z_ucs_output)
+{
+  z_ucs buf;
+
+  while (*z_ucs_output != 0) {
+    TRACE_LOG("stream_2_preload_buffer_index: %x\n",
+        stream_2_preload_buffer_index);
+    TRACE_LOG("stream_2_preload_buffer_last_index: %x\n",
+        stream_2_preload_buffer_last_index);
+    TRACE_LOG("stream_2_preload_output_start: %x\n",
+        stream_2_preload_output_start);
+    TRACE_LOG("x: %x\n",
+        stream_2_preload_buffer_index + sizeof(z_ucs));
+    TRACE_LOG("y: %x\n",
+        stream_2_preload_buffer_index + 1);
+
+    if (stream_2_preload_buffer_index == stream_2_preload_buffer_last_index) {
+      TRACE_LOG("#2\n");
+      // output-start following buffer_index in wrap-around:
+      if (stream_2_preload_output_start == stream_2_preload_buffer) {
+        TRACE_LOG("#3\n");
+        flush_stream_2_buffer_output();
+      }
+      stream_2_preload_buffer_index = stream_2_preload_buffer;
+    }
+
+    // output-start following buffer_index as non-wrap-around:
+    if (stream_2_preload_buffer_index + 1 == stream_2_preload_output_start) {
+      TRACE_LOG("#1\n");
+      flush_stream_2_buffer_output();
+    }
+
+    TRACE_LOG("Writing %c to %x.\n",
+        *z_ucs_output, stream_2_preload_buffer_index);
+    *stream_2_preload_buffer_index = *z_ucs_output;
+    stream_2_preload_buffer_index++;
+    z_ucs_output++;
+  }
+}
+
+
+static int stream_2_buffer_remove_chars(size_t nof_chars_to_remove) {
+  while (nof_chars_to_remove > 0) {
+
+    if (stream_2_preload_buffer_index == stream_2_preload_output_start) {
+      TRACE_LOG("remove-s2 hit output start.\n");
+      return -1;
+    }
+
+    if (stream_2_preload_buffer_index == stream_2_preload_buffer) {
+      stream_2_preload_buffer_index = stream_2_preload_buffer_last_index - 1;
+    }
+    else {
+      stream_2_preload_buffer_index--;
+    }
+    TRACE_LOG("Removing %c.\n", *stream_2_preload_buffer_index);
+    TRACE_LOG("stream_2_preload_buffer_index: %x\n",
+        stream_2_preload_buffer_index);
+    TRACE_LOG("stream_2_preload_buffer_last_index: %x\n",
+        stream_2_preload_buffer_last_index);
+    TRACE_LOG("stream_2_preload_output_start: %x\n",
+        stream_2_preload_output_start);
+
+    nof_chars_to_remove--;
+  }
+  return 0;
 }
 
 
@@ -142,7 +273,7 @@ void init_streams()
   if (stream_2_wrapping_disabled == false)
     stream_2_wrapper = wordwrap_new_wrapper(
         stream2width,
-        &stream_2_wrapped_output_destination,
+        &stream_2_output_destination,
         NULL,
         true,
         stream2margin,
@@ -153,6 +284,8 @@ void init_streams()
                 ,"true") == 0
          ? false
          : true));
+
+  *stream_2_preload_buffer_last_index = 0;
 
   if (strcmp(get_configuration_value("start-script-when-story-starts"),
         "true") == 0)
@@ -288,6 +421,7 @@ void ask_for_input_stream_filename(void)
 
   (void)streams_z_ucs_output(last_input_stream_filename);
   len = z_ucs_len(last_input_stream_filename);
+  stream_2_remove_chars(len);
 #ifndef DISABLE_OUTPUT_HISTORY
   remove_chars_from_history(outputhistory[active_window_number], len);
 #endif /* DISABLE_OUTPUT_HISTORY */
@@ -431,6 +565,7 @@ void ask_for_stream2_filename()
         "streams_z_ucs_output");
 
   len = z_ucs_len(last_script_filename);
+  stream_2_remove_chars(len);
 #ifndef DISABLE_OUTPUT_HISTORY
   remove_chars_from_history(outputhistory[active_window_number], len);
 #endif /* DISABLE_OUTPUT_HISTORY */
@@ -544,7 +679,7 @@ void ask_for_stream2_filename()
 static void stream_2_output_write(z_ucs *z_ucs_output)
 {
   if (stream_2_wrapping_disabled == true)
-    stream_2_wrapped_output_destination(z_ucs_output, NULL);
+    stream_2_buffer_output(z_ucs_output);
   else
     wordwrap_wrap_z_ucs(stream_2_wrapper, z_ucs_output);
 }
@@ -556,6 +691,18 @@ static void stream_2_print_header()
 
   stream_2_output_write(z_ucs_newline_string);
   stream_2_output_write(dashes);
+}
+
+
+void stream_2_remove_chars(size_t nof_chars_to_remove) {
+  if (stream_2 != NULL) {
+    if (stream_2_wrapping_disabled == true) {
+      stream_2_buffer_remove_chars(nof_chars_to_remove);
+    }
+    else {
+      wordwrap_remove_chars(stream_2_wrapper, nof_chars_to_remove);
+    }
+  }
 }
 
 
@@ -621,6 +768,7 @@ static void stream_2_output(z_ucs *z_ucs_output)
   {
     if (script_wrapper_active == false)
     {
+      flush_stream_2_buffer_output();
       script_wrapper_active = true;
     }
     stream_2_output_write(z_ucs_output);
@@ -633,7 +781,7 @@ static void stream_2_output(z_ucs *z_ucs_output)
         wordwrap_flush_output(stream_2_wrapper);
       script_wrapper_active = false;
     }
-    stream_2_wrapped_output_destination(z_ucs_output, NULL);
+    stream_2_buffer_output(z_ucs_output);
   }
 }
 
@@ -710,6 +858,7 @@ void ask_for_stream4_filename_if_required(bool UNUSED(dont_output_current_line))
         (void)streams_z_ucs_output(last_stream_4_filename);
 
         len = z_ucs_len(last_stream_4_filename);
+        stream_2_remove_chars(len);
 #ifndef DISABLE_OUTPUT_HISTORY
         remove_chars_from_history(outputhistory[active_window_number], len);
 #endif /* DISABLE_OUTPUT_HISTORY */
@@ -860,6 +1009,8 @@ static void close_script_file()
 
     if (stream_2_wrapping_disabled == false)
       wordwrap_flush_output(stream_2_wrapper);
+    else
+      flush_stream_2_buffer_output();
     fsi->writechar('\n', stream_2);
     (void)fsi->closefile(stream_2);
     stream_2 = NULL;

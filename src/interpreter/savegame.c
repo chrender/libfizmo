@@ -332,6 +332,7 @@ static int ask_for_filename(char *filename_suggestion, z_file **result_file,
         "streams_latin1_output");
 
   TRACE_LOG("Removing %d chars from history.\n", length);
+  stream_2_remove_chars(length);
 #ifndef DISABLE_COMMAND_HISTORY
   remove_chars_from_history(outputhistory[active_window_number], length);
 #endif /* DISABLE_COMMAND_HISTORY */
