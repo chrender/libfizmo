@@ -1,6 +1,7 @@
 
    Version 0.7.5
- - Fix for preloaded input removal.
+ - Fix for preloaded input removal, thanks to Lewis Gentry.
+ - Fixed missing charachters in transcripts.
 
    Version 0.7.4
  + 0.7.4 was finished at about Mon Sep 17 22:14:52 CEST 2012.
