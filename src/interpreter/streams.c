@@ -215,7 +215,7 @@ static void stream_2_buffer_output(z_ucs *z_ucs_output)
 }
 
 
-static int stream_2_buffer_remove_chars(size_t nof_chars_to_remove) {
+int stream_2_buffer_remove_chars(size_t nof_chars_to_remove) {
   while (nof_chars_to_remove > 0) {
 
     if (stream_2_preload_buffer_index == stream_2_preload_output_start) {
