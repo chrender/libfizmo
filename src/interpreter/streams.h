@@ -49,7 +49,7 @@ void close_streams(/*@null@*/ z_ucs *error_message);
 void opcode_input_stream(void);
 z_file *get_stream_2(void);
 void restore_stream_2(z_file *str);
-int stream_2_buffer_remove_chars(size_t nof_chars_to_remove);
+void stream_2_remove_chars(size_t nof_chars_to_remove);
 void ask_for_stream2_filename(void);
 void ask_for_stream4_filename_if_required(bool dont_output_current_line);
 void stream_4_latin1_output(char *latin1_output);
