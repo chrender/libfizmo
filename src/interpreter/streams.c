@@ -192,16 +192,10 @@ static void stream_2_buffer_output(z_ucs *z_ucs_output)
         stream_2_preload_buffer_last_index);
     TRACE_LOG("stream_2_preload_output_start: %x\n",
         stream_2_preload_output_start);
-    TRACE_LOG("x: %x\n",
-        stream_2_preload_buffer_index + sizeof(z_ucs));
-    TRACE_LOG("y: %x\n",
-        stream_2_preload_buffer_index + 1);
 
     if (stream_2_preload_buffer_index == stream_2_preload_buffer_last_index) {
-      TRACE_LOG("#2\n");
       // output-start following buffer_index in wrap-around:
       if (stream_2_preload_output_start == stream_2_preload_buffer) {
-        TRACE_LOG("#3\n");
         flush_stream_2_buffer_output();
       }
       stream_2_preload_buffer_index = stream_2_preload_buffer;
@@ -209,7 +203,6 @@ static void stream_2_buffer_output(z_ucs *z_ucs_output)
 
     // output-start following buffer_index as non-wrap-around:
     if (stream_2_preload_buffer_index + 1 == stream_2_preload_output_start) {
-      TRACE_LOG("#1\n");
       flush_stream_2_buffer_output();
     }
 

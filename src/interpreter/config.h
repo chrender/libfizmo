@@ -82,6 +82,8 @@
 // Ignorig this error makes "HugeCave.z8" work.
 #define IGNORE_TOO_LONG_PROPERTIES_ERROR 1
 
+#define STREAM_2_PRELOAD_BUFFER_SIZE 1024
+
 //#define THROW_SIGFAULT_ON_ERROR 1
 
 struct configuration_option
