@@ -485,7 +485,7 @@ int zucs_string_to_utf8_string(char *dst, z_ucs **src, size_t max_dst_size)
       if (max_dst_size < (size_t)(char_len + 1))
       {
         *dst = (char)0;
-        return len;
+        return len + 1;
       }
 
       if (char_len == 1)
