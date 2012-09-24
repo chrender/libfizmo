@@ -93,6 +93,8 @@ void wordwrap_insert_metadata(WORDWRAP *wrapper,
 //void wordwrap_set_line_index(WORDWRAP *wrapper, int new_line_index);
 //void wordwrap_output_left_padding(WORDWRAP *wrapper);
 void wordwrap_adjust_line_length(WORDWRAP *wrapper, size_t new_line_length);
+// To remove chars from the end of the current(!) line:
+void wordwrap_remove_chars(WORDWRAP *wrapper, size_t num_chars_to_remove);
 
 #endif /* wordwrap_h_INCLUDED */
 

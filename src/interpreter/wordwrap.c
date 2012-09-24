@@ -193,7 +193,6 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
   bool minus_found;
   int metadata_offset = 0;
   int i, chars_left_on_line;
-  //int hyphen_offset;
   struct wordwrap_metadata *metadata_entry;
 
   input[wrapper->input_index] = 0;
@@ -412,8 +411,6 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
           chars_left_on_line = wrapper->line_length - (index - input);
           TRACE_LOG("chars left on line: %d\n", chars_left_on_line);
-
-          //hyphen_offset = index - input;
 
           ptr = hyphenated_word;
           while (chars_left_on_line > 0)
@@ -670,22 +667,27 @@ void wordwrap_insert_metadata(WORDWRAP *wrapper,
 }
 
 
-/*
-void wordwrap_output_left_padding(WORDWRAP *wrapper)
-{
-  if (wrapper->left_side_padding > 0)
-    wrapper->wrapped_text_output_destination(
-        wrapper->padding_buffer,
-        wrapper->destination_parameter);
-}
-*/
-
-
 void wordwrap_adjust_line_length(WORDWRAP *wrapper, size_t new_line_length)
 {
   wrapper->line_length = new_line_length;
 }
 
+
+void wordwrap_remove_chars(WORDWRAP *wrapper, size_t num_chars_to_remove)
+{
+  if (num_chars_to_remove > wrapper->input_index) {
+    wrapper->input_index = 0;
+  }
+  else {
+    wrapper->input_index -= num_chars_to_remove;
+  }
+
+  while ( (wrapper->metadata_index > 0)
+      && (wrapper->metadata[wrapper->metadata_index].output_index
+        >= wrapper->input_index) ) {
+    wrapper->metadata_index--;
+  }
+}
 
 #endif /* wordwrap_c_INCLUDED */
 
