@@ -4,6 +4,8 @@
  - Fixed missing charachters in transcripts.
  - Fixed swallowing of dots, commas and quotation marks at line starts in
    case hyphenation is disabled -- thanks to Lewis Gentry.
+ - Fixed crash which occurred when invoking fizmo-ncursesw with the "-fi"
+   flag, also thanks to Lewis Gentry.
 
    Version 0.7.4
  + 0.7.4 was finished at about Mon Sep 17 22:14:52 CEST 2012.
