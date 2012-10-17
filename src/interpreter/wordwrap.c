@@ -51,9 +51,23 @@
 #include "hyphenation.h"
 
 
+// static z_ucs word_split_chars[] = {
+//  Z_UCS_SPACE, Z_UCS_MINUS, Z_UCS_NEWLINE, Z_UCS_DOT, (z_ucs)',',
+//  (z_ucs)'"', 0 };
+
+// The "word_split_chars" will cause a word to be split, even if no
+// additional space is present. For example "foo bar", "foo-bar",
+// "foo--bar", "foo\nbar", "foo.bar", "foo,bar", and foo"bar are
+// all split before "bar".
 static z_ucs word_split_chars[] = {
   Z_UCS_SPACE, Z_UCS_MINUS, Z_UCS_NEWLINE, Z_UCS_DOT, (z_ucs)',',
   (z_ucs)'"', 0 };
+
+// The "word_interpunctation_chars" designate chars which may be
+// repeatatedly end a word. For example "foo--bar", "foo---bar"
+// and "foo...bar" are all split before "bar".
+static z_ucs word_interpunctation_chars[] = {
+  Z_UCS_MINUS, Z_UCS_DOT, 0 };
 
 
 WORDWRAP *wordwrap_new_wrapper(size_t line_length,
@@ -190,7 +204,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
   z_ucs buf3 = '-'; // buf3 initialized to avoid compiler warning
   long len, chars_sent = 0;
   z_ucs *input = wrapper->input_buffer;
-  bool minus_found;
+  bool minus_found, other_splitchar_found;
   int metadata_offset = 0;
   int i, chars_left_on_line;
   struct wordwrap_metadata *metadata_entry;
@@ -284,6 +298,10 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
     }
     else if (wrapper->enable_hyphenation == true)
     {
+      // In case hyphenation is active we're looking at the word overring
+      // the line end. It has to be complete in order to make hyphenation
+      // work.
+      
       TRACE_LOG("to wrap/hyphenate (force:%d): \"", force_flush);
       TRACE_LOG_Z_UCS(input);
       TRACE_LOG("\".\n");
@@ -476,7 +494,10 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
     }
     else
     {
-      // Line won't fit completely. Find the end of the last word.
+      // Line won't fit completely. Find the end of the last word before
+      // the end of line (opposed to looking at the word overring the
+      // line end in case of hyphentation).
+
       TRACE_LOG("linelength: %d.\n", wrapper->line_length);
 
       //word_end_with_split_chars = NULL;
@@ -491,13 +512,19 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       TRACE_LOG("\".\n");
 
       index = z_ucs_rchrs(input, word_split_chars);
-      if (*index == Z_UCS_MINUS)
-      {
+      if (*index == Z_UCS_MINUS) {
         minus_found = true;
+        other_splitchar_found = false;
         index++;
       }
-      else
+      else if (*index == Z_UCS_SPACE) {
         minus_found = false;
+        other_splitchar_found = false;
+      }
+      else {
+        minus_found = false;
+        other_splitchar_found = true;
+      }
       TRACE_LOG("Found word-split at %p from %p.\n", index, input);
       *ptr = buf;
 
@@ -520,8 +547,9 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       *(index+1) = buf2;
       *index = buf;
 
-      if (minus_found == false)
+      if ( (minus_found == false) && (other_splitchar_found == false) ) {
         index++;
+      }
 
       len = index - input;
       chars_sent += len;
