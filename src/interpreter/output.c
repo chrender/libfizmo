@@ -315,9 +315,6 @@ static void process_set_colour_opcode(uint16_t op0, uint16_t op1, uint16_t op2)
   if ( (new_background_colour < -1) || (new_background_colour > 12) )
     new_background_colour = 0;
 
-  if (window_number == -1)
-    window_number = active_window_number;
-
   if (ver == 6)
   {
     if ( (new_foreground_colour < -1) || (new_foreground_colour > 12) )
