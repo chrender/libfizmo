@@ -59,9 +59,9 @@
 // additional space is present. For example "foo bar", "foo-bar",
 // "foo--bar", "foo\nbar", "foo.bar", "foo,bar", and foo"bar are
 // all split before "bar".
-static z_ucs word_split_chars[] = {
-  Z_UCS_SPACE, Z_UCS_MINUS, Z_UCS_NEWLINE, Z_UCS_DOT, (z_ucs)',',
-  (z_ucs)'"', 0 };
+//static z_ucs word_split_chars[] = {
+//  Z_UCS_SPACE, Z_UCS_MINUS, Z_UCS_NEWLINE, Z_UCS_DOT, (z_ucs)',',
+//  (z_ucs)'"', 0 };
 
 // The "word_interpunctation_chars" designate chars which may be
 // repeatatedly end a word. For example "foo--bar", "foo---bar"
@@ -199,14 +199,11 @@ static void output_buffer(WORDWRAP *wrapper, z_ucs *buffer_start,
 static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 {
   z_ucs *index = NULL, *ptr, *hyphenated_word, *last_hyphen, *word_start;
-  z_ucs *word_end_without_split_chars, *word_end_with_split_chars;
+  z_ucs *word_end, *input = wrapper->input_buffer, *first_space;
   z_ucs buf=0, buf2; // buf initialized to avoid compiler warning
   z_ucs buf3 = '-'; // buf3 initialized to avoid compiler warning
   long len, chars_sent = 0;
-  z_ucs *input = wrapper->input_buffer;
-  bool minus_found, other_splitchar_found;
-  int metadata_offset = 0;
-  int i, chars_left_on_line;
+  int metadata_offset = 0, i, chars_left_on_line;
   struct wordwrap_metadata *metadata_entry;
 
   input[wrapper->input_index] = 0;
@@ -220,7 +217,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
     if (*input != 0)
     {
-      TRACE_LOG("flush wordwrap-buffer: \"");
+      TRACE_LOG("flush wordwrap-buffer at %p: \"", input);
       TRACE_LOG_Z_UCS(input);
       TRACE_LOG("\".\n");
     }
@@ -298,171 +295,145 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
     }
     else if (wrapper->enable_hyphenation == true)
     {
-      // In case hyphenation is active we're looking at the word overring
-      // the line end. It has to be complete in order to make hyphenation
+      // Line does not fit on screen and hyphenation is enabled, so we'll
+      // try to hyphenate.
+
+      // In this section we'll set "index" to the point where the line
+      // should be split and "last_hyphen" to the word position where
+      // hyphenation should take place -- if possible, otherwise NULL.
+      
+      // In case hyphenation is active we're looking at the word overruning
+      // the line end. It has to be completed in order to make hyphenation
       // work.
       
-      TRACE_LOG("to wrap/hyphenate (force:%d): \"", force_flush);
+      TRACE_LOG("to wrap/hyphenate (force:%d) to length %d : \"",
+          force_flush, wrapper->line_length);
       TRACE_LOG_Z_UCS(input);
       TRACE_LOG("\".\n");
 
-      if ((word_end_without_split_chars = z_ucs_chrs(
-              input + wrapper->line_length, word_split_chars)) == NULL)
-      {
-        if (force_flush == true)
-          word_end_without_split_chars = input + len;
-        else
-        {
+      // Get the char at the current line end.
+      if (input[wrapper->line_length] == Z_UCS_SPACE) {
+        // Fine, we can wrap right here at this space.
+        index = input + wrapper->line_length;
+        last_hyphen = NULL;
+      }
+      else {
+        if ( ((first_space = z_ucs_chr(
+                  input + wrapper->line_length, Z_UCS_SPACE)) == NULL) 
+            && (force_flush == false) ) {
+          // In case we can't find any space the word may not have been
+          // completely written to the buffer. Wait until we've got more
+          // input.
           TRACE_LOG("No word end found.\n");
           break;
         }
-      }
+        else {
+          if (first_space == NULL) {
+            word_end = input + wrapper->line_length;
+            while (*(word_end + 1) != 0) {
+              word_end++;
+            }
+          }
+          else {
+            // We've found a space behind the overrunning word so we're
+            // able to correctly split the current line.
+            word_end = first_space - 1;
+          }
 
-      // We'll remeber the current position of the word-split-char we've
-      // just found in "word_end_without_split_chars" and advance this pointer
-      // until we won't find any more word-split-chars. Thus, if we've just
-      // found the start dot of an ellipsis "..." we'll end up with the
-      // position of the last dot.
-      word_end_with_split_chars = word_end_without_split_chars;
-      while ((ptr = z_ucs_chr(
-              word_split_chars, *word_end_with_split_chars)) != NULL)
-        word_end_with_split_chars++;
-      // Now we've stored the end of the word in "word_end_without_split_chars".
-
-      // We've now found a word boundary. This char may however not be part
-      // of the actual last word (we might have hit a minus representing
-      // a n- or m-dash--like this--or an elipsis like "..."). So we'll
-      // rewind further if necessary.
-      TRACE_LOG("examining split end:\"%c\".\n", *word_end_without_split_chars);
-      //while (word_end_without_split_chars - 1 > input + wrapper->line_length)
-      while (word_end_without_split_chars > input)
-      {
-        TRACE_LOG("Checking for split-char: %c/%d.\n",
-            *word_end_without_split_chars, *word_end_without_split_chars);
-        if (z_ucs_chr(
-              word_split_chars, *(word_end_without_split_chars - 1)) == NULL)
-          break;
-        word_end_without_split_chars--;
-      }
-
-      if (
-          (word_end_without_split_chars != word_end_with_split_chars)
-          &&
-          (*word_end_without_split_chars == Z_UCS_SPACE)
-          &&
-          (word_end_without_split_chars < input + wrapper->line_length)
-         )
-      {
-        // In this case we have skipped a number of stand-alone word-split-
-        // chars (like the elipsis in "Powers -- these") and are now so far
-        // back that we can split right at the space before these chars.
-        index = word_end_without_split_chars;
-        last_hyphen = NULL;
-      }
-      else
-      {
-        word_start = NULL;
-
-        // In case we've now found a word end, check for dashes before it.
-        // Example: "first-class car", where the word end we've now found is
-        // between "first-class" and "car".
-        word_start = word_end_without_split_chars - 1;
-        while (word_start > input)
-        {
-          TRACE_LOG("examining word end: \"%c\".\n", *word_start);
-          if (*word_start == Z_UCS_MINUS)
-          {
-            if (input + wrapper->line_length > word_start)
-            {
-              // Found a dash to break on
+          // Before hyphentation, check for dashes inside the last word.
+          // Example: "first-class car", where the word end we've now
+          // found is between "first-class" and "car".
+          word_start = word_end - 1;
+          while (word_start > input) {
+            TRACE_LOG("examining word end: \"%c\".\n", *word_start);
+            if (*word_start == Z_UCS_MINUS) {
+              if (input + wrapper->line_length > word_start) {
+                // Found a dash to break on
+                word_start++;
+                break;
+              }
+            }
+            else if (*word_start == Z_UCS_SPACE) {
+              // We just passed the word-start.
               word_start++;
               break;
             }
+            word_start--;
           }
-          else if ((ptr = z_ucs_chr(word_split_chars, *word_start)) != NULL)
-          {
-            // In case we've found a non-dash separator, we've found the
-            // start of the word.
-            word_start++;
-            break;
+
+          // FIXME: Do we need a space left from here?
+
+          TRACE_LOG("word-start: %c\n", *word_start);
+          TRACE_LOG("word-end: %c\n", *word_end);
+
+          last_hyphen = NULL;
+          if (word_end >= input + wrapper->line_length) {
+            // We only have to hyphenate in case the line is still too long.
+
+            buf = *(word_end+ 1);
+            *(word_end+ 1) = 0;
+
+            TRACE_LOG("buffer terminated at word end: \"");
+            TRACE_LOG_Z_UCS(input);
+            TRACE_LOG("\".\n");
+
+            index = word_start;
+
+            if ((hyphenated_word = hyphenate(index)) == NULL) {
+              TRACE_LOG("Error hyphenating.\n");
+              i18n_translate_and_exit(
+                  libfizmo_module_name,
+                  i18n_libfizmo_UNKNOWN_ERROR_CASE,
+                  -1);
+            }
+            TRACE_LOG("hyphenated word: \"");
+            TRACE_LOG_Z_UCS(hyphenated_word);
+            TRACE_LOG("\".\n");
+            *(word_end + 1) = buf;
+
+            chars_left_on_line = wrapper->line_length - (index - input);
+            TRACE_LOG("chars left on line: %d\n", chars_left_on_line);
+
+            ptr = hyphenated_word;
+            while ((chars_left_on_line > 0) && (*ptr != 0)) {
+              TRACE_LOG("Testing %c for soft-hyphen.\n", *ptr);
+              if (*ptr == Z_UCS_SOFT_HYPEN) {
+                last_hyphen
+                  = input + (wrapper->line_length - chars_left_on_line);
+              }
+              else {
+                chars_left_on_line--;
+              }
+              ptr++;
+            }
+            free(hyphenated_word);
+
+            if (last_hyphen != NULL) {
+              TRACE_LOG("Last hyphen at %ld.\n", last_hyphen - input);
+              buf3 = *last_hyphen;
+              *last_hyphen = '-';
+
+              index = last_hyphen + 1;
+            }
+            else {
+              TRACE_LOG("No hyphen found.\n");
+              if ( (index > input) && (*(index-1) != Z_UCS_MINUS) ) {
+                index--;
+              }
+            }
           }
-          word_start--;
-        }
-
-        // FIXME: Do we need a space left from here?
-
-        TRACE_LOG("word-start: %c\n", *word_start);
-
-        TRACE_LOG("%p / %p\n", word_end_without_split_chars,
-            word_end_with_split_chars);
-
-        TRACE_LOG("%c / %c\n", *word_end_without_split_chars,
-            *word_end_with_split_chars);
-
-        TRACE_LOG("%p / %p\n",
-            word_end_without_split_chars, input + wrapper->line_length);
-
-        last_hyphen = NULL;
-
-        if (word_end_with_split_chars > input + wrapper->line_length)
-        {
-          // We only have to hyphenate in case the line is still too long.
-
-          buf = *word_end_without_split_chars;
-          *word_end_without_split_chars = 0;
-
-          TRACE_LOG("buffer terminated at word end: \"");
-          TRACE_LOG_Z_UCS(input);
-          TRACE_LOG("\".\n");
-
-          index = word_start;
-
-          if ((hyphenated_word = hyphenate(index)) == NULL)
-          {
-            TRACE_LOG("Error hyphenating.\n");
-            i18n_translate_and_exit(
-                libfizmo_module_name,
-                i18n_libfizmo_UNKNOWN_ERROR_CASE,
-                -1);
+          else {
+            index = word_end;
+            last_hyphen = NULL;
           }
-          *word_end_without_split_chars = buf;
-
-          chars_left_on_line = wrapper->line_length - (index - input);
-          TRACE_LOG("chars left on line: %d\n", chars_left_on_line);
-
-          ptr = hyphenated_word;
-          while (chars_left_on_line > 0)
-          {
-            TRACE_LOG("Testing %c for hyphen.\n", *ptr);
-            if (*ptr == Z_UCS_SOFT_HYPEN)
-              last_hyphen = input + (wrapper->line_length - chars_left_on_line);
-            else
-              chars_left_on_line--;
-            ptr++;
-          }
-          free(hyphenated_word);
-
-          if (last_hyphen != NULL)
-          {
-            TRACE_LOG("Last hyphen at %ld.\n", last_hyphen - input);
-            buf3 = *last_hyphen;
-            *last_hyphen = '-';
-
-            index = last_hyphen + 1;
-          }
-          else if ( (word_start != input) && (*(word_start-1) != Z_UCS_MINUS) )
-          {
-            TRACE_LOG("No hyphen found.\n");
-            index--;
-          }
-        }
-        else
-        {
-          index = word_end_with_split_chars;
         }
       }
 
       // Output everything before *index and a newline after.
+
+      TRACE_LOG("Input (%p, %p): \"", input, index);
+      TRACE_LOG_Z_UCS(input);
+      TRACE_LOG("\".\n");
 
       buf2 = *index;
       *index = Z_UCS_NEWLINE;
@@ -478,14 +449,14 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       *(index + 1) = buf;
       *index = buf2;
 
-      if (last_hyphen != NULL)
-      {
+      if (last_hyphen != NULL) {
         *last_hyphen = buf3;
         index--;
       }
 
-      if (*index == Z_UCS_SPACE)
+      if (*index == Z_UCS_SPACE) {
         index++;
+      }
 
       len = index - input;
       chars_sent += len;
@@ -494,42 +465,29 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
     }
     else
     {
-      // Line won't fit completely. Find the end of the last word before
-      // the end of line (opposed to looking at the word overring the
-      // line end in case of hyphentation).
-
+      // Line won't fit completely and hyphenation is disabled.
+      // Find the end of the last word or dash in it before the end of line
+      // (opposed to looking at the word overring the line end in case of
+      // hyphentation).
       TRACE_LOG("linelength: %d.\n", wrapper->line_length);
-
-      //word_end_with_split_chars = NULL;
-      ptr = input + wrapper->line_length;
-      if (*ptr == Z_UCS_SPACE)
-        ptr++;
-      TRACE_LOG("%p/%p/%c\n", input, ptr, *ptr);
-      buf = *ptr;
-      *ptr = 0;
-      TRACE_LOG("examine buffer: \"");
-      TRACE_LOG_Z_UCS(input);
-      TRACE_LOG("\".\n");
-
-      index = z_ucs_rchrs(input, word_split_chars);
-      if (*index == Z_UCS_MINUS) {
-        minus_found = true;
-        other_splitchar_found = false;
-        index++;
+      ptr = input + wrapper->line_length - 1;
+      while (ptr > input) {
+        if (*ptr == Z_UCS_SPACE) {
+          index = ptr;
+          break;
+        }
+        else if (*ptr == Z_UCS_MINUS) {
+          index = ptr + 1;
+          break;
+        }
+        ptr--;
       }
-      else if (*index == Z_UCS_SPACE) {
-        minus_found = false;
-        other_splitchar_found = false;
-      }
-      else {
-        minus_found = false;
-        other_splitchar_found = true;
-      }
-      TRACE_LOG("Found word-split at %p from %p.\n", index, input);
-      *ptr = buf;
 
-      if (index == NULL)
+      if (ptr == input) {
+        // We couldn't find any space or dash in the whole line, so we're
+        // forced to flush everything.
         index = input + wrapper->line_length;
+      }
 
       buf = *index;
       *index = Z_UCS_NEWLINE;
@@ -547,7 +505,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       *(index+1) = buf2;
       *index = buf;
 
-      if ( (minus_found == false) && (other_splitchar_found == false) ) {
+      if (*index == Z_UCS_MINUS) {
         index++;
       }
 
@@ -557,8 +515,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
     TRACE_LOG("len-after: %ld.\n", len);
 
-    if (index != NULL)
-    {
+    if (index != NULL) {
       TRACE_LOG("index: \"");
       TRACE_LOG_Z_UCS(index);
       TRACE_LOG("\".\n");
@@ -609,6 +566,9 @@ void wordwrap_wrap_z_ucs(WORDWRAP *wrapper, z_ucs *input)
       ? space_in_buffer
       : len;
 
+    TRACE_LOG("chars_to_copy: %d, len:%d, space_in_buffer:%d.\n",
+        chars_to_copy, len, space_in_buffer);
+
     z_ucs_ncpy(
         wrapper->input_buffer + wrapper->input_index,
         input,
@@ -619,7 +579,7 @@ void wordwrap_wrap_z_ucs(WORDWRAP *wrapper, z_ucs *input)
     input += chars_to_copy;
     len -= chars_to_copy;
 
-    //TRACE_LOG("chars copied: %d, chars left: %ld.\n",chars_to_copy,(long)len);
+    TRACE_LOG("chars copied: %d, chars left: %ld.\n",chars_to_copy,(long)len);
 
     if (
         (wrapper->input_index == wrapper->input_buffer_size - 1)
