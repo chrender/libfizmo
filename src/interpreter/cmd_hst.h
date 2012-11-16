@@ -36,15 +36,9 @@
 #include "../tools/types.h"
 #include "config.h"
 
-#ifndef cmd_hst_c_INCLUDED
-extern zscii *command_history_buffer;
-extern int command_history_nof_entries;
-extern int command_history_newest_entry;
-extern int command_history_oldest_entry;
-extern size_t command_history_entries[NUMBER_OF_REMEMBERED_COMMANDS];
-#endif
-
 void store_command_in_history(zscii *new_command);
+int get_number_of_stored_commands();
+zscii *get_command_from_history(unsigned int command_index);
 
 #endif /* cmd_hst_h_INCLUDED */
 
