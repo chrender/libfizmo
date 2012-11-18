@@ -505,7 +505,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       *(index+1) = buf2;
       *index = buf;
 
-      if (*index == Z_UCS_MINUS) {
+      if (*index == Z_UCS_SPACE) {
         index++;
       }
 
