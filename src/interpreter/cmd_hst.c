@@ -118,7 +118,7 @@ zscii *get_command_from_history(unsigned int command_index) {
   }
   else if (wrap_around_is_active == true) {
     history_index
-      = (NUMBER_OF_REMEMBERED_COMMANDS - (command_index - end_index));
+      = (NUMBER_OF_REMEMBERED_COMMANDS - (command_index - end_index)) - 1;
   }
   else {
     return NULL;
