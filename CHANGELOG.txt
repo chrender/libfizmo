@@ -1,7 +1,7 @@
 
    Version 0.7.5
  - Fix for preloaded input removal, thanks to Lewis Gentry.
- - Fixed missing charachters in transcripts.
+ - Fixed missing characters in transcripts.
  - Fixed swallowing of dots, commas and quotation marks at line starts in
    case hyphenation is disabled -- thanks to Lewis Gentry.
  - Fixed crash which occurred when invoking fizmo-ncursesw with the "-fi"
