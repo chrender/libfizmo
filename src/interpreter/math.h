@@ -32,8 +32,9 @@
 
 #include <inttypes.h>
 
-#ifndef math_h_INCLUDED
-#define math_h_INCLUDED
+#ifndef fizmo_math_h_INCLUDED
+#define fizmo_math_h_INCLUDED
+// Name of macro is "fizmo_math_h" to avoid collision with libc's "math_h".
 
 void opcode_and(void);
 void opcode_add(void);
@@ -55,5 +56,5 @@ void opcode_art_shift(void);
 void opcode_log_shift(void);
 void seed_random_generator(void);
 
-#endif /* math_h_INCLUDED */
+#endif /* fizmo_math_h_INCLUDED */
 
