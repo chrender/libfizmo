@@ -33,9 +33,14 @@ AM_CFLAGS =
 AM_CPPFLAGS =
 LDADD =
 
+# Don't run ranlib directly, since in case OS X universal libraries are
+# built, files processed by ranlib cannot be any longer processed by ar
+# (which is required to assemble libfizmo later on).
+RANLIB = true
+
 noinst_LIBRARIES = libinterpreter.a
 libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c hyphenation.c \
- iff.c math.c misc.c mt19937ar.c object.c output.c property.c routine.c \
+ iff.c mathemat.c misc.c mt19937ar.c object.c output.c property.c routine.c \
  savegame.c sound.c stack.c streams.c table.c text.c undo.c variable.c \
  wordwrap.c zpu.c
 

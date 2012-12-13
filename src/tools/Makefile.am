@@ -33,6 +33,11 @@ localedir = $(datarootdir)/fizmo/locales
 
 AM_CFLAGS =
 
+# Don't run ranlib directly, since in case OS X universal libraries are
+# built, files processed by ranlib cannot be any longer processed by ar
+# (which is required to assemble libfizmo later on).
+RANLIB = true
+
 noinst_LIBRARIES = libtools.a
 libtools_a_SOURCES = ../locales/libfizmo_locales.c filesys.c filesys_c.c \
  i18n.c list.c stringmap.c tracelog.c types.c z_ucs.c
