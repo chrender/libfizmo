@@ -65,7 +65,7 @@ static unsigned int end_index = 0;
 
 
 void store_command_in_history(zscii *new_command) {
-  zscii *ptr = (zscii*)fizmo_strdup(new_command);
+  zscii *ptr = (zscii*)fizmo_strdup((char*)new_command);
 
   if (start_index == end_index) {
     if (wrap_around_is_active == true) {
