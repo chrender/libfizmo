@@ -45,7 +45,7 @@
 #include "../tools/tracelog.h"
 #include "config.h"
 #include "fizmo.h"
-#include "math.h"
+#include "mathemat.h"
 #include "output.h"
 #include "../tools/types.h"
 #include "../tools/i18n.h"

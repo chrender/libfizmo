@@ -44,7 +44,7 @@
 #include "fizmo.h"
 #include "zpu.h"
 #include "text.h"
-#include "math.h"
+#include "mathemat.h"
 #include "stack.h"
 #include "misc.h"
 #include "streams.h"

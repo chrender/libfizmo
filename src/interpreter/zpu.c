@@ -43,7 +43,7 @@
 #include "variable.h"
 #include "property.h"
 #include "object.h"
-#include "math.h"
+#include "mathemat.h"
 #include "text.h"
 #include "streams.h"
 #include "output.h"

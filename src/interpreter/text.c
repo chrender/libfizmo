@@ -51,7 +51,7 @@
 #include "streams.h"
 #include "history.h"
 #include "fizmo.h"
-#include "math.h"
+#include "mathemat.h"
 #include "stack.h"
 #include "config.h"
 #include "output.h"
