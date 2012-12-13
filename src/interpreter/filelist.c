@@ -1498,6 +1498,10 @@ void search_directory(char *absolute_dirname, bool recursive)
   struct z_story_list *z_story_list = get_z_story_list();
   struct babel_info *babel = load_babel_info();
 
+#ifndef DISABLE_CONFIGFILES
+  ensure_dot_fizmo_dir_exists();
+#endif // DISABLE_CONFIGFILES
+
   if ((nof_files_found = count_files(absolute_dirname, recursive)) > 0)
   {
     show_progress = true;
