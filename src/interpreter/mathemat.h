@@ -1,5 +1,5 @@
 
-/* math.h
+/* mathemat.h
  *
  * This file is part of fizmo.
  *
@@ -27,14 +27,16 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This file was named "math.h" before but renamed to "mathemat.h" to avoid
+ * collisions with the standard math.h include.
  */
 
 
 #include <inttypes.h>
 
-#ifndef fizmo_math_h_INCLUDED
-#define fizmo_math_h_INCLUDED
-// Name of macro is "fizmo_math_h" to avoid collision with libc's "math_h".
+#ifndef mathemat_h_INCLUDED
+#define mathemat_h_INCLUDED
 
 void opcode_and(void);
 void opcode_add(void);
@@ -56,5 +58,5 @@ void opcode_art_shift(void);
 void opcode_log_shift(void);
 void seed_random_generator(void);
 
-#endif /* fizmo_math_h_INCLUDED */
+#endif /* mathemat_h_INCLUDED */
 

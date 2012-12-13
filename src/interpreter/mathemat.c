@@ -1,5 +1,5 @@
 
-/* math.c
+/* mathemat.c
  *
  * This file is part of fizmo.
  *
@@ -27,16 +27,20 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ *
+ * This file was named "math.h" before but renamed to "mathemat.h" to avoid
+ * collisions with the standard math.h include.
  */
 
 
-#ifndef math_c_INCLUDED
-#define math_c_INCLUDED
+#ifndef mathemat_h_INCLUDED
+#define mathemat_h_INCLUDED
 
 #include <time.h>
 #include <sys/time.h>
 #include <time.h>
-#include <math.h> // for rint
+#include <math.h> // for rint (see above)
 #include <stdlib.h> // for [s]random on Mac OS X
 #include <string.h>
 
@@ -440,5 +444,5 @@ void opcode_log_shift(void)
 }
 
 
-#endif /* math_c_INCLUDED */
+#endif /* mathemat_h_INCLUDED */
 
