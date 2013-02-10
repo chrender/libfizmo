@@ -183,7 +183,7 @@ static void flush_stream_2_buffer_output() {
 
 static void stream_2_buffer_output(z_ucs *z_ucs_output)
 {
-  z_ucs buf;
+  //z_ucs buf;
 
   while (*z_ucs_output != 0) {
     TRACE_LOG("stream_2_preload_buffer_index: %x\n",

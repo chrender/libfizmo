@@ -66,8 +66,8 @@
 // The "word_interpunctation_chars" designate chars which may be
 // repeatatedly end a word. For example "foo--bar", "foo---bar"
 // and "foo...bar" are all split before "bar".
-static z_ucs word_interpunctation_chars[] = {
-  Z_UCS_MINUS, Z_UCS_DOT, 0 };
+//static z_ucs word_interpunctation_chars[] = {
+//  Z_UCS_MINUS, Z_UCS_DOT, 0 };
 
 
 WORDWRAP *wordwrap_new_wrapper(size_t line_length,
@@ -663,7 +663,7 @@ void wordwrap_adjust_line_length(WORDWRAP *wrapper, size_t new_line_length)
 
 void wordwrap_remove_chars(WORDWRAP *wrapper, size_t num_chars_to_remove)
 {
-  if (num_chars_to_remove > wrapper->input_index) {
+  if ((long)num_chars_to_remove > wrapper->input_index) {
     wrapper->input_index = 0;
   }
   else {

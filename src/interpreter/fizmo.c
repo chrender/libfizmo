@@ -731,9 +731,6 @@ void fizmo_new_screen_size(uint8_t width, uint8_t height)
   {
     // 8.4.3: In Version 5 and later, the screen's width and height in
     // units should be written to the words at $22 and $24.
-    // of the header, respectively. In Version 6, these bytes are the
-    // other way round (height in $27, width in $26). The width of a
-    // font is defined as the width of its '0' character.
     TRACE_LOG("Writing %d to $22, %d to $24.\n", width, height);
 
     z_mem[0x22] = width >> 8;
