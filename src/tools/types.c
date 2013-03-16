@@ -97,5 +97,41 @@ short color_name_to_z_colour(char *colour_name)
 }
 
 
+z_rgb_colour new_z_rgb_colour(uint8_t red, uint8_t green, uint8_t blue) {
+  return ((uint32_t)red << 16) | ((uint32_t)green << 8) | ((uint32_t)blue);
+}
+
+
+z_rgb_colour z_to_rgb_colour(z_colour z_colour_to_convert) {
+
+  if (z_colour_to_convert == Z_COLOUR_BLACK) {
+    return new_z_rgb_colour(0, 0, 0);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_RED)    {
+    return new_z_rgb_colour(255, 0, 0);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_GREEN) {
+    return new_z_rgb_colour(0, 255, 0);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_YELLOW) {
+    return new_z_rgb_colour(255, 255, 0);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_BLUE) {
+    return new_z_rgb_colour(0, 0, 255);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_MAGENTA) {
+    return new_z_rgb_colour(255, 0, 255);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_CYAN) {
+    return new_z_rgb_colour(0, 255, 255);
+  }
+  else if (z_colour_to_convert == Z_COLOUR_WHITE) {
+    return new_z_rgb_colour(255, 255, 255);
+  }
+  else {
+    return Z_INVALID_RGB_COLOUR;
+  }
+}
+
 #endif /* types_c_INCLUDED */
 

@@ -1400,9 +1400,14 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   debugger_interpreter_stopped();
 #endif // ENABLE_DEBUGGER
 
-  free_z_story(active_z_story);
-  active_z_story = NULL;
-  z_mem = NULL;
+  if (active_sound_interface != NULL)
+    active_sound_interface->close_sound();
+
+  // Close all streams, this will also close the active interface.
+  close_streams(NULL);
+  free_undo_memory();
+  free_hyphenation_memory();
+  free_i18n_memory();
 
 #ifndef DISABLE_BLOCKBUFFER
   if (upper_window_buffer != NULL)
@@ -1414,14 +1419,9 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   destroy_outputhistory(outputhistory[0]);
 #endif // DISABLE_OUTPUT_HISTORY
 
-  if (active_sound_interface != NULL)
-    active_sound_interface->close_sound();
-
-  // Close all streams, this will also close the active interface.
-  close_streams(NULL);
-  free_undo_memory();
-  free_hyphenation_memory();
-  free_i18n_memory();
+  free_z_story(active_z_story);
+  active_z_story = NULL;
+  z_mem = NULL;
 
 #ifndef DISABLE_CONFIGFILES
   if (xdg_config_home != NULL)

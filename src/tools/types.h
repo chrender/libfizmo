@@ -55,6 +55,8 @@
 #define Z_COLOUR_MEDIUM_GREY 11
 #define Z_COLOUR_DARK_GREY 12
 
+#define Z_INVALID_RGB_COLOUR 0xffffffff;
+
 #define Z_FONT_PREVIOUS_FONT 0
 #define Z_FONT_NORMAL 1
 #define Z_FONT_PICTURE 2
@@ -82,6 +84,8 @@ typedef uint32_t z_ucs;
 typedef int16_t z_colour;
 typedef int16_t z_font;
 typedef int16_t z_style;
+typedef uint32_t z_rgb_colour;
+
 
 struct commandline_parameter
 {
@@ -174,6 +178,8 @@ extern char* z_colour_names[];
 
 bool is_regular_z_colour(z_colour colour);
 short color_name_to_z_colour(char *colour_name);
+z_rgb_colour new_z_rgb_colour(uint8_t red, uint8_t green, uint8_t blue);
+z_rgb_colour z_to_rgb_colour(z_colour z_colour_to_convert);
 
 #endif /* types_h_INCLUDED */
 
