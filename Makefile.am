@@ -85,7 +85,7 @@ install-dev:: libfizmo.a
 	echo 'Libs: -L$(fizmo_build_prefix)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS)'  >>"$(PKGFILE)"
 	echo >>"$(PKGFILE)"
 
-install-locales::
+install-data-local::
 	mkdir -p "$(DESTDIR)$(localedir)"
 	for l in `cd src/locales ; ls -d ??_??`; \
 	do \
