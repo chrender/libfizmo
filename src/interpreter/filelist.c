@@ -1360,7 +1360,7 @@ struct z_story_list *update_fizmo_story_list()
 #else // DISABLE_CONFIGFILES
   struct z_story_list *result;
   struct z_story_list_entry *entry;
-  char *str, *path;
+  char *str, *str_copy, *path;
   z_file *file;
   struct babel_info *babel;
   int i;
@@ -1420,13 +1420,15 @@ struct z_story_list *update_fizmo_story_list()
 
   if ((str = get_configuration_value("z-code-root-path")) != NULL)
   {
-    path = strtok(str, ":");
+    str_copy = strdup(str);
+    path = strtok(str_copy, ":");
     while (path != NULL)
     {
       TRACE_LOG("Counting for token \"%s\".\n", path);
       nof_files_found += count_files(path, true);
       path = strtok(NULL, ":");
     }
+    free(str_copy);
   }
 
   TRACE_LOG("nof_files_found: %d, %d\n", nof_files_found,
@@ -1442,22 +1444,26 @@ struct z_story_list *update_fizmo_story_list()
 
   if ((str = get_configuration_value("z-code-path")) != NULL)
   {
-    path = strtok(str, ":");
+    str_copy = strdup(str);
+    path = strtok(str_copy, ":");
     while (path != NULL)
     {
       build_filelist(path, result, false, babel);
       path = strtok(NULL, ":");
     }
+    free(str_copy);
   }
 
   if ((str = get_configuration_value("z-code-root-path")) != NULL)
   {
-    path = strtok(str, ":");
+    str_copy = strdup(str);
+    path = strtok(str_copy, ":");
     while (path != NULL)
     {
       build_filelist(path, result, true, babel);
       path = strtok(NULL, ":");
     }
+    free(str_copy);
   }
 
   if (show_progress == true)
