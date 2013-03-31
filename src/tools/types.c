@@ -42,6 +42,7 @@
 #define types_c_INCLUDED
 
 #include <strings.h>
+#include <stdio.h>
 #include "types.h"
 
 char* z_colour_names[] = {
@@ -129,9 +130,26 @@ z_rgb_colour z_to_rgb_colour(z_colour z_colour_to_convert) {
     return new_z_rgb_colour(255, 255, 255);
   }
   else {
+    printf("invalid colour: %d\n", z_colour_to_convert);
     return Z_INVALID_RGB_COLOUR;
   }
 }
+
+
+uint8_t red_from_z_rgb_colour(z_rgb_colour rgb_colour) {
+  return (uint8_t)(rgb_colour >> 16);
+}
+
+
+uint8_t green_from_z_rgb_colour(z_rgb_colour rgb_colour) {
+  return (uint8_t)(rgb_colour >> 8);
+}
+
+
+uint8_t blue_from_z_rgb_colour(z_rgb_colour rgb_colour) {
+  return (uint8_t)rgb_colour;
+}
+
 
 #endif /* types_c_INCLUDED */
 

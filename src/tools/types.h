@@ -180,6 +180,9 @@ bool is_regular_z_colour(z_colour colour);
 short color_name_to_z_colour(char *colour_name);
 z_rgb_colour new_z_rgb_colour(uint8_t red, uint8_t green, uint8_t blue);
 z_rgb_colour z_to_rgb_colour(z_colour z_colour_to_convert);
+uint8_t red_from_z_rgb_colour(z_rgb_colour rgb_colour);
+uint8_t green_from_z_rgb_colour(z_rgb_colour rgb_colour);
+uint8_t blue_from_z_rgb_colour(z_rgb_colour rgb_colour);
 
 #endif /* types_h_INCLUDED */
 
