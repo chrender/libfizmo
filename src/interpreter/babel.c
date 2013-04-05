@@ -208,7 +208,7 @@ struct babel_info *load_babel_info_from_blorb(z_file *infile, int length,
   char *xmlData = (char*)fizmo_malloc(length + 1);
   xmlDocPtr babel_doc;
 
-  if (fsi->getchars(xmlData, length, infile) != (size_t)length)
+  if (fsi->readchars(xmlData, length, infile) != (size_t)length)
   {
     free(xmlData);
     return NULL;
@@ -643,13 +643,13 @@ bool babel_files_have_changed(struct babel_info *babel)
     return true;
   }
 
-  if ((data = fsi->getchar(timestamp_file)) != EOF)
+  if ((data = fsi->readchar(timestamp_file)) != EOF)
   {
-    fsi->ungetchar(data, timestamp_file);
+    fsi->unreadchar(data, timestamp_file);
     for(;;)
     {
       offset = fsi->getfilepos(timestamp_file);
-      while ((data = fsi->getchar(timestamp_file)) != '\t')
+      while ((data = fsi->readchar(timestamp_file)) != '\t')
         if (data == EOF)
         {
           free(filename);
@@ -669,7 +669,7 @@ bool babel_files_have_changed(struct babel_info *babel)
       if (size > 0)
       {
         fsi->setfilepos(timestamp_file, -(size+1), SEEK_CUR);
-        if (fsi->getchars(timestamp_input, size+1, timestamp_file)
+        if (fsi->readchars(timestamp_input, size+1, timestamp_file)
             != (size_t)size+1)
         {
           free(filename);
@@ -680,7 +680,7 @@ bool babel_files_have_changed(struct babel_info *babel)
       timestamp_input[size] = '\0';
 
       offset = fsi->getfilepos(timestamp_file);
-      while ((data = fsi->getchar(timestamp_file)) != '\n')
+      while ((data = fsi->readchar(timestamp_file)) != '\n')
         if (data == EOF)
         {
           free(filename);
@@ -699,7 +699,7 @@ bool babel_files_have_changed(struct babel_info *babel)
       if (size > 0)
       {
         fsi->setfilepos(timestamp_file, -(size+1), SEEK_CUR);
-        if (fsi->getchars(filename_input, size+1, timestamp_file)
+        if (fsi->readchars(filename_input, size+1, timestamp_file)
             != (size_t)size+1)
         {
           free(filename);
@@ -754,9 +754,9 @@ bool babel_files_have_changed(struct babel_info *babel)
 
       nof_babel_timestamp_entries++;
 
-      if ((data = fsi->getchar(timestamp_file)) == EOF)
+      if ((data = fsi->readchar(timestamp_file)) == EOF)
         break;
-      fsi->ungetchar(data, timestamp_file);
+      fsi->unreadchar(data, timestamp_file);
     }
   }
 

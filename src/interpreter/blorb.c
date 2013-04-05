@@ -149,12 +149,12 @@ static z_blorb_map *fizmo_blorb_init(z_file *blorb_file)
   {
     blorb = fizmo_malloc(sizeof(fizmo_blorb));
 
-    if (fsi->getchars(buf, 4, result->blorb_file) != 4)
+    if (fsi->readchars(buf, 4, result->blorb_file) != 4)
       i18n_translate_and_exit(
           libfizmo_module_name,
           i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
           -0x0106,
-          "getchars");
+          "readchars");
 
     TRACE_LOG("Type descriptor: %s\n", buf);
     if (strcmp(buf, "Pict") == 0)

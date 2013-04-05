@@ -104,14 +104,14 @@ static int closefile_c(z_file *file_to_close)
 }
 
 
-static int getchar_c(z_file *fileref)
+static int readchar_c(z_file *fileref)
 {
   int result = fgetc((FILE*)fileref->file_object);
   return result == EOF ? -1 : result;
 }
 
 
-static size_t getchars_c(void *ptr, size_t len, z_file *fileref)
+static size_t readchars_c(void *ptr, size_t len, z_file *fileref)
 {
   return fread(ptr, 1, len, (FILE*)fileref->file_object);
 }
@@ -196,7 +196,7 @@ static int setfilepos_c(z_file *fileref, long seek, int whence)
 }
 
 
-static int ungetchar_c(int c, z_file *fileref)
+static int unreadchar_c(int c, z_file *fileref)
 {
   return ungetc(c, (FILE*)fileref->file_object);
 }
@@ -317,8 +317,8 @@ struct z_filesys_interface z_filesys_interface_c =
 {
   &openfile_c,
   &closefile_c,
-  &getchar_c,
-  &getchars_c,
+  &readchar_c,
+  &readchars_c,
   &writechar_c,
   &writechars_c,
   &writestring_c,
@@ -329,7 +329,7 @@ struct z_filesys_interface z_filesys_interface_c =
   &vfilescanf_c,
   &getfilepos_c,
   &setfilepos_c,
-  &ungetchar_c,
+  &unreadchar_c,
   &flushfile_c,
   &get_last_file_mod_timestamp_c,
   &get_fileno_c,

@@ -243,7 +243,7 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
         "setfilepos",
         errno);
 
-  if ((z_file_version = fsi->getchar(result->z_story_file)) == EOF)
+  if ((z_file_version = fsi->readchar(result->z_story_file)) == EOF)
     i18n_translate_and_exit(
         libfizmo_module_name,
         i18n_libfizmo_ERROR_READING_FIRST_STORY_BYTE_FROM_P0S,
@@ -279,7 +279,7 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
   TRACE_LOG("Loading %li bytes from \"%s\".\n",
       story_size-1, story_stream->filename);
 
-  if (fsi->getchars(
+  if (fsi->readchars(
         result->memory+1, (size_t)(story_size - 1), result->z_story_file)
       != (size_t)(story_size - 1))
   {
@@ -886,14 +886,14 @@ static int parse_fizmo_config_file(char *filename)
       == NULL)
     return 0;
 
-  while ((c = fsi->getchar(config_file)) != EOF)
+  while ((c = fsi->readchar(config_file)) != EOF)
   {
     i = 0;
     while ( (c != '=') && (c != '\n') && (c != EOF) )
     {
       if ( (i < MAX_CONFIG_OPTION_LENGTH - 1) && ( ! ((i == 0) && (c == ' '))) )
         key[i++] = (char)c;
-      c = fsi->getchar(config_file);
+      c = fsi->readchar(config_file);
     }
 
     if ( (c == '=') || (c == '\n') )
@@ -906,12 +906,12 @@ static int parse_fizmo_config_file(char *filename)
       if (c == '=')
       {
         do
-          c = fsi->getchar(config_file);
+          c = fsi->readchar(config_file);
         while (c == ' ');
         while ( (c != '\n') && (c != EOF) && (i < MAX_CONFIG_OPTION_LENGTH-1) )
         {
           value[i++] = (char)c;
-          c = fsi->getchar(config_file);
+          c = fsi->readchar(config_file);
         }
 
         while ( (i > 0) && (value[i-1] == ' ') )
@@ -1367,7 +1367,7 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
         TRACE_LOG("Loading %ld bytes.\n",
             (long int)(active_z_story->high_memory_end + 1 - z_mem));
 
-        if (fsi->getchars(
+        if (fsi->readchars(
               z_mem,
               (size_t)(active_z_story->high_memory_end + 1 - z_mem),
               active_z_story->z_story_file)

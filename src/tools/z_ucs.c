@@ -280,7 +280,7 @@ z_ucs parse_utf8_char_from_file(z_file *in)
   int cmp_value2;
   z_ucs result;
 
-  if ((current_char = fsi->getchar(in)) == EOF)
+  if ((current_char = fsi->readchar(in)) == EOF)
     return UEOF;
 
   if ((current_char & 0x80) == 0)
@@ -308,7 +308,7 @@ z_ucs parse_utf8_char_from_file(z_file *in)
       // Found a sequence of length len.
       for (i=0; i<len-1; i++)
       {
-        if ((current_char = fsi->getchar(in)) == EOF)
+        if ((current_char = fsi->readchar(in)) == EOF)
           return UEOF;
 
         result <<= 6;

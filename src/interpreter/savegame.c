@@ -726,7 +726,7 @@ int save_game_to_stream(uint16_t address, uint16_t length, z_file *save_file,
 
       while (dynamic_index != ptr)
       {
-        if ((data = fsi->getchar(active_z_story->z_story_file)) == EOF)
+        if ((data = fsi->readchar(active_z_story->z_story_file)) == EOF)
         {
           return _handle_save_or_restore_failure(evaluate_result,
               i18n_libfizmo_ERROR_WRITING_SAVE_FILE, save_file, true);
@@ -1082,17 +1082,17 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_ERROR_READING_SAVE_FILE, iff_file, false);
 
-  if (fsi->getchars(release_number, 2, iff_file) != 2)
+  if (fsi->readchars(release_number, 2, iff_file) != 2)
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_COULD_NOT_READ_RELEASE_NUMBER,
         iff_file, false);
 
-  if (fsi->getchars(serial_number, 6, iff_file) != 6)
+  if (fsi->readchars(serial_number, 6, iff_file) != 6)
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_COULD_NOT_READ_SERIAL_NUMBER,
         iff_file, false);
 
-  if (fsi->getchars(checksum, 2, iff_file) != 2)
+  if (fsi->readchars(checksum, 2, iff_file) != 2)
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_COULD_NOT_READ_CHECKSUM, iff_file, false);
 
@@ -1115,7 +1115,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
         i18n_libfizmo_RELEASE_NR_SERIAL_NR_OR_CHECKSUM_DOESNT_MATCH,
         iff_file, false);
 
-  if (fsi->getchars(pc_on_restore_data, 3, iff_file) != 3)
+  if (fsi->readchars(pc_on_restore_data, 3, iff_file) != 3)
     return _handle_save_or_restore_failure(evaluate_result,
         i18n_libfizmo_COULD_NOT_READ_RESTORE_PC, iff_file, false);
 
@@ -1182,7 +1182,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     while (bytes_read < chunk_length)
     {
       // Read data from CMem chunk.
-      data = fsi->getchar(iff_file);
+      data = fsi->readchar(iff_file);
       bytes_read++;
 
       if (data == EOF)
@@ -1194,7 +1194,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
 
       if (data != 0)
       {
-        data2 = fsi->getchar(active_z_story->z_story_file);
+        data2 = fsi->readchar(active_z_story->z_story_file);
         // Found content difference to original story file.
 
         if (data2 == EOF)
@@ -1217,7 +1217,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
       {
         // Found block identical to story file.
 
-        data = fsi->getchar(iff_file);
+        data = fsi->readchar(iff_file);
         bytes_read++;
         if (data == EOF)
         {
@@ -1232,7 +1232,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
 
         for (i=0; i<copylength; i++)
         {
-          data2 = fsi->getchar(active_z_story->z_story_file);
+          data2 = fsi->readchar(active_z_story->z_story_file);
           if (data2 == EOF)
           {
             free(restored_story_mem);
@@ -1252,7 +1252,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
 
     while (dynamic_index != ptr)
     {
-      data = fsi->getchar(active_z_story->z_story_file);
+      data = fsi->readchar(active_z_story->z_story_file);
       if (data == EOF)
       {
         free(restored_story_mem);
@@ -1291,7 +1291,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     ptr = restored_story_mem + length;
     while (dynamic_index != ptr)
     {
-      data = fsi->getchar(iff_file);
+      data = fsi->readchar(iff_file);
       if (data == EOF)
       {
         free(restored_story_mem);
@@ -1340,7 +1340,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     // Each while iteration processes a single stack frame.
 
     // PC Bits 16-23
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1351,7 +1351,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     stack_frame_return_pc = (data & 0xff) << 16;
 
     // PC Bits 8-15
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1362,7 +1362,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     stack_frame_return_pc |= (data & 0xff) << 8;
 
     // PC Bits 0-7
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1372,7 +1372,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     }
     stack_frame_return_pc |= (data & 0xff);
 
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1383,7 +1383,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     stack_frame_discard_result = ((data & 0x10) != 0 ? true : false);
     current_stack_frame_nof_locals = (data & 0xf);
 
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1393,7 +1393,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     }
     stack_frame_result_var = (data & 0xff);
 
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1403,7 +1403,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     }
     stack_frame_argument_mask = (data & 0xff);
 
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1413,7 +1413,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     }
     current_stack_frame_nof_functions_stack_words = ((data & 0xff) << 8);
 
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       free(restored_story_mem);
@@ -1448,7 +1448,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
     while (i < current_stack_frame_nof_locals
         + current_stack_frame_nof_functions_stack_words)
     {
-      data = fsi->getchar(iff_file);
+      data = fsi->readchar(iff_file);
       if (data == EOF)
       {
         free(restored_story_mem);
@@ -1458,7 +1458,7 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
       }
       stack_word = (data & 0xff) << 8;
 
-      data = fsi->getchar(iff_file);
+      data = fsi->readchar(iff_file);
       if (data == EOF)
       {
         free(restored_story_mem);
@@ -1769,19 +1769,19 @@ bool detect_saved_game(char *file_to_check, char **story_file_to_load)
       return false;
     }
 
-    if (fsi->getchars(release_number_buf, 2, iff_file) != 2)
+    if (fsi->readchars(release_number_buf, 2, iff_file) != 2)
     {
       fsi->closefile(iff_file);
       return false;
     }
 
-    if (fsi->getchars(serial_number, 6, iff_file) != 6)
+    if (fsi->readchars(serial_number, 6, iff_file) != 6)
     {
       fsi->closefile(iff_file);
       return false;
     }
 
-    if (fsi->getchars(checksum_buf, 2, iff_file) != 2)
+    if (fsi->readchars(checksum_buf, 2, iff_file) != 2)
     {
       fsi->closefile(iff_file);
       return false;

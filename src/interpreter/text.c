@@ -1869,7 +1869,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
 
   // FIMXE: Input conversion from latin1(?) to zscii-input.
   while (
-      ((c = fsi->getchar(input_stream_1)) != EOF)
+      ((c = fsi->readchar(input_stream_1)) != EOF)
       &&
       (c != '\n')
       &&
@@ -1887,7 +1887,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
   {
     // Seek next '\n'.
     while (c != '\n')
-      if ((c = fsi->getchar(input_stream_1)) == EOF)
+      if ((c = fsi->readchar(input_stream_1)) == EOF)
         break;
   }
 
@@ -1903,7 +1903,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
   }
 
   // Check if there's something behind the '\n'.
-  c = fsi->getchar(input_stream_1);
+  c = fsi->readchar(input_stream_1);
   if (c == EOF)
   {
     input_stream_1_active = false;
@@ -1911,7 +1911,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
     input_stream_1 = NULL;
   }
   else
-    fsi->ungetchar(c, input_stream_1);
+    fsi->unreadchar(c, input_stream_1);
 
   return input_length;
 }

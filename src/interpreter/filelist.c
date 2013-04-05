@@ -278,7 +278,7 @@ int parse_next_story_entry()
   release_input = 0;
   while (index < 5)
   {
-    if ((data = fsi->getchar(in)) == EOF)
+    if ((data = fsi->readchar(in)) == EOF)
     {
       if (index == 0) break;
       else { abort_entry_input(); TRACE_LOG("#0\n"); return -1; }
@@ -290,11 +290,11 @@ int parse_next_story_entry()
     index++;
   }
 
-  if ( (index == 5) && (fsi->getchar(in) != '\t') )
+  if ( (index == 5) && (fsi->readchar(in) != '\t') )
   { abort_entry_input(); TRACE_LOG("#1\n"); return -1; }
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#2\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -303,7 +303,7 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(serial_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(serial_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#4\n"); return -1; }
   }
   serial_input[size] = '\0';
@@ -313,7 +313,7 @@ int parse_next_story_entry()
   length_input = 0;
   do
   {
-    if ((data = fsi->getchar(in)) == EOF)
+    if ((data = fsi->readchar(in)) == EOF)
     { abort_entry_input(); TRACE_LOG("#5\n"); return -1; }
     if (data != '\t')
     {
@@ -328,7 +328,7 @@ int parse_next_story_entry()
   checksum_input = 0;
   while (index < 5)
   {
-    if ((data = fsi->getchar(in)) == EOF)
+    if ((data = fsi->readchar(in)) == EOF)
     { abort_entry_input(); TRACE_LOG("#6\n"); return -1; }
     if (data == '\t') break;
     if (isdigit(data) == 0) { TRACE_LOG("#7\n"); return -1; }
@@ -338,10 +338,10 @@ int parse_next_story_entry()
   }
   TRACE_LOG("cs:%d\n", checksum_input);
 
-  if ( (index == 5) && (fsi->getchar(in) != '\t') )
+  if ( (index == 5) && (fsi->readchar(in) != '\t') )
   { abort_entry_input(); TRACE_LOG("#8\n"); return -1; }
 
-  if ((data = fsi->getchar(in)) == EOF)
+  if ((data = fsi->readchar(in)) == EOF)
   { abort_entry_input(); TRACE_LOG("#9\n"); return -1; }
   TRACE_LOG("data:%c\n", data);
   if (isdigit(data) == 0)
@@ -349,11 +349,11 @@ int parse_next_story_entry()
   version_input = data - '0';
   TRACE_LOG("versioninput:%c\n", version_input);
 
-  if (fsi->getchar(in) != '\t')
+  if (fsi->readchar(in) != '\t')
   { abort_entry_input(); TRACE_LOG("#11\n"); return -1; }
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#12\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -362,7 +362,7 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(title_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(title_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#14\n"); return -1; }
   }
   title_input[size] = '\0';
@@ -370,7 +370,7 @@ int parse_next_story_entry()
   //printf("title:[%s]\n", title_input);
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF) { abort_entry_input(); TRACE_LOG("#15\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
   if (ensure_mem_size(&author_input, &author_input_size, size + 2) == -1)
@@ -378,7 +378,7 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(author_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(author_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#17\n"); return -1; }
   }
   author_input[size] = '\0';
@@ -386,7 +386,7 @@ int parse_next_story_entry()
   //printf("author:[%s]\n", author_input);
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF) { abort_entry_input(); TRACE_LOG("#15\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
   if (ensure_mem_size(&language_input, &language_input_size, size + 2) == -1)
@@ -394,7 +394,7 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(language_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(language_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#17\n"); return -1; }
   }
   language_input[size] = '\0';
@@ -402,7 +402,7 @@ int parse_next_story_entry()
   //printf("language:[%s]\n", language_input);
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#18\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -411,7 +411,7 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(description_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(description_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#20\n"); return -1; }
   }
   description_input[size] = '\0';
@@ -419,7 +419,7 @@ int parse_next_story_entry()
   //printf("desc:[%s]\n", description_input);
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#21\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -428,14 +428,14 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(filename_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(filename_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#23\n"); return -1; }
   }
   filename_input[size] = '\0';
   unquoted_filename_input = unquote_special_chars(filename_input);
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#24\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -444,14 +444,14 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(blorbfile_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(blorbfile_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#26\n"); return -1; }
   }
   blorbfile_input[size] = '\0';
   unquoted_blorbfile_input = unquote_special_chars(blorbfile_input);
 
   offset = fsi->getfilepos(in);
-  while ((data = fsi->getchar(in)) != '\t')
+  while ((data = fsi->readchar(in)) != '\t')
     if (data == EOF)
     { abort_entry_input(); TRACE_LOG("#27\n"); return -1; }
   size = fsi->getfilepos(in) - offset - 1;
@@ -460,7 +460,7 @@ int parse_next_story_entry()
   if (size > 0)
   {
     fsi->setfilepos(in, -(size+1), SEEK_CUR);
-    if (fsi->getchars(filetype_input, size+1, in) != (size_t)size+1)
+    if (fsi->readchars(filetype_input, size+1, in) != (size_t)size+1)
     { abort_entry_input(); TRACE_LOG("#29\n"); return -1; }
   }
   filetype_input[size] = '\0';
@@ -470,10 +470,10 @@ int parse_next_story_entry()
   storyfile_timestamp_input = 0;
   while (index < 16)
   {
-    if ((data = fsi->getchar(in)) == EOF)
+    if ((data = fsi->readchar(in)) == EOF)
     { abort_entry_input(); TRACE_LOG("#30\n"); return -1; }
     if (data == '\n')
-    { fsi->ungetchar(data, in); break; }
+    { fsi->unreadchar(data, in); break; }
     if (isdigit(data) == 0) { break; }
     storyfile_timestamp_input *= 10;
     storyfile_timestamp_input += (data - '0');
@@ -487,7 +487,7 @@ int parse_next_story_entry()
       filename_input);
   */
 
-  while ((data = fsi->getchar(in)) != '\n')
+  while ((data = fsi->readchar(in)) != '\n')
     if (data == EOF) break;
 
   return 0;
@@ -666,13 +666,13 @@ struct z_story_list *get_z_story_list()
 
   for(;;)
   {
-    if ((data = fsi->getchar(in)) == EOF)
+    if ((data = fsi->readchar(in)) == EOF)
     {
       abort_entry_input();
       return result;
     }
     else
-      fsi->ungetchar(data, in);
+      fsi->unreadchar(data, in);
 
     if (parse_next_story_entry() == -1)
     {
@@ -757,13 +757,13 @@ struct z_story_list_entry *get_z_story_entry_from_list(char *serial,
 
   for(;;)
   {
-    if ((data = fsi->getchar(in)) == EOF)
+    if ((data = fsi->readchar(in)) == EOF)
     {
       abort_entry_input();
       return NULL;
     }
     else
-      fsi->ungetchar(data, in);
+      fsi->unreadchar(data, in);
 
     if (parse_next_story_entry() == -1)
     {
@@ -874,7 +874,7 @@ static int detect_and_add_z_file(char *filename, char *blorb_filename,
     return -1;
   }
 
-  if (fsi->getchars(buf, 30, infile) != 30)
+  if (fsi->readchars(buf, 30, infile) != 30)
   {
     fsi->closefile(infile);
     if (cwd != NULL)
@@ -919,7 +919,7 @@ static int detect_and_add_z_file(char *filename, char *blorb_filename,
     read_chunk_length(infile);
     length = get_last_chunk_length();
 
-    if (fsi->getchars(buf, 30, infile) != 30)
+    if (fsi->readchars(buf, 30, infile) != 30)
     {
       fsi->closefile(infile);
       if (cwd != NULL)

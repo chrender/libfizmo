@@ -323,7 +323,7 @@ static int load_patterns()
     lines = create_list();
     //printf("new list created: %p\n", lines);
 
-    in_char = fsi->getchar(patternfile);
+    in_char = fsi->readchar(patternfile);
     while (in_char != EOF)
     {
       if (in_char == '%')
@@ -339,7 +339,7 @@ static int load_patterns()
       else
       {
         // Found a new line.
-        fsi->ungetchar(in_char, patternfile);
+        fsi->unreadchar(in_char, patternfile);
 
         linestart = data;
 
@@ -365,7 +365,7 @@ static int load_patterns()
         //messages_processed++;
       }
 
-      in_char = fsi->getchar(patternfile);
+      in_char = fsi->readchar(patternfile);
     }
     fsi->closefile(patternfile);
     nof_patterns = get_list_size(lines);

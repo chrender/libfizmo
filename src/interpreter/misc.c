@@ -97,7 +97,7 @@ void opcode_verify(void)
     i = 0x40;
     while (i < file_length * scale)
     {
-      if ((input = fsi->getchar(active_z_story->z_story_file)) == EOF)
+      if ((input = fsi->readchar(active_z_story->z_story_file)) == EOF)
         i18n_translate_and_exit(
             libfizmo_module_name,
             i18n_libfizmo_FATAL_ERROR_READING_STORY_FILE,

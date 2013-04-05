@@ -54,10 +54,10 @@ struct z_filesys_interface
   int (*closefile)(z_file *file_to_close);
 
   // Returns -1 on EOF.
-  int (*getchar)(z_file *fileref);
+  int (*readchar)(z_file *fileref);
 
   // Returns number of bytes read.
-  size_t (*getchars)(void *ptr, size_t len, z_file *fileref);
+  size_t (*readchars)(void *ptr, size_t len, z_file *fileref);
 
   int (*writechar)(int ch, z_file *fileref);
 
@@ -74,7 +74,7 @@ struct z_filesys_interface
   long (*getfilepos)(z_file *fileref);
   int (*setfilepos)(z_file *fileref, long seek, int whence);
 
-  int (*ungetchar)(int c, z_file *fileref);
+  int (*unreadchar)(int c, z_file *fileref);
   int (*flushfile)(z_file *fileref);
   time_t (*get_last_file_mod_timestamp)(z_file *fileref);
 

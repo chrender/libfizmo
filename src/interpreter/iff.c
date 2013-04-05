@@ -64,7 +64,7 @@ static int read_four_chars(z_file *iff_file)
   four_chars[4] = '\0';
   for (i=0; i<4; i++)
   {
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
       return -1;
     four_chars[i] = (char)data;
@@ -342,7 +342,7 @@ uint32_t read_four_byte_number(z_file *iff_file)
 
   for (i=0; i<4; i++)
   {
-    data = fsi->getchar(iff_file);
+    data = fsi->readchar(iff_file);
     if (data == EOF)
     {
       (void)fsi->closefile(iff_file);

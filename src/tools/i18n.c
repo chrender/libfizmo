@@ -239,13 +239,13 @@ static locale_module *parse_locale_file(z_ucs *module_name,
   lines = create_list();
   //printf("new list created: %p\n", lines);
 
-  in_char = fsi->getchar(in);
+  in_char = fsi->readchar(in);
   while (in_char != EOF)
   {
     linestart = locale_data;
 
     // Found a new line.
-    fsi->ungetchar(in_char, in);
+    fsi->unreadchar(in_char, in);
 
     for (;;)
     {
@@ -332,7 +332,7 @@ static locale_module *parse_locale_file(z_ucs *module_name,
     }
 
     //messages_processed++;
-    in_char = fsi->getchar(in);
+    in_char = fsi->readchar(in);
   }
 
   *locale_data = 0;
