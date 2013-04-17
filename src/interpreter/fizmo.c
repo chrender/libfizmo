@@ -805,8 +805,8 @@ void write_interpreter_info_into_header()
     if (active_interface->is_timed_keyboard_input_available() == true)
       z_mem[1] |= 0x80;
 
-    width = active_interface->get_screen_width();
-    height = active_interface->get_screen_height();
+    width = active_interface->get_screen_width_in_characters();
+    height = active_interface->get_screen_height_in_lines();
 
     fizmo_new_screen_size(width, height);
 

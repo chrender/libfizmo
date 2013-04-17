@@ -53,8 +53,8 @@ struct z_screen_interface
   bool (*is_preloaded_input_available)();
   bool (*is_character_graphics_font_availiable)();
   bool (*is_picture_font_availiable)();
-  uint8_t (*get_screen_height)();
-  uint8_t (*get_screen_width)();
+  uint8_t (*get_screen_height_in_lines)();
+  uint8_t (*get_screen_width_in_characters)();
   uint8_t (*get_screen_width_in_units)();
   uint8_t (*get_screen_height_in_units)();
   uint8_t (*get_font_width_in_units)();

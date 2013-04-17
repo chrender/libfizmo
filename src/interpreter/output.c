@@ -82,7 +82,7 @@ void opcode_split_window(void)
   {
     blockbuf_resize(
         upper_window_buffer,
-        (int)active_interface->get_screen_width(),
+        (int)active_interface->get_screen_width_in_characters(),
         (int)op[0]);
   }
 #endif // DISABLE_BLOCKBUFFER
@@ -114,7 +114,7 @@ void opcode_set_window(void)
 #ifndef DISABLE_BLOCKBUFFER
       blockbuf_resize(
           upper_window_buffer,
-          (int)active_interface->get_screen_width(),
+          (int)active_interface->get_screen_width_in_characters(),
           1);
 #endif // DISABLE_BLOCKBUFFER
 
@@ -215,7 +215,7 @@ void process_set_cursor(int16_t y, int16_t x, int16_t window)
 #ifndef DISABLE_BLOCKBUFFER
         blockbuf_resize(
             upper_window_buffer,
-            (int)active_interface->get_screen_width(),
+            (int)active_interface->get_screen_width_in_characters(),
             (int)y);
 #endif // DISABLE_BLOCKBUFFER
 
