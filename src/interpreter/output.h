@@ -42,6 +42,8 @@
 #ifndef output_c_INCLUDED
 extern int16_t active_window_number;
 extern z_font current_font;
+extern z_font current_resulting_font; // current_font plus 0x11&2-evluation
+extern z_style lower_window_font;
 extern bool lower_window_buffering_active;
 extern z_style current_style;
 extern z_style upper_window_style;

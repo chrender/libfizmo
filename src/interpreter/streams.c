@@ -1312,25 +1312,11 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
 
       if (bool_equal(stream_1_active, true))
       {
-        if (active_interface != NULL)
-        {
-          active_interface->z_ucs_output(converted_output);
-        }
-
 #ifndef DISABLE_OUTPUT_HISTORY
         if (active_window_number == 0)
         {
           // outputhistory[0] is always defined if DISABLE_OUTPUT_HISTORY is not
           // defined (see fizmo.c).
-
-          if (lower_window_style != current_style)
-          {
-            store_metadata_in_history(
-                outputhistory[0],
-                HISTORY_METADATA_TYPE_STYLE,
-                current_style);
-            lower_window_style = current_style;
-          }
 
           if (
               (lower_window_foreground_colour != current_foreground_colour)
@@ -1347,6 +1333,24 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
             lower_window_foreground_colour = current_foreground_colour;
             lower_window_background_colour = current_background_colour;
           }
+        }
+
+        if (z_mem[0x11] & 2) {
+          current_resulting_font = Z_FONT_COURIER_FIXED_PITCH;
+          //printf("force fixed on: %d\n", current_resulting_font);
+        }
+        else {
+          current_resulting_font = current_font;
+          //printf("force fixed off: %d\n", current_resulting_font);
+        }
+
+        if (lower_window_font != current_resulting_font) {
+          store_metadata_in_history(
+              outputhistory[0],
+              HISTORY_METADATA_TYPE_FONT,
+              current_resulting_font);
+          lower_window_font = current_resulting_font;
+          active_interface->set_font(current_resulting_font);
         }
 
         if (
@@ -1392,6 +1396,10 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
               upper_window_buffer, converted_output);
         }
 #endif /* DISABLE_BLOCKBUFFER */
+
+        if (active_interface != NULL) {
+          active_interface->z_ucs_output(converted_output);
+        }
       }
 
       if (font_conversion_active == false)

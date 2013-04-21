@@ -54,7 +54,7 @@
 bool lower_window_buffering_active = true;
 z_style current_style = Z_STYLE_ROMAN;
 z_style upper_window_style = Z_STYLE_ROMAN;
-z_style lower_window_style = Z_STYLE_ROMAN;
+//z_style lower_window_style = Z_STYLE_ROMAN;
 z_colour current_foreground_colour;
 z_colour current_background_colour;
 z_colour default_foreground_colour = Z_COLOUR_WHITE;
@@ -66,7 +66,9 @@ z_colour lower_window_background_colour;
 
 // The lower two values are initalized by the init in "fizmo.c".
 int16_t active_window_number;
-z_font current_font  = Z_FONT_NORMAL;
+z_font current_font = Z_FONT_NORMAL;
+z_font current_resulting_font = Z_FONT_NORMAL;
+z_font lower_window_font = Z_FONT_NORMAL;
 static int upper_window_height = 0;
 
 
@@ -279,9 +281,18 @@ void opcode_set_text_style(void)
     if ( (new_z_style < 0) || (new_z_style > 15) )
       return;
 
-    current_style = new_z_style;
+    if (current_style != new_z_style) {
 
-    active_interface->set_text_style(new_z_style);
+      // Since it's possible to have combinations of styles we'll handle
+      // storing metadata and interface updates right here.
+      store_metadata_in_history(
+          outputhistory[0],
+          HISTORY_METADATA_TYPE_STYLE,
+          new_z_style);
+      //lower_window_style = current_style;
+      active_interface->set_text_style(new_z_style);
+      current_style = new_z_style;
+    }
   }
 }
 
@@ -410,6 +421,7 @@ void opcode_set_font(void)
     return;
   }
 
+  /*
   // REVISIT: Is it correct to not double-set fonts?
   if (new_z_font != current_font)
   {
@@ -420,7 +432,7 @@ void opcode_set_font(void)
           outputhistory[0],
           HISTORY_METADATA_TYPE_FONT,
           new_z_font);
-#endif /* DISABLE_OUTPUT_HISTORY */
+#endif // DISABLE_OUTPUT_HISTORY
     }
 
     else if (active_window_number == 1)
@@ -430,7 +442,7 @@ void opcode_set_font(void)
       {
         set_blockbuf_font(upper_window_buffer, new_z_font);
       }
-#endif /* DISABLE_BLOCKBUFFER */
+#endif // DISABLE_BLOCKBUFFER
     }
 
     active_interface->set_font(new_z_font);
@@ -442,6 +454,10 @@ void opcode_set_font(void)
   {
     set_variable(z_res_var, (uint16_t)current_font, false);
   }
+  */
+
+  current_font = new_z_font;
+  set_variable(z_res_var, (uint16_t)current_font, false);
 }
 
 #endif /* output_c_INCLUDED */
