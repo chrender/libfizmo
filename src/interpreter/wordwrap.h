@@ -58,6 +58,7 @@ typedef struct
   z_ucs *input_buffer;
   long input_buffer_size;
   long input_index;
+  long chars_already_on_line;
 
   struct wordwrap_metadata *metadata;
   int metadata_size;

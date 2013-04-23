@@ -1,5 +1,8 @@
 
    Version 0.7.7
+ - Fixed wordwrapper for cases in which text was written on the same line as
+   read_char was invoked. This makes output of multiline-hints in PRIZM's
+   Invisiclues work. Thanks to David Batchelder.
  - Renamed getchar, getchars and ungetchars from the file system interface
    to readchar, readchars and unreadchars. This makes fizmo compile on
    systems where getchar() is implemented as a macro.
@@ -8,7 +11,7 @@
  - Fixed several compiler warnings.
  - Added z_rgb_colour datatype.
  - Renamed "install-locales" into "install-data-local" build target.
- - Minor bugfixes.
+ - Other minor bugfixes.
 
    Version 0.7.6
  + 0.7.6 was finished at about Thu Dec 27 21:35:34 CET 2012.

@@ -98,6 +98,7 @@ WORDWRAP *wordwrap_new_wrapper(size_t line_length,
   result->input_buffer_size = line_length * 4;
   result->input_buffer = fizmo_malloc(sizeof(z_ucs)*result->input_buffer_size);
   result->input_index = 0;
+  result->chars_already_on_line = 0;
   result->metadata = NULL;
   result->metadata_size = 0;
   result->metadata_index = 0;
@@ -205,6 +206,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
   long len, chars_sent = 0;
   int metadata_offset = 0, i, chars_left_on_line;
   struct wordwrap_metadata *metadata_entry;
+  int current_line_length
+    = wrapper->line_length - wrapper->chars_already_on_line;
 
   input[wrapper->input_index] = 0;
   TRACE_LOG("input-index: %ld\n", wrapper->input_index);
@@ -213,7 +216,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
   for (;;)
   {
-    TRACE_LOG("Processing flush.\n");
+    TRACE_LOG("Processing flush for line-length %d\n", current_line_length);
 
     if (*input != 0)
     {
@@ -222,8 +225,9 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       TRACE_LOG("\".\n");
     }
 
-    if ((index = z_ucs_chr(input, Z_UCS_NEWLINE)) != NULL)
+    if ((index = z_ucs_chr(input, Z_UCS_NEWLINE)) != NULL) {
       len = index - input;
+    }
     else
     {
       len = z_ucs_len(input);
@@ -254,8 +258,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
         break;
       }
 
-      if ( (len <= wrapper->line_length) && (force_flush == false) )
-        // We're quitting on len == wrapper->line_length since we can only
+      if ( (len <= current_line_length) && (force_flush == false) )
+        // We're quitting on len == current_line_length since we can only
         // determine wether we can break cleanly is if a space follows
         // immediately after the last char.
         break;
@@ -266,7 +270,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
     TRACE_LOG("wordwrap-flush-len: %ld.\n", len);
 
-    if (len <= wrapper->line_length)
+    if (len <= current_line_length)
     {
       // Line fits on screen.
       TRACE_LOG("Line fits on screen.\n");
@@ -307,19 +311,19 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       // work.
       
       TRACE_LOG("to wrap/hyphenate (force:%d) to length %d : \"",
-          force_flush, wrapper->line_length);
+          force_flush, current_line_length);
       TRACE_LOG_Z_UCS(input);
       TRACE_LOG("\".\n");
 
       // Get the char at the current line end.
-      if (input[wrapper->line_length] == Z_UCS_SPACE) {
+      if (input[current_line_length] == Z_UCS_SPACE) {
         // Fine, we can wrap right here at this space.
-        index = input + wrapper->line_length;
+        index = input + current_line_length;
         last_hyphen = NULL;
       }
       else {
         if ( ((first_space = z_ucs_chr(
-                  input + wrapper->line_length, Z_UCS_SPACE)) == NULL) 
+                  input + current_line_length, Z_UCS_SPACE)) == NULL) 
             && (force_flush == false) ) {
           // In case we can't find any space the word may not have been
           // completely written to the buffer. Wait until we've got more
@@ -329,7 +333,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
         }
         else {
           if (first_space == NULL) {
-            word_end = input + wrapper->line_length;
+            word_end = input + current_line_length;
             while (*(word_end + 1) != 0) {
               word_end++;
             }
@@ -347,7 +351,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
           while (word_start > input) {
             TRACE_LOG("examining word end: \"%c\".\n", *word_start);
             if (*word_start == Z_UCS_MINUS) {
-              if (input + wrapper->line_length > word_start) {
+              if (input + current_line_length > word_start) {
                 // Found a dash to break on
                 word_start++;
                 break;
@@ -367,7 +371,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
           TRACE_LOG("word-end: %c\n", *word_end);
 
           last_hyphen = NULL;
-          if (word_end >= input + wrapper->line_length) {
+          if (word_end >= input + current_line_length) {
             // We only have to hyphenate in case the line is still too long.
 
             buf = *(word_end+ 1);
@@ -391,7 +395,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
             TRACE_LOG("\".\n");
             *(word_end + 1) = buf;
 
-            chars_left_on_line = wrapper->line_length - (index - input);
+            chars_left_on_line = current_line_length - (index - input);
             TRACE_LOG("chars left on line: %d\n", chars_left_on_line);
 
             ptr = hyphenated_word;
@@ -399,7 +403,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
               TRACE_LOG("Testing %c for soft-hyphen.\n", *ptr);
               if (*ptr == Z_UCS_SOFT_HYPEN) {
                 last_hyphen
-                  = input + (wrapper->line_length - chars_left_on_line);
+                  = input + (current_line_length - chars_left_on_line);
               }
               else {
                 chars_left_on_line--;
@@ -469,8 +473,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       // Find the end of the last word or dash in it before the end of line
       // (opposed to looking at the word overring the line end in case of
       // hyphentation).
-      TRACE_LOG("linelength: %d.\n", wrapper->line_length);
-      ptr = input + wrapper->line_length - 1;
+      TRACE_LOG("linelength: %d.\n", current_line_length);
+      ptr = input + current_line_length - 1;
       while (ptr > input) {
         if (*ptr == Z_UCS_SPACE) {
           index = ptr;
@@ -486,7 +490,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       if (ptr == input) {
         // We couldn't find any space or dash in the whole line, so we're
         // forced to flush everything.
-        index = input + wrapper->line_length;
+        index = input + current_line_length;
       }
 
       buf = *index;
@@ -522,10 +526,22 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
     }
 
     input += len;
+    current_line_length = wrapper->line_length;
   }
 
   TRACE_LOG("chars sent: %ld, moving: %ld.\n",
       chars_sent, wrapper->input_index - chars_sent + 1);
+
+  index = z_ucs_rchr(wrapper->input_buffer, Z_UCS_NEWLINE);
+
+  if (index != NULL) {
+    wrapper->chars_already_on_line
+      = z_ucs_len(wrapper->input_buffer) - (index - wrapper->input_buffer);
+  }
+  else {
+    wrapper->chars_already_on_line = z_ucs_len(wrapper->input_buffer);
+  }
+  TRACE_LOG("chars_already_on_line: %d\n", wrapper->chars_already_on_line);
 
   memmove(
       wrapper->input_buffer,
@@ -588,7 +604,8 @@ void wordwrap_wrap_z_ucs(WORDWRAP *wrapper, z_ucs *input)
          (wrapper->flush_after_newline == true)
          &&
          (
-          (wrapper->input_index > wrapper->line_length)
+          (wrapper->input_index + wrapper->chars_already_on_line
+           > wrapper->line_length)
           ||
           (z_ucs_chr(wrapper->input_buffer, Z_UCS_NEWLINE) != NULL)
          )
