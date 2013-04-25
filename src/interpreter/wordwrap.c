@@ -255,14 +255,20 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
             metadata_offset++;
           }
         }
+        wrapper->chars_already_on_line = 0;
         break;
       }
 
-      if ( (len <= current_line_length) && (force_flush == false) )
-        // We're quitting on len == current_line_length since we can only
-        // determine wether we can break cleanly is if a space follows
-        // immediately after the last char.
-        break;
+      if (len <= current_line_length) {
+        if (force_flush == false) {
+          // We're quitting on len == current_line_length since we can only
+          // determine wether we can break cleanly is if a space follows
+          // immediately after the last char.
+          wrapper->chars_already_on_line = 0;
+          break;
+        }
+        wrapper->chars_already_on_line = len;
+      }
 
       // FIXME: Add break in case hyph is enabled and a word longer than
       // the line is not terminated with a space.
@@ -532,16 +538,9 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
   TRACE_LOG("chars sent: %ld, moving: %ld.\n",
       chars_sent, wrapper->input_index - chars_sent + 1);
 
-  index = z_ucs_rchr(wrapper->input_buffer, Z_UCS_NEWLINE);
-
-  if (index != NULL) {
-    wrapper->chars_already_on_line
-      = z_ucs_len(wrapper->input_buffer) - (index - wrapper->input_buffer);
-  }
-  else {
-    wrapper->chars_already_on_line = z_ucs_len(wrapper->input_buffer);
-  }
   TRACE_LOG("chars_already_on_line: %d\n", wrapper->chars_already_on_line);
+
+  index = z_ucs_rchr(wrapper->input_buffer, Z_UCS_NEWLINE);
 
   memmove(
       wrapper->input_buffer,
