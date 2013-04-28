@@ -844,15 +844,36 @@ void write_interpreter_info_into_header()
 }
 
 
-void fizmo_register_screen_interface(struct z_screen_interface
-    *screen_interface)
+int fizmo_register_screen_interface(struct z_screen_interface
+    *screen_interface) //, z_colour screen_default_foreground_color,
+    //z_colour screen_default_background_color)
 {
-  if (active_interface == NULL)
-  {
-    active_interface = screen_interface;
-    register_i18n_stream_output_function(streams_z_ucs_output);
-    register_i18n_abort_function(abort_interpreter);
-  }
+  z_colour default_colour;
+
+  if (active_interface != NULL)
+    return -1;
+
+  default_colour = screen_interface->get_default_foreground_colour();
+  if (is_regular_z_colour(default_colour) == false)
+    return -2;
+  default_foreground_colour = default_colour;
+  if (set_configuration_value("foreground-color",
+        z_colour_names[default_foreground_colour]) != 0)
+    return -3;
+
+  default_colour = screen_interface->get_default_background_colour();
+  if (is_regular_z_colour(default_colour) == false)
+    return -4;
+  default_background_colour = default_colour;
+  if (set_configuration_value("background-color",
+        z_colour_names[default_background_colour]) != 0)
+    return -5;
+
+  active_interface = screen_interface;
+  register_i18n_stream_output_function(streams_z_ucs_output);
+  register_i18n_abort_function(abort_interpreter);
+
+  return 0;
 }
 
 
@@ -1121,8 +1142,7 @@ char *unquote_special_chars(char *s)
 
 
 void fizmo_start(z_file* story_stream, z_file *blorb_stream,
-    z_file *restore_on_start_file, z_colour screen_default_foreground_color,
-    z_colour screen_default_background_color)
+    z_file *restore_on_start_file)
 {
   char *value;
   bool evaluate_result;
@@ -1154,14 +1174,6 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 
   if ((str = getenv("ZCODE_ROOT_PATH")) != NULL)
     append_path_value("z-code-root-path", str);
-
-  default_colour = active_interface->get_default_foreground_colour();
-  if (is_regular_z_colour(default_colour) == true)
-    default_foreground_colour = default_colour;
-
-  default_colour = active_interface->get_default_background_colour();
-  if (is_regular_z_colour(default_colour) == true)
-    default_background_colour = default_colour;
 
 #ifndef DISABLE_CONFIGFILES
   parse_fizmo_config_files();
@@ -1213,32 +1225,6 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   TRACE_LOG("Converted savegame default filename: '");
   TRACE_LOG_Z_UCS(last_savegame_filename);
   TRACE_LOG("'.\n");
-
-  if ((str = get_configuration_value("foreground-color")) != NULL)
-  {
-    TRACE_LOG("str-foreground-color: %s\n", str);
-    default_colour = atoi(str);
-    if (is_regular_z_colour(default_colour) == true)
-      default_foreground_colour = default_colour;
-  }
-
-  if ((str = get_configuration_value("background-color")) != NULL)
-  {
-    TRACE_LOG("str-background-color: %s\n", str);
-    default_colour = atoi(str);
-    if (is_regular_z_colour(default_colour) == true)
-      default_background_colour = default_colour;
-  }
-
-  TRACE_LOG("screen_default_foreground_color: %d\n",
-      screen_default_foreground_color);
-  if (is_regular_z_colour(screen_default_foreground_color) == true)
-    default_foreground_colour = screen_default_foreground_color;
-
-  TRACE_LOG("screen_default_background_color: %d\n",
-      screen_default_background_color);
-  if (is_regular_z_colour(screen_default_background_color) == true)
-    default_background_colour = screen_default_background_color;
 
   current_foreground_colour = default_foreground_colour;
   current_background_colour = default_background_colour;

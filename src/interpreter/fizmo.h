@@ -70,7 +70,7 @@ From: http://www.logicalshift.demon.co.uk/unix/zoom/manual/configXwin.html
 #define OBEYS_SPEC_MINOR_REVISION_NUMER 0
 
 
-void fizmo_register_screen_interface(
+int fizmo_register_screen_interface(
     struct z_screen_interface *screen_interface);
 void fizmo_register_sound_interface(
     struct z_sound_interface *sound_interface);
@@ -78,8 +78,7 @@ void fizmo_register_blorb_interface(
     struct z_blorb_interface *blorb_interface);
 
 void fizmo_start(z_file* story_stream, z_file *blorb_stream,
-    z_file *restore_on_start_file, z_colour screen_default_foreground_color,
-    z_colour screen_default_background_color);
+    z_file *restore_on_start_file);
 void fizmo_new_screen_size(uint8_t width, uint8_t height);
 
 void write_interpreter_info_into_header();
