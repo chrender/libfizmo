@@ -1335,7 +1335,7 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
           }
         }
 
-        if (z_mem[0x11] & 2) {
+        if ( (active_z_story != NULL) && (z_mem[0x11] & 2) ) {
           current_resulting_font = Z_FONT_COURIER_FIXED_PITCH;
           //printf("force fixed on: %d\n", current_resulting_font);
         }
