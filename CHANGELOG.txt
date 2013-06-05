@@ -1,5 +1,6 @@
 
    Version 0.7.7
+ + 0.7.7 was finished at about Wed Jun 5 18:49:00 CEST 2013.
  - Fixed wordwrapper for cases in which text was written on the same line as
    read_char was invoked. This makes output of multiline-hints in PRIZM's
    Invisiclues work. Thanks to David Batchelder.
