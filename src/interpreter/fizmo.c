@@ -1149,7 +1149,6 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   uint8_t flags2;
   int val;
   char *str, *default_savegame_filename = DEFAULT_SAVEGAME_FILENAME;
-  z_colour default_colour;
 
   if (active_interface == NULL)
   {
