@@ -2000,14 +2000,6 @@ void opcode_read(void)
       // verification_routine are set to a fixed 0 in the call above)
       // the result stored in input_length is always >= 0.
 
-      // Reduce to lower case
-      // FIXME: Respect other (non-ASCII) languages?
-      /*
-      for (i=1; i<input_length+1; i++)
-        if ((z_text_buffer[i] >= 0x41) && (z_text_buffer[i] <= 0x5a))
-          z_text_buffer[i] += 0x20;
-      */
-
       z_text_buffer[input_length + 1] = 0;
 
 #ifndef DISABLE_COMMAND_HISTORY
@@ -2218,8 +2210,18 @@ void opcode_read(void)
         stream_4_latin1_output("(Interrupted input)");
     }
 
-    if (input_length >= 0)
+    if (input_length >= 0) {
       (void)streams_z_ucs_output_user_input(interpreter_command_buffer);
+      // Reduce to lower case. This appears to be also required in v5
+      // games, although it's not explicitely stated in the Z-Spec (see
+      // Beyond Zork, character name: "frank booth" becomes "Frank Booth").
+      // ToDo: Respect other (non-ASCII) languages?
+      for (i=0; i<input_length; i++)
+        if ((z_text_buffer[offset + i] >= 0x41)
+            && (z_text_buffer[offset + i] <= 0x5a))
+          z_text_buffer[offset + i] += 0x20;
+    }
+
     (void)streams_z_ucs_output_user_input(z_ucs_newline_string);
 
     stream_1_active = stream_1_active_buf;
