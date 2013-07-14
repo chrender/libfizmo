@@ -29,6 +29,8 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 localedir = $(datarootdir)/fizmo/locales
 
 AM_CFLAGS =
