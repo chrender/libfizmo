@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document title="libfizmo initialization" date="2011-08-23">
+  <section title="Overview">
+    <p>There are six initialization steps:</p>
+    <ul>
+      <li><tt>fizmo_register_screen_interface</tt></li>
+      <li><tt>fizmo_register_sound_interface</tt></li>
+      <li>optional: <tt>parse_fizmo_config_files</tt></li>
+      <li><tt>fizmo_start</tt></li>
+      <li><tt>parse_fizmo_config_files</tt> if not happened before</li>
+      <li>implicit: <tt>link_active_interface_to_story</tt></li>
+    </ul>
+
+    <p>fizmo config files:</p>
+
+    <ul>
+      <li><tt>/etc/fizmo.conf</tt>, always parsed.</li>
+      <li>All <tt>fizmo/config</tt> files in all directories from colon-spearated <tt>XDG_CONFIG_DIRS</tt> path.</li>
+      <li><tt>$HOME/.config.fizmo</tt></li>
+    </ul>
+  </section>
+
+  <section title="Color initialization">
+    <p>The screen default colors are stored in variables <tt>default_foreground_colour</tt> and <tt>default_background_colour</tt> inside <tt>output.c</tt>. By default, the foreground is initialized as white, the background as black. Initialization is as follows:</p>
+
+    <ol>
+      <li>By default, the foreground color is set to white, the background to black in <tt>output.c</tt>.</li>
+      <li>The screen interface's functions <tt>get_default_foreground_colour</tt> and <tt>get_default_background_colour</tt> are evaluated. In case these return valid z_colour values, these are used as the default colors. That means that by returning -1 for one or both of the functions, the screen interface may choose not to alter the interpreter's default values.</li>
+      <li>The <tt>foreground-color</tt> and <tt>background-color</tt> config variables are evaluated from the configuration file(s).</li>
+      <li>The <tt>fizmo-start</tt> function's variables <tt>screen_default_foreground_color</tt> and <tt>screen_default_background_colour</tt> are evaluated. In case these contains valid z_colour values, they're used as the new default. As in step 2, that means that the default, as evaluated up to this step, may be kept by setting one or both of the values to -1.</li>
+    </ol>
+
+    <p>Why the additional step 4? While it's already possible to read color information from the screen interface in step 2, step 4 ensures that it's possible to still override the information parsed from the config files in step 3 from the screen interface.</p>
+  </section>
+</document>
+
+
+
+

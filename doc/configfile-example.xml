@@ -1,4 +1,6 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+  <code>
 # fizmo example configuration file.
 # This should go to ($HOME)/.config/fizmo/config
 
@@ -33,6 +35,7 @@ right-margin = 1
 #disable-color
 #disable-hyphenation
 
+
 # -- fizmo-ncursesw options
 enable-xterm-title
 #bold-for-bright-foreground
@@ -40,4 +43,6 @@ enable-xterm-title
 #dont-update-story-list
 #disable-x11-graphics
 #display-x11-inline-image
+  </code>
+</document>
 
