@@ -194,7 +194,7 @@ static int zchar_storage_write(unsigned int five_bits)
 
   if (++zchar_storage_word_index == 3)
   {
-    TRACE_LOG("zchar: storing word %x at %x, end at %x.\n",
+    TRACE_LOG("zchar: storing word %x at %p, end at %p.\n",
         zchar_storage_word,
         zchar_storage_output_index,
         zchar_storage_index_behind);
@@ -268,7 +268,7 @@ static int zchar_storage_finish()
     {
       // In case there's some output, write the string termination to the
       // last word of the output.
-      TRACE_LOG("Successfully finalized full word.");
+      TRACE_LOG("Successfully finalized full word.\n");
       *(zchar_storage_output_index-2) |= 0x80;
     }
     else
@@ -619,8 +619,8 @@ static uint8_t locate_dictionary_entry(
     if (dont_write_unrecognized_words_to_parse_buffer == false)
     {
       store_word(*parse_position, 0);
-      (*parse_position) += 2;
     }
+    (*parse_position) += 2;
   }
 
   if (dont_write_unrecognized_words_to_parse_buffer == false)
@@ -635,6 +635,10 @@ static uint8_t locate_dictionary_entry(
         (unsigned long int)(*parse_position - z_mem));
     **parse_position = word_position;
     (*parse_position)++;
+  }
+  else
+  {
+    (*parse_position) += 2;
   }
 
   if (word_found_at_index != -1)
@@ -693,6 +697,9 @@ static void tokenise(
   dictionary += number_of_input_codes;
   dictionary_entry_length = *(dictionary++);
   number_of_dictionary_entries = (int16_t)load_word(dictionary);
+  TRACE_LOG("Number of dictionary entries: %d.\n",
+      number_of_dictionary_entries);
+
   if (number_of_dictionary_entries < 0)
   {
     dictionary_is_unsorted = true;
@@ -2542,18 +2549,29 @@ void opcode_print_table(void)
 void opcode_encode_text(void)
 {
   uint8_t *src = z_mem + (uint16_t)op[0] + (uint16_t)op[2];
-  uint16_t length = (uint16_t)op[1];
+  uint16_t length = (uint16_t)op[1], chars_written = 0;
   uint8_t *dest = z_mem + (uint16_t)op[3];
 
   TRACE_LOG("Opcode: ENCODE_TEXT.\n");
 
-  zchar_storage_start(dest, (length + 2) / 3);
+  // "encode_text" is only valid for version >= 5, so the length of the
+  // buffer must always be fixed at 6 bytes.
+  zchar_storage_start(dest, 6);
+  TRACE_LOG("Encoding to %x / %p.\n", (uint16_t)op[3], dest);
 
-  while ( (*src != 0) && (length > 0) )
+  while ( (*src != 0) && (chars_written < length) )
   {
+    TRACE_LOG("Encoding char '%c'.\n", *src);
     store_ZSCII_as_zchar(*src);
     src++;
-    length--;
+    chars_written++;
+  }
+  while (chars_written < 9) {
+    // Since we're always working in version >= 5, we always have to pad
+    // to a fixed size of 9 z-chars.
+    TRACE_LOG("Storing padding char 5.\n");
+    (void)zchar_storage_write(5);
+    chars_written++;
   }
 
   zchar_storage_finish();
