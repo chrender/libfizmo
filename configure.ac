@@ -98,10 +98,10 @@ AC_ARG_ENABLE([debugger],
  [enable_debugger=no])
 
 AC_INIT([libfizmo], [0.7.8])
+AC_CONFIG_AUX_DIR([.])
 
 m4_include(config-libs.m4)
 
-AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_PROG_RANLIB
