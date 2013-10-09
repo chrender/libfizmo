@@ -1588,6 +1588,10 @@ int restore_game_from_stream(uint16_t address, uint16_t length,
 
   free(restored_story_mem);
 
+  fizmo_new_screen_size(
+      active_interface->get_screen_width_in_characters(),
+      active_interface->get_screen_height_in_lines());
+
 #ifdef ENABLE_TRACING
   dump_stack_to_tracelog();
   dump_dynamic_memory_to_tracelog();
