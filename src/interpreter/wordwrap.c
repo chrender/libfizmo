@@ -69,6 +69,8 @@
 //static z_ucs word_interpunctation_chars[] = {
 //  Z_UCS_MINUS, Z_UCS_DOT, 0 };
 
+static z_ucs word_split_chars[] = { Z_UCS_SPACE, Z_UCS_NEWLINE, 0 };
+
 
 WORDWRAP *wordwrap_new_wrapper(size_t line_length,
     void (*wrapped_text_output_destination)(z_ucs *output, void *parameter),
@@ -200,7 +202,7 @@ static void output_buffer(WORDWRAP *wrapper, z_ucs *buffer_start,
 static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 {
   z_ucs *index = NULL, *ptr, *hyphenated_word, *last_hyphen, *word_start;
-  z_ucs *word_end, *input = wrapper->input_buffer, *first_space;
+  z_ucs *word_end, *input = wrapper->input_buffer, *first_space_or_newline;
   z_ucs buf=0, buf2; // buf initialized to avoid compiler warning
   z_ucs buf3 = '-'; // buf3 initialized to avoid compiler warning
   long len, chars_sent = 0;
@@ -328,8 +330,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
         last_hyphen = NULL;
       }
       else {
-        if ( ((first_space = z_ucs_chr(
-                  input + current_line_length, Z_UCS_SPACE)) == NULL) 
+        if ( ((first_space_or_newline = z_ucs_chrs(
+                  input + current_line_length, word_split_chars)) == NULL) 
             && (force_flush == false) ) {
           // In case we can't find any space the word may not have been
           // completely written to the buffer. Wait until we've got more
@@ -338,7 +340,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
           break;
         }
         else {
-          if (first_space == NULL) {
+          if (first_space_or_newline == NULL) {
             word_end = input + current_line_length;
             while (*(word_end + 1) != 0) {
               word_end++;
@@ -347,7 +349,7 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
           else {
             // We've found a space behind the overrunning word so we're
             // able to correctly split the current line.
-            word_end = first_space - 1;
+            word_end = first_space_or_newline - 1;
           }
 
           // Before hyphentation, check for dashes inside the last word.
