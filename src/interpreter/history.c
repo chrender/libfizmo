@@ -1069,10 +1069,12 @@ static void evaluate_metadata_for_paragraph(history_output *output)
 // point to the first char of the last paragraph -- not the newline before --
 // or the buffer start. In case a previous paragraph could be found the return
 // value is 0, in case the buffer back was encountered 1 and a negative value
-// in case of an error.
-int output_rewind_paragraph(history_output *output)
+// in case of an error. In case char_count is non-null, the number of
+// non-metadata chars in this paragraph is stored at this reference.
+int output_rewind_paragraph(history_output *output, long *char_count)
 {
   z_ucs *index, *last_index; //, *ptr;
+  int nof_chars = 0;
   //z_ucs metadata_type, parameter;
 
   TRACE_LOG("Rewinding output history by one paragraph from %p.\n",
@@ -1131,6 +1133,9 @@ int output_rewind_paragraph(history_output *output)
       TRACE_LOG("Last output char is newline, returning from 1st iteration.\n");
       output->first_iteration_done = true;
       output->metadata_at_index_evaluated = false;
+      if (char_count != NULL) {
+        *char_count = 0;
+      }
       //evaluate_metadata_for_paragraph(output);
       return 0;
     }
@@ -1160,52 +1165,30 @@ int output_rewind_paragraph(history_output *output)
         output->current_paragraph_index = last_index;
         output->metadata_at_index_evaluated = false;
         //evaluate_metadata_for_paragraph(output);
+        if (char_count != NULL) {
+          *char_count = nof_chars;
+        }
         return 0;
       }
       else
         return -1;
     }
 
-    /*
-    if (*index == HISTORY_METADATA_ESCAPE)
-    {
-      if ((ptr = index + 1) > output->history->z_history_buffer_end)
-        ptr = output->history->z_history_buffer_start;
-      metadata_type = *ptr;
+    nof_chars++;
 
-      if ((ptr = index + 1) > output->history->z_history_buffer_end)
-        ptr = output->history->z_history_buffer_start;
-      parameter = (int)*ptr - HISTORY_METADATA_DATA_OFFSET;
-
-      if (metadata_type == HISTORY_METADATA_TYPE_FONT)
-        output->font_at_index = parameter;
-      else if (metadata_type == HISTORY_METADATA_TYPE_STYLE)
-        output->style_at_index = parameter;
-      else if (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
-      {
-        output->foreground_at_index = parameter;
-        if ((ptr = index + 1) > output->history->z_history_buffer_end)
-          ptr = output->history->z_history_buffer_start;
-        parameter = (int)*ptr - HISTORY_METADATA_DATA_OFFSET;
-        output->background_at_index = parameter;
-      }
-      else
-      {
-        TRACE_LOG("Invalid metadata type %d\n", metadata_type);
-        i18n_translate_and_exit(
-            libfizmo_module_name,
-            i18n_libfizmo_INVALID_PARAMETER_TYPE_P0S,
-            -1,
-            "metadata");
-      }
+    if (*index == HISTORY_METADATA_ESCAPE) {
+      nof_chars -= (*last_index == HISTORY_METADATA_TYPE_COLOUR ? 4 : 3);
     }
-     */
 
     TRACE_LOG("Index pointing at '%c' / %p.\n", *index, index);
   }
 
   output->metadata_at_index_evaluated = false;
   //evaluate_metadata_for_paragraph(output);
+
+  if (char_count != NULL) {
+    *char_count = nof_chars;
+  }
 
   if (*index == '\n')
   {

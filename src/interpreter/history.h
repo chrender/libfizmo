@@ -160,7 +160,7 @@ void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
 int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars);
 z_ucs *get_current_line(OUTPUTHISTORY *history);
 history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t);
-int output_rewind_paragraph(history_output *output);
+int output_rewind_paragraph(history_output *output, long *char_count);
 int output_repeat_paragraphs(history_output *output, int n,
     bool include_metadata, bool advance_history_pointer);
 void destroy_history_output(history_output *output);
