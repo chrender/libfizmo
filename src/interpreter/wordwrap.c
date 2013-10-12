@@ -428,9 +428,25 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
               index = last_hyphen + 1;
             }
             else {
+              // We couldn't find a possibility to hyphenate the last
+              // word in the line.
               TRACE_LOG("No hyphen found.\n");
-              if ( (index > input) && (*(index-1) != Z_UCS_MINUS) ) {
-                index--;
+
+              if (index > input) {
+                if  (*(index-1) != Z_UCS_MINUS) {
+                  // In case the char before the last word is not a dash,
+                  // we'll skip the space before this word by moving back
+                  // the index by one.
+                  index--;
+                }
+              }
+              else {
+                // In case the current word is so long that it doesn't fit
+                // on the line -- this may be the case if we're supposed
+                // to display ASCII art and the linesize is to short -- we
+                // have to advance the index to the line end.
+                TRACE_LOG("This is the first word in the line, hard break.\n");
+                index = input + current_line_length;
               }
             }
           }
