@@ -218,7 +218,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
 
   for (;;)
   {
-    TRACE_LOG("Processing flush for line-length %d\n", current_line_length);
+    TRACE_LOG("Processing flush for line-length %d, already in line: %d.\n",
+        current_line_length, wrapper->chars_already_on_line);
 
     if (*input != 0)
     {
@@ -709,6 +710,11 @@ void wordwrap_remove_chars(WORDWRAP *wrapper, size_t num_chars_to_remove)
         >= wrapper->input_index) ) {
     wrapper->metadata_index--;
   }
+}
+
+void wordwrap_set_line_index(WORDWRAP *wrapper, int new_line_index) {
+  TRACE_LOG("Setting chars on line to %d.\n", new_line_index);
+  wrapper->chars_already_on_line = new_line_index;
 }
 
 #endif /* wordwrap_c_INCLUDED */
