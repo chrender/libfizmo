@@ -60,6 +60,7 @@ typedef struct
 
   z_ucs *z_history_buffer_start; // this will be the result of malloc()
   z_ucs *z_history_buffer_end;
+  unsigned int nof_wraparounds;
 
   // In general, z_history_buffer_front_index denotes the next write position.
   // In case z_history_buffer_front_index == z_history_buffer_back_index,
@@ -67,7 +68,6 @@ typedef struct
   // and a full, wrapped-around buffer.
   z_ucs *z_history_buffer_front_index;
   z_ucs *z_history_buffer_back_index;
-  bool wrapped_around;
 
   long int last_metadata_block_index;
 
@@ -101,10 +101,17 @@ typedef struct
 {
   OUTPUTHISTORY *history;
 
+  // The following two properties are used to ensure that no output has
+  // been written to the history that this output-object is pointing to.
+  unsigned int validity_wraparounds;
+  z_ucs *validity_frontindex;
+
   history_output_target *target;
   z_ucs *current_paragraph_index;
-  bool has_wrapped;
+  unsigned int nof_wraparounds;
+
   bool found_end_of_buffer;
+  bool rewound_paragraph_was_newline_terminated;
   bool first_iteration_done;
 
   bool metadata_at_index_evaluated;
@@ -125,8 +132,9 @@ typedef struct
 
   // Storage for state-saving:
   z_ucs *saved_current_paragraph_index;
-  bool saved_has_wrapped;
+  unsigned int saved_nof_wraparounds;
   bool saved_found_end_of_buffer;
+  bool saved_rewound_paragraph_was_newline_terminated;
   bool saved_first_iteration_done;
   bool saved_metadata_at_index_evaluated;
   z_font saved_font_at_index;
@@ -167,6 +175,7 @@ void destroy_history_output(history_output *output);
 void remember_history_output_position(history_output *output);
 void restore_history_output_position(history_output *output);
 size_t get_allocated_text_history_size(OUTPUTHISTORY *h);
+bool is_output_at_frontindex(history_output *output);
 
 #endif /* history_h_INCLUDED */
 

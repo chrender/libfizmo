@@ -3,7 +3,7 @@
  *
  * This file is part of fizmo.
  *
- * Copyright (c) 2009-2012 Christoph Ender.
+ * Copyright (c) 2009-2013 Christoph Ender.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,14 @@
  * "init_history_output" which will point to the current end of the history.
  * (... "output_rewind_paragraph", "output_repeat_paragraphs")
  *
+ * For greater output flexibility, a repeated output's paragraph is never
+ * followed by a newline char. This, however, introduces the ambiguity that
+ * for the very last paragraph it's not known whether it has been
+ * terminated with a newline or not, which is relevant when redrawing the
+ * screen. To solve this, the "output_rewind_paragraph" will set the flag
+ * "rewound_paragraph_was_newline_terminated" to false in case the very
+ * last paragraph in the buffer is not yet followed by a newline char.
+ *
  * Please note: The buffer size must have at least the size of the largest
  * metadata entry, which is 4 z_ucs-chars.
  */
@@ -82,7 +90,7 @@
 
 
 outputhistory_ptr outputhistory[]
-= { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+ = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 
 OUTPUTHISTORY *create_outputhistory(int window_number,
@@ -107,7 +115,7 @@ OUTPUTHISTORY *create_outputhistory(int window_number,
   result->z_history_buffer_end = NULL;
   result->z_history_buffer_front_index = NULL;
   result->z_history_buffer_back_index = NULL;
-  result->wrapped_around = false;
+  result->nof_wraparounds = 0;
   result->last_metadata_block_index = 0;
 
   result->history_buffer_back_index_font = font;
@@ -135,7 +143,7 @@ static size_t get_buffer_space_used(OUTPUTHISTORY *h)
 {
   if (h->z_history_buffer_size == 0)
     return 0;
-  else if (h->wrapped_around == false)
+  else if (h->nof_wraparounds == 0)
     return h->z_history_buffer_front_index - h->z_history_buffer_back_index + 1;
   else
     return h->z_history_buffer_size
@@ -245,7 +253,7 @@ static size_t get_buffer_space_available(OUTPUTHISTORY *h)
 {
   if (h->z_history_buffer_size == 0)
     return 0;
-  else if (h->wrapped_around == false)
+  else if (h->nof_wraparounds == 0)
     return h->z_history_buffer_end - h->z_history_buffer_front_index + 1;
   else
     return h->z_history_buffer_back_index - h->z_history_buffer_front_index;
@@ -428,7 +436,7 @@ void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
         (long int)get_buffer_space_available(h),
         (long int)h->z_history_buffer_size);
 
-    if (h->wrapped_around == false)
+    if (h->nof_wraparounds == 0)
     {
       TRACE_LOG("Not in wrap-around mode.\n");
 
@@ -480,12 +488,13 @@ void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
 
       // We couldn't write everything into the buffer. Since we're not
       // in wrap-around yet, we'll start this now.
-      h->wrapped_around = true;
+      if (++h->nof_wraparounds == 0)
+        h->nof_wraparounds = 1;
       h->z_history_buffer_front_index = h->z_history_buffer_start;
     }
 
-    // If we arrive at this point, it's either due to h->wrapped_around
-    // was == true above, or since we were in h->wrapped_around == false
+    // If we arrive at this point, it's either due to h->nof_wraparounds
+    // was > 0 above, or since we were in h->nof_wraparounds == 0
     // and len was still > 0 when writing up to the end of the buffer.
     // In both cases, we now are in wrap-around situation and have to
     // "throw away" chars at the back of the buffer to make room for more.
@@ -676,14 +685,15 @@ int get_paragraph_y_positions(OUTPUTHISTORY *history, int screen_width,
 // This function will really only decrement the pointer. "Only" means that
 // even after a successful decrement the pointer is not guaraneteed to
 // point at text, it may also point at the end of a metadata-entry.
-z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr, bool *has_wrapped)
+z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr,
+    unsigned int *nof_wraparounds)
 {
   if (
       (ptr == h->z_history_buffer_back_index) 
       &&
       (ptr == h->z_history_buffer_front_index)
       &&
-      (*has_wrapped == true)
+      (*nof_wraparounds > 0)
      )
   {
     TRACE_LOG("History index already at buffer back.\n");
@@ -694,7 +704,7 @@ z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr, bool *has_wrapped)
 
   if (ptr < h->z_history_buffer_start)
   {
-    if (h->wrapped_around == false)
+    if (h->nof_wraparounds == 0)
     {
       TRACE_LOG("History index at front of non-wrapped buffer.\n");
       return NULL;
@@ -703,68 +713,27 @@ z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr, bool *has_wrapped)
     {
       TRACE_LOG("History index at front, wrapping around.\n");
       ptr = h->z_history_buffer_end;
-      *has_wrapped = true;
+      (*nof_wraparounds)--;
     }
   }
 
   return ptr;
 }
-
-
-/*
-z_ucs *increment_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr, bool *has_wrapped)
-{
-  if (
-      (ptr == h->z_history_buffer_back_index) 
-      &&
-      (ptr == h->z_history_buffer_front_index)
-      &&
-      (*has_wrapped == false)
-     )
-  {
-    TRACE_LOG("History index already at buffer front.\n");
-    return NULL;
-  }
-
-  ptr++;
-
-      current_index
-        = current_index == h->z_history_buffer_end
-        ? h->z_history_buffer_start
-        : current_index + 1;
-
-  if (ptr > h->z_history_buffer_end)
-  {
-    if (h->wrapped_around == false)
-    {
-      TRACE_LOG("History index at front of non-wrapped buffer.\n");
-      return NULL;
-    }
-    else
-    {
-      TRACE_LOG("History index at front, wrapping around.\n");
-      ptr = h->z_history_buffer_end;
-      *has_wrapped = true;
-    }
-  }
-
-  return ptr;
-}
-*/
 
 
 // Used to remove preloaded input:
 int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
 {
   z_ucs *ptr = history->z_history_buffer_front_index;
-  bool has_wrapped = history->wrapped_around;
+  unsigned int nof_wraparounds = history->nof_wraparounds;
   z_ucs last_data = 0;
 
   TRACE_LOG("Removing %d chars from history at %p.\n", nof_chars, ptr);
 
   while (nof_chars > 0)
   {
-    if ((ptr = decrement_buffer_pointer(history, ptr, &has_wrapped)) == NULL)
+    if ((ptr = decrement_buffer_pointer(
+            history, ptr, &nof_wraparounds)) == NULL)
       // Can't rewind any more. Don't change current pointer.
       return -1;
 
@@ -780,7 +749,7 @@ int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
   }
 
   history->z_history_buffer_front_index = ptr;
-  history->wrapped_around = has_wrapped;
+  history->nof_wraparounds = nof_wraparounds;
 
   TRACE_LOG("History went to %p.\n", ptr);
 
@@ -792,15 +761,13 @@ int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
 // of the next encountered newline char.
 static z_ucs* find_older_paragraph(OUTPUTHISTORY *h, z_ucs *index)
 {
-  bool has_wrapped;
+  unsigned int nof_wraparounds = h->nof_wraparounds;
 
   if ( (h == NULL) || (h->z_history_buffer_size == 0) )
     return NULL;
 
-  has_wrapped = (index == h->z_history_buffer_front_index ? false : true);
-
   while (*index != '\n')
-    if ((index = decrement_buffer_pointer(h, index, &has_wrapped)) == NULL)
+    if ((index = decrement_buffer_pointer(h, index, &nof_wraparounds)) == NULL)
       return NULL;
 
   return index;
@@ -811,14 +778,15 @@ z_ucs *get_current_line(OUTPUTHISTORY *h)
 {
   z_ucs *last_stored_char_index, *last_newline_index, *result;
   size_t len, backlen=0, frontlen=0;
-  bool wrap_encountered, has_wrapped = false;
+  bool wrap_encountered;
+  unsigned int nof_wraparounds = 0;
 
   // Since the front_index points to the position where the next(!) character
   // should be written to, we've got to step back by one char position.
   if ((last_stored_char_index = decrement_buffer_pointer(
           h,
           h->z_history_buffer_front_index,
-          &has_wrapped)) == NULL)
+          &nof_wraparounds)) == NULL)
   {
     TRACE_LOG("no current line: can't dec ptr.\n");
     return NULL;
@@ -885,14 +853,17 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t)
   result = fizmo_malloc(sizeof(history_output));
 
   result->history = h;
+  result->validity_wraparounds = h->nof_wraparounds;
+  result->validity_frontindex = h->z_history_buffer_front_index;
   result->target=t;
   result->current_paragraph_index = h->z_history_buffer_front_index;
   result->font_at_index = h->history_buffer_front_index_font;
   result->style_at_index = h->history_buffer_front_index_style;
   result->foreground_at_index = h->history_buffer_front_index_foreground;
   result->background_at_index = h->history_buffer_front_index_background;
-  result->has_wrapped = false;
+  result->nof_wraparounds = 0;
   result->found_end_of_buffer = false;
+  result->rewound_paragraph_was_newline_terminated = false;
   result->first_iteration_done = false;
   result->last_rewinded_paragraphs_block_index = -1;
   result->last_used_metadata_state_font = -1;
@@ -906,7 +877,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t)
   if ((result->current_paragraph_index = decrement_buffer_pointer(
           result->history,
           result->current_paragraph_index,
-          &result->has_wrapped)) == NULL)
+          &result->nof_wraparounds)) == NULL)
   {
     free(result);
     return NULL;
@@ -916,18 +887,35 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t)
 }
 
 
+static void validate_outputhistory(history_output *output) {
+  if ( (output != NULL)
+      && (output->history->nof_wraparounds == output->validity_wraparounds)
+      && (output->validity_frontindex
+        == output->history->z_history_buffer_front_index) )
+    return;
+  else
+    i18n_translate_and_exit(
+        libfizmo_module_name,
+        i18n_libfizmo_HISTORYOUTPUT_NO_LONGER_VALID,
+        -1);
+}
+
+
 static void evaluate_metadata_for_paragraph(history_output *output)
 {
   OUTPUTHISTORY *h = output->history;
   long int metadata_block_index;
-  bool has_wrapped;
+  unsigned int nof_wraparounds;
   long int buffer_index
     = output->current_paragraph_index - h->z_history_buffer_start;
   z_ucs *index = output->current_paragraph_index;
   z_ucs *i2 = NULL, *i3 = NULL, *i4 = NULL;
   int metadata_type, parameter;
 
-  TRACE_LOG("Evaluating metadata for current paragraph.\n");
+  validate_outputhistory(output);
+
+  TRACE_LOG("Evaluating metadata for current paragraph from %p.\n",
+      output->current_paragraph_index);
 
   if (output->metadata_at_index_evaluated == true)
   {
@@ -969,7 +957,7 @@ static void evaluate_metadata_for_paragraph(history_output *output)
     output->foreground_at_index = Z_COLOUR_UNDEFINED;
     output->background_at_index = Z_COLOUR_UNDEFINED;
 
-    has_wrapped = output->has_wrapped;
+    nof_wraparounds = output->nof_wraparounds;
 
     while (
         (output->font_at_index == -1)
@@ -994,7 +982,7 @@ static void evaluate_metadata_for_paragraph(history_output *output)
       if ((index = decrement_buffer_pointer(
               output->history,
               index,
-              &has_wrapped)) == NULL)
+              &nof_wraparounds)) == NULL)
       {
         TRACE_LOG("Hit end of buffer. Using back values to fill in.\n");
 
@@ -1073,63 +1061,82 @@ static void evaluate_metadata_for_paragraph(history_output *output)
 // non-metadata chars in this paragraph is stored at this reference.
 int output_rewind_paragraph(history_output *output, long *char_count)
 {
-  z_ucs *index, *last_index; //, *ptr;
+  z_ucs *index, *last_index;
   int nof_chars = 0;
-  //z_ucs metadata_type, parameter;
+  unsigned int nof_wraparounds, last_nof_wraparounds;
 
   TRACE_LOG("Rewinding output history by one paragraph from %p.\n",
       output->current_paragraph_index);
 
-  if (
-      (output == NULL)
-      ||
-      (output->history == NULL)
-      ||
-      (output->history->z_history_buffer_size == 0)
-     )
+  validate_outputhistory(output);
+
+  if ( (output == NULL)
+      || (output->history == NULL)
+      || (output->history->z_history_buffer_size == 0) )
     return -1;
 
+  TRACE_LOG("found_end_of_buffer: %d.\n", output->found_end_of_buffer);
   if (output->found_end_of_buffer == true)
-    return -2;
+    return 1;
 
+  // We're not changing the index directly in case we're hitting a non-full
+  // paragraph at the front. Instead, we're working on local variables and
+  // only modify the history index in case we can find a newline.
   index = output->current_paragraph_index;
+  nof_wraparounds = output->nof_wraparounds;
 
-  if (output->first_iteration_done == true)
-  {
+  // Rewind to last paragraph's newline since the index should always
+  // point to the first char of a paragraph. We only have to do this if
+  // we're not at the buffer end and have already finished at least the
+  // first rewind iteration.
+  if (output->first_iteration_done == true) {
     TRACE_LOG("Skipping over last paragraph's newline.\n");
+    // In case we're not at the end of the history, paragraphs are
+    // always newline-terminated.
+    output->rewound_paragraph_was_newline_terminated = true;
 
-    // Rewind to last paragraph's newline.
     if ((index = decrement_buffer_pointer(
             output->history,
             index,
-            &output->has_wrapped)) == NULL)
-    {
-      TRACE_LOG("Couldn't execute inital index decrement.\n");
+            &nof_wraparounds)) == NULL) {
+      TRACE_LOG("Couldn't execute initial index decrement.\n");
       return -3;
     }
 
-    if (*index != '\n')
-    {
+    if (*index != '\n') {
       TRACE_LOG("Internal error rewinding.\n");
       return -4;
     }
 
     last_index = index;
+    last_nof_wraparounds = nof_wraparounds;
 
     // Rewind to last paragraph's last content char.
     if ((index = decrement_buffer_pointer(
             output->history,
             index,
-            &output->has_wrapped)) == NULL)
-    {
+            &nof_wraparounds)) == NULL) {
+      // Here we've hit the start of the buffer, so this empty paragraph
+      // (since we've just skipped the newline above) will be the last
+      // we can deliver.
       TRACE_LOG("Couldn't execute second stop of inital index decrement.\n");
-      return -5;
+      output->found_end_of_buffer = true;
+      TRACE_LOG("found_end_of_buffer: %d.\n", output->found_end_of_buffer);
+      //output->current_paragraph_index = index;
+      //output->nof_wraparounds = nof_wraparounds;
+      output->current_paragraph_index = last_index;
+      output->nof_wraparounds = last_nof_wraparounds;
+      return 0;
+    }
+    else if (*index == '\n') {
+      // In case the next paragraph is empty, quit right away.
+      output->current_paragraph_index = last_index;
+      output->nof_wraparounds = last_nof_wraparounds;
+      return 0;
     }
   }
-  else
-  {
-    if (*index == '\n')
-    {
+  else {
+    if (*index == '\n') {
       TRACE_LOG("Last output char is newline, returning from 1st iteration.\n");
       output->first_iteration_done = true;
       output->metadata_at_index_evaluated = false;
@@ -1137,41 +1144,55 @@ int output_rewind_paragraph(history_output *output, long *char_count)
         *char_count = 0;
       }
       //evaluate_metadata_for_paragraph(output);
+      output->rewound_paragraph_was_newline_terminated = true;
       return 0;
     }
+    else {
+      output->rewound_paragraph_was_newline_terminated = false;
+    }
 
-    last_index = index;
+    //last_index = index;
   }
 
   output->first_iteration_done = true;
 
   TRACE_LOG("Index pointing at '%c' / %p.\n", *index, index);
 
-  while (*index != '\n')
-  {
-    //TRACE_LOG("Looking at %p.\n", index);
-
+  // The index is now pointing at the last char of the paragraph we want
+  // to rewind over. We're rewinding until we find the newline or the
+  // buffer start. In the latter case we've got a non-full paragraph which
+  // we won't return.
+  do {
+    // In this loop we're remembering the last index position for two
+    // reasons: One to be able to read the last z_ucs we've iterated over
+    // for eaasier metadata evaluation (see below), second to make
+    // skipping the newline we might find a bit easier.
     last_index = index;
+    last_nof_wraparounds = nof_wraparounds;
 
     if ((index = decrement_buffer_pointer(
             output->history,
             index,
-            &output->has_wrapped)) == NULL)
-    {
-      // In case we can't move back any more we've hit the buffer back.
+            &nof_wraparounds)) == NULL) {
+      // In case we can't move back any more we've hit the buffer start.
       TRACE_LOG("Couldn't decrement history index.\n");
-      if (output->current_paragraph_index != last_index)
-      {
-        output->current_paragraph_index = last_index;
-        output->metadata_at_index_evaluated = false;
-        //evaluate_metadata_for_paragraph(output);
-        if (char_count != NULL) {
-          *char_count = nof_chars;
-        }
-        return 0;
-      }
-      else
-        return -1;
+      output->found_end_of_buffer = true;
+      return 1;
+
+      /*
+         if (output->current_paragraph_index != last_index) {
+         output->current_paragraph_index = last_index;
+         output->metadata_at_index_evaluated = false;
+      //output->found_end_of_buffer = true;
+      //evaluate_metadata_for_paragraph(output);
+      if (char_count != NULL) {
+       *char_count = nof_chars;
+       }
+       return 0;
+       }
+       else
+       return -1;
+       */
     }
 
     nof_chars++;
@@ -1182,27 +1203,49 @@ int output_rewind_paragraph(history_output *output, long *char_count)
 
     TRACE_LOG("Index pointing at '%c' / %p.\n", *index, index);
   }
+  while (*index != '\n');
 
+  output->current_paragraph_index = last_index;
+  output->nof_wraparounds = last_nof_wraparounds;
   output->metadata_at_index_evaluated = false;
-  //evaluate_metadata_for_paragraph(output);
+  evaluate_metadata_for_paragraph(output);
 
   if (char_count != NULL) {
     *char_count = nof_chars;
   }
 
-  if (*index == '\n')
-  {
+  return 0;
+
+  /*
+  // We'll only consider "full" paragraphs when reading the history, which
+  // means that in case the buffer front is not on a newline, we'll just
+  // return 1.
+  if (*index == '\n') {
     // paragraph found
     TRACE_LOG("Start of new paragraph found at %p.\n", last_index);
     output->current_paragraph_index = last_index;
     return 0;
   }
-  else
-  {
+  else {
     // start of buffer found
     TRACE_LOG("Buffer front encountered at %p.\n", index);
     output->current_paragraph_index = index;
+    output->found_end_of_buffer = true;
     return 1;
+  }
+  */
+}
+
+
+bool is_output_at_frontindex(history_output *output) {
+  validate_outputhistory(output);
+
+  if (output->current_paragraph_index
+      == output->history->z_history_buffer_front_index) {
+    return true;
+  }
+  else {
+    return false;
   }
 }
 
@@ -1215,14 +1258,18 @@ int output_repeat_paragraphs(history_output *output, int n,
   int buf_index;
   int metadata_type = -1, parameter, parameter2;
 
+  validate_outputhistory(output);
+
   if (include_metadata == true)
     evaluate_metadata_for_paragraph(output);
 
   TRACE_LOG("Repeating output history from %p.\n", output_ptr);
 
+  /*
   // If we're already at the front index, quit.
   if (output_ptr == output->history->z_history_buffer_front_index)
     return 0;
+    */
 
   output->target->set_font(
       output->font_at_index);
@@ -1234,6 +1281,9 @@ int output_repeat_paragraphs(history_output *output, int n,
       output->foreground_at_index,
       output->background_at_index,
       -1);
+
+  if (advance_history_pointer == true)
+    output->found_end_of_buffer = false;
 
   buf_index = 0;
   while (n > 0)
@@ -1248,14 +1298,9 @@ int output_repeat_paragraphs(history_output *output, int n,
     else if (*output_ptr == '\n')
       n--;
 
-    if (
-        (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
-        ||
-        (n < 1)
-        ||
-        (*output_ptr == HISTORY_METADATA_ESCAPE)
-       )
-    {
+    if ( (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
+        || (n < 1)
+        || (*output_ptr == HISTORY_METADATA_ESCAPE) ) {
       output_buf[buf_index] = 0;
       TRACE_LOG("Sending %d char(s) of output.\n", buf_index);
       output->target->z_ucs_output(output_buf);
@@ -1328,8 +1373,22 @@ int output_repeat_paragraphs(history_output *output, int n,
   {
     output->current_paragraph_index = output_ptr;
     if (output->current_paragraph_index
-        != output->history->z_history_buffer_front_index)
+        != output->history->z_history_buffer_front_index) {
       output->current_paragraph_index += 1;
+    }
+    else {
+      output->first_iteration_done = false;
+      if (*(output->current_paragraph_index) == '\n') {
+        output->rewound_paragraph_was_newline_terminated = true;
+      }
+      else {
+        output->rewound_paragraph_was_newline_terminated = false;
+      }
+
+      output->first_iteration_done = false;
+
+      TRACE_LOG("first_iteration_done: %d.\n", output->first_iteration_done);
+    }
 
     // There might be more metadata blocks after this newline. These
     // also have to be evaluated if the metadata should be correct
@@ -1341,7 +1400,7 @@ int output_repeat_paragraphs(history_output *output, int n,
     }
   }
 
-  TRACE_LOG("Repeted output, last included output char: %p.\n",
+  TRACE_LOG("Repeated output, last included output char: %p.\n",
       output_ptr);
 
   return n;
@@ -1350,14 +1409,18 @@ int output_repeat_paragraphs(history_output *output, int n,
 
 void remember_history_output_position(history_output *output)
 {
+  validate_outputhistory(output);
+
   output->saved_current_paragraph_index =
     output->current_paragraph_index;
-  output->saved_has_wrapped =
-    output->has_wrapped;
+  output->saved_nof_wraparounds =
+    output->nof_wraparounds;
   output->saved_found_end_of_buffer =
     output->found_end_of_buffer;
   output->saved_first_iteration_done =
     output->first_iteration_done;
+  output->saved_rewound_paragraph_was_newline_terminated =
+    output->rewound_paragraph_was_newline_terminated;
   output->saved_metadata_at_index_evaluated =
     output->metadata_at_index_evaluated;
   output->saved_font_at_index =
@@ -1383,12 +1446,16 @@ void remember_history_output_position(history_output *output)
 
 void restore_history_output_position(history_output *output)
 {
+  validate_outputhistory(output);
+
   output->current_paragraph_index =
     output->saved_current_paragraph_index;
-  output->has_wrapped =
-    output->saved_has_wrapped;
+  output->nof_wraparounds =
+    output->nof_wraparounds;
   output->found_end_of_buffer =
     output->saved_found_end_of_buffer;
+  output->rewound_paragraph_was_newline_terminated =
+    output->saved_rewound_paragraph_was_newline_terminated;
   output->first_iteration_done =
     output->saved_first_iteration_done;
   output->metadata_at_index_evaluated =

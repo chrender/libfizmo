@@ -78,3 +78,4 @@ Function call time() returned -1.
 Unknown configuration option \{0s}.
 Invalid value "\{0s}" for parameters "\{1s}".
 Story has Z-Version number \{0d}.
+History-Output object is no longer valid.

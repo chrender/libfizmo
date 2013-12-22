@@ -78,3 +78,4 @@ Funktionsaufruf time() lieferte -1.
 Unbekannte Konfigurationsoption „\{0s}“.
 Ungültiger Wert „\{0s}“ for Parameters „\{1s}“.
 Story hat Z-Versionsnummer \{0d}.
+HistoryOutput ist nicht mehr gültig.
