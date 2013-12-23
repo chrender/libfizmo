@@ -8,6 +8,7 @@
     <logentry>Fixed wrapping of long lines without spaces as in ASCII art. Thanks to David Batchelder for pointing out the problem.</logentry>
     <logentry>Made output_rewind_paragraph count rewound chars. This makes refereshing the screen a bit easier for the ncursesw interface.</logentry>
     <logentry>After a restore, the current screensize is now written into the header. This should correct upper windows display problems after loading of savegames.</logentry>
+    <logentry>Added “clean-dev” build target for better cleanup of installed development files, which helps debian packaging.</logentry>
   </change>
 
   <change version="0.7.7">

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function xslt {
   if [ "$5" == "true" -a "$2" != "configfile-example" -a "$2" != "libfizmo-initialization" ]
