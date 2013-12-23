@@ -93,3 +93,24 @@ install-data-local::
 	cp src/locales/$$l/*.txt "$(DESTDIR)$(localedir)/$$l" ; \
 	done
 
+# About "-rmdir": make ignores errors of commands which are prefixed with
+# a - sign. rmdir may fail in clean-dev in case other libs have installed
+# development files.
+clean-dev::
+	rm     "$(fizmo_build_prefix)/lib/fizmo/libfizmo.a"
+	-rmdir "$(fizmo_build_prefix)/lib/fizmo"
+	rm -rf "$(fizmo_build_prefix)/include/fizmo/interpreter"
+	rm -rf "$(fizmo_build_prefix)/include/fizmo/tools"
+	rm -rf "$(fizmo_build_prefix)/include/fizmo/sound_interface"
+	rm -rf "$(fizmo_build_prefix)/include/fizmo/filesys_interface"
+	rm -rf "$(fizmo_build_prefix)/include/fizmo/blorb_interface"
+	rm     "$(fizmo_build_prefix)/include/fizmo/screen_interface/ScreenInterface.cpp"
+	rm     "$(fizmo_build_prefix)/include/fizmo/screen_interface/ScreenInterface.h"
+	rm     "$(fizmo_build_prefix)/include/fizmo/screen_interface/screen_interface.h"
+	-rmdir "$(fizmo_build_prefix)/include/fizmo/screen_interface"
+	-rmdir "$(fizmo_build_prefix)/include/fizmo"
+	-rmdir "$(fizmo_build_prefix)/include"
+	rm     "$(PKGFILE)"
+	-rmdir "$(PKG_DIR)"
+	-rmdir "$(fizmo_build_prefix)/lib"
+
