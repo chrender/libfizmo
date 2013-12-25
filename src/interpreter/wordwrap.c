@@ -483,7 +483,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
         index--;
       }
 
-      if (*index == Z_UCS_SPACE) {
+      // if (*index == Z_UCS_SPACE) {
+      while (*index == Z_UCS_SPACE) {
         index++;
       }
 
@@ -534,7 +535,8 @@ static void flush_input_buffer(WORDWRAP *wrapper, bool force_flush)
       *(index+1) = buf2;
       *index = buf;
 
-      if (*index == Z_UCS_SPACE) {
+      //if (*index == Z_UCS_SPACE) {
+      while (*index == Z_UCS_SPACE) {
         index++;
       }
 

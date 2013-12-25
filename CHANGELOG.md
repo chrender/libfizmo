@@ -11,6 +11,7 @@
  - Made output_rewind_paragraph count rewound chars. This makes refereshing the screen a bit easier for the ncursesw interface.
  - After a restore, the current screensize is now written into the header. This should correct upper windows display problems after loading of savegames.
  - Added “clean-dev” build target for better cleanup of installed development files, which helps debian packaging.
+ - When breaking long lines, multiple spaces are now skipped at the linebreak point to avoid superfluous spaces at the start of the next line. Thanks to Lewis Gentry.
 
 ---
 
