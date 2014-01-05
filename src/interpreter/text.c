@@ -1821,6 +1821,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
   int milliseconds;
   int res;
   int return_code;
+  z_ucs unicode_input;
 
   if (input_stream_1 == NULL)
   {
@@ -1874,34 +1875,29 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
     fsi->setfilepos(input_stream_1, filepos, SEEK_SET);
   }
 
-  // FIMXE: Input conversion from latin1(?) to zscii-input.
-  while (
-      ((c = fsi->readchar(input_stream_1)) != EOF)
-      &&
-      (c != '\n')
-      &&
-      (input_length != input_buffer_size)
-      )
-  {
-    if (c != '\r')
-    {
-      *(input_buffer++) = unicode_char_to_zscii_input_char(c & 0x7f);
+  while (input_length != input_buffer_size) {
+    unicode_input = parse_utf8_char_from_file(input_stream_1);
+
+    if (unicode_input == '\n')
+      break;
+    else if (unicode_input != '\r') {
+      *(input_buffer++) = unicode_char_to_zscii_input_char(unicode_input);
       input_length++;
     }
   }
 
-  if (c != EOF)
+  if (unicode_input != UEOF)
   {
     // Seek next '\n'.
-    while (c != '\n')
-      if ((c = fsi->readchar(input_stream_1)) == EOF)
+    while (unicode_input != '\n')
+      if ((unicode_input = parse_utf8_char_from_file(input_stream_1)) == UEOF)
         break;
   }
 
   TRACE_LOG("Read %d input chars.\n", input_length);
 
   // At EOF? If so, close stream and return last length.
-  if (c == EOF)
+  if (unicode_input == UEOF)
   {
     fsi->closefile(input_stream_1);
     input_stream_1_active = false;
