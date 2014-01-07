@@ -1518,6 +1518,14 @@ static bool process_interpreter_command()
   {
     active_interface->output_interface_info();
 
+#ifdef FIZMO_DIST_VERSION
+    i18n_translate(
+        libfizmo_module_name,
+        i18n_libfizmo_FIZMO_VERSION_P0S,
+        FIZMO_DIST_VERSION);
+    streams_latin1_output("\n");
+#endif // FIZMO_DIST_VERSION
+
     (void)i18n_translate(
         libfizmo_module_name,
         i18n_libfizmo_LIBFIZMO_VERSION_P0S,

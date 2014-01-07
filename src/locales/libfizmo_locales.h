@@ -114,6 +114,7 @@
 #define i18n_libfizmo_INVALID_VALUE_P0S_FOR_PARAMETER_P1S 78
 #define i18n_libfizmo_STORY_HAS_Z_VERSION_NUMBER_P0D 79
 #define i18n_libfizmo_HISTORYOUTPUT_NO_LONGER_VALID 80
+#define i18n_libfizmo_FIZMO_VERSION_P0S 81
 
 extern z_ucs libfizmo_module_name[];
 extern z_ucs default_locale_name[];

@@ -29,3 +29,6 @@ AM_CONDITIONAL([ENABLE_PREFIX_COMMANDS],
 AM_CONDITIONAL([ENABLE_DEBUGGER],
                 [test "$enable_debugger" = "yes"])
 
+AM_CONDITIONAL([FIZMO_DIST_VERSION],
+                [test "x$fizmo_dist_version" != "x"])
+
