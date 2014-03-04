@@ -1,11 +1,11 @@
 
 
 
-   **Version 0.7.8**
+   **Version 0.7.8 — March 3, 2014**
 
- - Fixed missing lowering of input case for versions >= 5, thanks to irb.
+ - Fixed missing lowering of input case for versions ≥ 5, thanks to irb.
  - Adapted to automake v1.14 and fixed compiler warning.
- - Fixed "encode_text" and tokenizing for cases in which the "unrecognized"-flag is set. This fixes a bug with the "name" spell in Beyond Zork, thanks to irb.
+ - Fixed "encode_text" and tokenizing for cases in which the “unrecognized”-flag is set. This fixes a bug with the “name” spell in Beyond Zork, thanks to irb.
  - Fixed “AC_CONFIG_AUX_DIR” invocation.
  - Fixed wrapping of long lines without spaces as in ASCII art. Thanks to David Batchelder for pointing out the problem.
  - Made output_rewind_paragraph count rewound chars. This makes refereshing the screen a bit easier for the ncursesw interface.
