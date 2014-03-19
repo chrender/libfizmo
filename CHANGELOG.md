@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.8 — March 3, 2014**
+   **Version 0.7.8 — March 19, 2014**
 
  - Fixed missing lowering of input case for versions ≥ 5, thanks to irb.
  - Adapted to automake v1.14 and fixed compiler warning.
