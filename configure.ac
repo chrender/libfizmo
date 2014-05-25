@@ -97,7 +97,7 @@ AC_ARG_ENABLE([debugger],
  [],
  [enable_debugger=no])
 
-AC_INIT([libfizmo], [0.7.8])
+AC_INIT([libfizmo], [0.7.9])
 AC_CONFIG_AUX_DIR([.])
 
 m4_include(config-libs.m4)

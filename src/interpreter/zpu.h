@@ -55,7 +55,7 @@
 #ifndef zpu_c_INCLUDED
 extern uint8_t *z_mem;
 /*@dependent@*/ extern uint8_t *pc;
-extern uint16_t op[7];
+extern uint16_t op[8];
 extern uint8_t number_of_operands;
 extern uint8_t number_of_locals_from_function_call;
 extern uint8_t z_res_var;

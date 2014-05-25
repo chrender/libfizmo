@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.7.9 — May 25, 2014**
+
+ - Fixed conflicting array-size in zpu.h / zpu.c which could result in invalid memory assumptions by the compiler. Thanks to Michael Tautschnig.
+
+---
+
+
    **Version 0.7.8 — March 19, 2014**
 
  - Fixed missing lowering of input case for versions ≥ 5, thanks to irb.
