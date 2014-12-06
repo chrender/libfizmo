@@ -1,6 +1,15 @@
 
 
 
+   **Version 0.7.10 — December 6, 2014**
+
+ - Implemented “flush-output-on-newline” configuration option. This will ensure that any output is flushed to history and interface before a newline. This allows interfaces to store paragraph-relevant attribtues in the history with minor fuzz.
+ - Added new metadata-type “paragraph attribute” for the purpose described above.
+ - Minor changes in processing when converting font 3 to unicode.
+
+---
+
+
    **Version 0.7.9 — May 25, 2014**
 
  - Fixed conflicting array-size in zpu.h / zpu.c which could result in invalid memory assumptions by the compiler. Thanks to Michael Tautschnig.

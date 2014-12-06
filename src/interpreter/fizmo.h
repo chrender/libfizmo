@@ -41,8 +41,8 @@
 #include "../blorb_interface/blorb_interface.h"
 #include "blockbuf.h"
 
-#define FIZMO_VERSION "0.7.9"
-#define LIBFIZMO_VERSION "0.7.9"
+#define FIZMO_VERSION "0.7.10"
+#define LIBFIZMO_VERSION "0.7.10"
 
 #define FIZMO_INTERPRETER_NUMBER 6
 /*
@@ -76,6 +76,10 @@ void fizmo_register_sound_interface(
     struct z_sound_interface *sound_interface);
 void fizmo_register_blorb_interface(
     struct z_blorb_interface *blorb_interface);
+#ifndef DISABLE_OUTPUT_HISTORY
+void fizmo_register_paragraph_attribute_function(
+      void (*new_paragraph_attribute_function)(int *parameter1, int *parameter2));
+#endif // DISABLE_OUTPUT_HISTORY
 
 void fizmo_start(z_file* story_stream, z_file *blorb_stream,
     z_file *restore_on_start_file);
@@ -107,6 +111,10 @@ extern uint8_t header_extension_table_size;
 #ifndef DISABLE_BLOCKBUFFER
 extern BLOCKBUF *upper_window_buffer;
 #endif /* DISABLE_BLOCKBUFFER */
+
+#ifndef DISABLE_OUTPUT_HISTORY
+extern void (*paragraph_attribute_function)(int *parameter1, int *parameter2);
+#endif // DISABLE_OUTPUT_HISTORY
 
 #endif /* fizmo_c_INCLUDED */
 

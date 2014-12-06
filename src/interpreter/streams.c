@@ -59,6 +59,9 @@
 #include "history.h"
 #endif /* DISABLE_OUTPUT_HISTORY */
 
+#define ASCII_TO_Z_UCS_BUFFER_SIZE 64
+#define FONT3_CONVERSION_BUF_SIZE 128
+
 //int stream_active[5] = { 0, 1, 0, 0, 0 };
 bool stream_1_active = true;
 bool stream_2_filename_stored = false;
@@ -1011,15 +1014,35 @@ static void close_script_file()
 }
 
 
+static void send_to_stream1_targets(z_ucs *z_ucs_output)
+{
+#ifndef DISABLE_OUTPUT_HISTORY
+  store_z_ucs_output_in_history(
+    outputhistory[0],
+    z_ucs_output);
+#endif /* DISABLE_OUTPUT_HISTORY */
+#ifndef DISABLE_BLOCKBUFFER
+  store_z_ucs_output_in_blockbuffer(
+    upper_window_buffer, z_ucs_output);
+#endif /* DISABLE_BLOCKBUFFER */
+  if (active_interface != NULL) {
+    active_interface->z_ucs_output(z_ucs_output);
+  }
+}
+
+
 static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
 {
   int16_t conversion_result;
   zscii zscii_char;
   z_ucs *src;
   uint16_t len;
-  z_ucs buf[128];
-  z_ucs *converted_output, *ptr;
+  z_ucs font3_conversion_buf[FONT3_CONVERSION_BUF_SIZE];
+  z_ucs char_to_convert, converted_char;
+  int font3_buf_index;
+  z_ucs *processed_output, *output_pos, *processed_output_pos, *next_newline_pos;
   int size;
+  int parameter1, parameter2;
   bool font_conversion_active
     = (
         (current_font == Z_FONT_CHARACTER_GRAPHICS)
@@ -1080,8 +1103,8 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
         &&
         (ver != 6)
         &&
-        (strcasecmp(get_configuration_value("disable-external-streams"), "true")
-         != 0)
+        (strcasecmp(get_configuration_value(
+           "disable-external-streams"), "true") != 0)
        )
     {
       stream_2_output(z_ucs_output);
@@ -1091,223 +1114,230 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
       close_script_file();
     }
 
-    converted_output = font_conversion_active == true ? buf : z_ucs_output;
-    ptr = z_ucs_output;
-    while (*ptr != 0)
+    output_pos = z_ucs_output;
+    processed_output = font_conversion_active == true
+      ? font3_conversion_buf : z_ucs_output;
+    while (*output_pos != 0)
     {
       if (font_conversion_active == true)
       {
         TRACE_LOG("Converting to font 3.\n");
 
-        if ((size = z_ucs_len(ptr)) > 127)
-          size = 127;
-        memcpy(buf, ptr, size * sizeof(z_ucs));
-        buf[size] = 0;
-        ptr += size;
-        size--;
-        while (size >= 0)
+        // In case we're converting we'll process a maximum of
+        // (FONT3_CONVERSION_BUF_SIZE) chars in one iteration.
+        font3_buf_index = 0;
+        char_to_convert = *output_pos;
+        while ( (char_to_convert != 0)
+           && (font3_buf_index < FONT3_CONVERSION_BUF_SIZE) )
         {
-          TRACE_LOG("size:%d (%d).\n", size, buf[size]);
-
-          if ( (buf[size] == 32) || (buf[size] == 37) ) // empty
-            buf[size] = ' ';
-          if (buf[size] == 33) // arrow left
-            buf[size] = 0x2190;
-          else if (buf[size] == 34) // arrow right
-            buf[size] = 0x2192;
-          else if (buf[size] == 35) // diagonal
-            //buf[size] = 0x2571;
-            buf[size] = '/';
-          else if (buf[size] == 36) // diagonal
-            //buf[size] = 0x2572;
-            buf[size] = '\\';
-          else if (buf[size] == 38) // horizontal
-            buf[size] = 0x2500;
-          else if (buf[size] == 39) // horizontal
-            buf[size] = 0x2500;
-          else if (buf[size] == 40)
-            buf[size] = 0x2502;
-          else if (buf[size] == 41)
-            buf[size] = 0x2502;
-          else if (buf[size] == 42)
-            buf[size] = 0x2534;
-          else if (buf[size] == 43)
-            buf[size] = 0x252C;
-          else if (buf[size] == 44)
-            buf[size] = 0x251C;
-          else if (buf[size] == 45)
-            buf[size] = 0x2524;
-          else if (buf[size] == 46)
-            buf[size] = 0x230A;
-          else if (buf[size] == 47)
-            buf[size] = 0x2308;
-          else if (buf[size] == 48)
-            buf[size] = 0x2309;
-          else if (buf[size] == 49)
-            buf[size] = 0x230B;
-          else if (buf[size] == 50) // FIXME: Better symbol
-            buf[size] = 0x2534;
-          else if (buf[size] == 51) // FIXME: Better symbol
-            buf[size] = 0x252C;
-          else if (buf[size] == 52) // FIXME: Better symbol
-            buf[size] = 0x251C;
-          else if (buf[size] == 53) // FIXME: Better symbol
-            buf[size] = 0x2524;
-          else if (buf[size] == 54) // full block
-            buf[size] = 0x2588;
-          else if (buf[size] == 55) // upper half block
-            buf[size] = 0x2580;
-          else if (buf[size] == 56) // lower half block
-            buf[size] = 0x2584;
-          else if (buf[size] == 57) // left half block
-            buf[size] = 0x258C;
-          else if (buf[size] == 58) // right half block
-            buf[size] = 0x2590;
-          else if (buf[size] == 59) // FIXME: Better symbol
-            buf[size] = 0x2584;
-          else if (buf[size] == 60) // FIXME: Better symbol
-            buf[size] = 0x2580;
-          else if (buf[size] == 61) // FIXME: Better symbol
-            buf[size] = 0x258C;
-          else if (buf[size] == 62) // FIXME: Better symbol
-            buf[size] = 0x2590;
-          else if (buf[size] == 63) // upper right block
-            buf[size] = 0x259D;
-          else if (buf[size] == 64) // lower right block
-            buf[size] = 0x2597;
-          else if (buf[size] == 65) // lower left block
-            buf[size] = 0x2596;
-          else if (buf[size] == 66) // upper left block
-            buf[size] = 0x2598;
-          else if (buf[size] == 67) // FIXME: Better symbol
-            buf[size] = 0x259D;
-          else if (buf[size] == 68) // FIXME: Better symbol
-            buf[size] = 0x2597;
-          else if (buf[size] == 69) // FIXME: Better symbol
-            buf[size] = 0x2596;
-          else if (buf[size] == 70) // FIXME: Better symbol
-            buf[size] = 0x2598;
-          else if (buf[size] == 71) // dot upper right, FIXME: Better symbol
-            buf[size] = '+';
-          else if (buf[size] == 72) // dot lower right, FIXME: Better symbol
-            buf[size] = '+';
-          else if (buf[size] == 73) // dot lower left, FIXME: Better symbol
-            buf[size] = '+';
-          else if (buf[size] == 74) // dot upper left, FIXME: Better symbol
-            buf[size] = '+';
-          else if (buf[size] == 75) // line top
-            buf[size] = 0x2594;
-          else if (buf[size] == 76) // line bottom
-            buf[size] = '_';
-          else if (buf[size] == 77) // line left
-            buf[size] = 0x23B9;
-          else if (buf[size] == 78) // line right
-            buf[size] = 0x2595;
-          else if (buf[size] == 79) // status bar, filled 0/8
-            buf[size] = ' ';
-          else if (buf[size] == 80) // status bar, filled 1/8
-            buf[size] = 0x258F;
-          else if (buf[size] == 81) // status bar, filled 2/8
-            buf[size] = 0x258E;
-          else if (buf[size] == 82) // status bar, filled 3/8
-            buf[size] = 0x258D;
-          else if (buf[size] == 83) // status bar, filled 4/8
-            buf[size] = 0x258C;
-          else if (buf[size] == 84) // status bar, filled 5/8
-            buf[size] = 0x258B;
-          else if (buf[size] == 85) // status bar, filled 6/8
-            buf[size] = 0x258A;
-          else if (buf[size] == 86) // status bar, filled 7/8
-            buf[size] = 0x2589;
-          else if (buf[size] == 87) // status bar, filled 8/8
-            buf[size] = 0x2588;
-          else if (buf[size] == 88) // status bar, padding right
-            buf[size] = 0x2595;
-          else if (buf[size] == 89) // status bar, padding left
-            buf[size] = 0x258F;
-          else if (buf[size] == 90) // diagonal cross
-            buf[size] = 0x2573;
-          else if (buf[size] == 91) // vertical / horizontal cross
-            buf[size] = 0x253C;
-          else if (buf[size] == 92) // arrow up
-            buf[size] = 0x2191;
-          else if (buf[size] == 93) // arrow down
-            buf[size] = 0x2193;
-          else if (buf[size] == 94) // arrow up-down
-            buf[size] = 0x2195;
-          else if (buf[size] == 95) // square
-            buf[size] =0x25A2;
-          else if (buf[size] == 96) // question mark
-            buf[size] = '?';
+          if ( (char_to_convert == 32) || (char_to_convert == 37) ) // empty
+            converted_char = ' ';
+          if (char_to_convert == 33) // arrow left
+            converted_char = 0x2190;
+          else if (char_to_convert == 34) // arrow right
+            converted_char = 0x2192;
+          else if (char_to_convert == 35) // diagonal
+            //converted_char = 0x2571;
+            converted_char = '/';
+          else if (char_to_convert == 36) // diagonal
+            //converted_char = 0x2572;
+            converted_char = '\\';
+          else if (char_to_convert == 38) // horizontal
+            converted_char = 0x2500;
+          else if (char_to_convert == 39) // horizontal
+            converted_char = 0x2500;
+          else if (char_to_convert == 40)
+            converted_char = 0x2502;
+          else if (char_to_convert == 41)
+            converted_char = 0x2502;
+          else if (char_to_convert == 42)
+            converted_char = 0x2534;
+          else if (char_to_convert == 43)
+            converted_char = 0x252C;
+          else if (char_to_convert == 44)
+            converted_char = 0x251C;
+          else if (char_to_convert == 45)
+            converted_char = 0x2524;
+          else if (char_to_convert == 46)
+            converted_char = 0x230A;
+          else if (char_to_convert == 47)
+            converted_char = 0x2308;
+          else if (char_to_convert == 48)
+            converted_char = 0x2309;
+          else if (char_to_convert == 49)
+            converted_char = 0x230B;
+          else if (char_to_convert == 50) // FIXME: Better symbol
+            converted_char = 0x2534;
+          else if (char_to_convert == 51) // FIXME: Better symbol
+            converted_char = 0x252C;
+          else if (char_to_convert == 52) // FIXME: Better symbol
+            converted_char = 0x251C;
+          else if (char_to_convert == 53) // FIXME: Better symbol
+            converted_char = 0x2524;
+          else if (char_to_convert == 54) // full block
+            converted_char = 0x2588;
+          else if (char_to_convert == 55) // upper half block
+            converted_char = 0x2580;
+          else if (char_to_convert == 56) // lower half block
+            converted_char = 0x2584;
+          else if (char_to_convert == 57) // left half block
+            converted_char = 0x258C;
+          else if (char_to_convert == 58) // right half block
+            converted_char = 0x2590;
+          else if (char_to_convert == 59) // FIXME: Better symbol
+            converted_char = 0x2584;
+          else if (char_to_convert == 60) // FIXME: Better symbol
+            converted_char = 0x2580;
+          else if (char_to_convert == 61) // FIXME: Better symbol
+            converted_char = 0x258C;
+          else if (char_to_convert == 62) // FIXME: Better symbol
+            converted_char = 0x2590;
+          else if (char_to_convert == 63) // upper right block
+            converted_char = 0x259D;
+          else if (char_to_convert == 64) // lower right block
+            converted_char = 0x2597;
+          else if (char_to_convert == 65) // lower left block
+            converted_char = 0x2596;
+          else if (char_to_convert == 66) // upper left block
+            converted_char = 0x2598;
+          else if (char_to_convert == 67) // FIXME: Better symbol
+            converted_char = 0x259D;
+          else if (char_to_convert == 68) // FIXME: Better symbol
+            converted_char = 0x2597;
+          else if (char_to_convert == 69) // FIXME: Better symbol
+            converted_char = 0x2596;
+          else if (char_to_convert == 70) // FIXME: Better symbol
+            converted_char = 0x2598;
+          else if (char_to_convert == 71) // dot upper right, FIXME: Better symbol
+            converted_char = '+';
+          else if (char_to_convert == 72) // dot lower right, FIXME: Better symbol
+            converted_char = '+';
+          else if (char_to_convert == 73) // dot lower left, FIXME: Better symbol
+            converted_char = '+';
+          else if (char_to_convert == 74) // dot upper left, FIXME: Better symbol
+            converted_char = '+';
+          else if (char_to_convert == 75) // line top
+            converted_char = 0x2594;
+          else if (char_to_convert == 76) // line bottom
+            converted_char = '_';
+          else if (char_to_convert == 77) // line left
+            converted_char = 0x23B9;
+          else if (char_to_convert == 78) // line right
+            converted_char = 0x2595;
+          else if (char_to_convert == 79) // status bar, filled 0/8
+            converted_char = ' ';
+          else if (char_to_convert == 80) // status bar, filled 1/8
+            converted_char = 0x258F;
+          else if (char_to_convert == 81) // status bar, filled 2/8
+            converted_char = 0x258E;
+          else if (char_to_convert == 82) // status bar, filled 3/8
+            converted_char = 0x258D;
+          else if (char_to_convert == 83) // status bar, filled 4/8
+            converted_char = 0x258C;
+          else if (char_to_convert == 84) // status bar, filled 5/8
+            converted_char = 0x258B;
+          else if (char_to_convert == 85) // status bar, filled 6/8
+            converted_char = 0x258A;
+          else if (char_to_convert == 86) // status bar, filled 7/8
+            converted_char = 0x2589;
+          else if (char_to_convert == 87) // status bar, filled 8/8
+            converted_char = 0x2588;
+          else if (char_to_convert == 88) // status bar, padding right
+            converted_char = 0x2595;
+          else if (char_to_convert == 89) // status bar, padding left
+            converted_char = 0x258F;
+          else if (char_to_convert == 90) // diagonal cross
+            converted_char = 0x2573;
+          else if (char_to_convert == 91) // vertical / horizontal cross
+            converted_char = 0x253C;
+          else if (char_to_convert == 92) // arrow up
+            converted_char = 0x2191;
+          else if (char_to_convert == 93) // arrow down
+            converted_char = 0x2193;
+          else if (char_to_convert == 94) // arrow up-down
+            converted_char = 0x2195;
+          else if (char_to_convert == 95) // square
+            char_to_convert =0x25A2;
+          else if (char_to_convert == 96) // question mark
+            converted_char = '?';
 
           // runic
 
-          else if (buf[size] == 97)
-            buf[size] = 0x16aa;
-          else if (buf[size] == 98)
-            buf[size] = 0x16d2;
-          else if (buf[size] == 99)
-            buf[size] = 0x16c7;
-          else if (buf[size] == 100)
-            buf[size] = 0x16de;
-          else if (buf[size] == 101)
-            buf[size] = 0x16d6;
-          else if (buf[size] == 102)
-            buf[size] = 0x16a0;
-          else if (buf[size] == 103)
-            buf[size] = 0x16b7;
-          else if (buf[size] == 104)
-            buf[size] = 0x16bb;
-          else if (buf[size] == 105)
-            buf[size] = 0x16c1;
-          else if (buf[size] == 106)
-            buf[size] = 0x16e8;
-          else if (buf[size] == 107)
-            buf[size] = 0x16e6;
-          else if (buf[size] == 108)
-            buf[size] = 0x16da;
-          else if (buf[size] == 109)
-            buf[size] = 0x16d7;
-          else if (buf[size] == 110)
-            buf[size] = 0x16be;
-          else if (buf[size] == 111)
-            buf[size] = 0x16a9;
-          else if (buf[size] == 112) // FIXME: better symbol?
-            buf[size] = 0x16b3;
-          else if (buf[size] == 113)
-            buf[size] = 'h';         // FIXME: better symbol?;
-          else if (buf[size] == 114)
-            buf[size] = 0x16b1;
-          else if (buf[size] == 115)
-            buf[size] = 0x16cb;
-          else if (buf[size] == 116)
-            buf[size] = 0x16cf;
-          else if (buf[size] == 117)
-            buf[size] = 0x16a2;
-          else if (buf[size] == 118)
-            buf[size] = 0x16e0;
-          else if (buf[size] == 119)
-            buf[size] = 0x16b9;
-          else if (buf[size] == 120)
-            buf[size] = 0x16c9;
-          else if (buf[size] == 121)
-            buf[size] = 0x16a5;
-          else if (buf[size] == 122)
-            buf[size] = 0x16df;
+          else if (char_to_convert == 97)
+            converted_char = 0x16aa;
+          else if (char_to_convert == 98)
+            converted_char = 0x16d2;
+          else if (char_to_convert == 99)
+            converted_char = 0x16c7;
+          else if (char_to_convert == 100)
+            converted_char = 0x16de;
+          else if (char_to_convert == 101)
+            converted_char = 0x16d6;
+          else if (char_to_convert == 102)
+            converted_char = 0x16a0;
+          else if (char_to_convert == 103)
+            converted_char = 0x16b7;
+          else if (char_to_convert == 104)
+            converted_char = 0x16bb;
+          else if (char_to_convert == 105)
+            converted_char = 0x16c1;
+          else if (char_to_convert == 106)
+            converted_char = 0x16e8;
+          else if (char_to_convert == 107)
+            converted_char = 0x16e6;
+          else if (char_to_convert == 108)
+            converted_char = 0x16da;
+          else if (char_to_convert == 109)
+            converted_char = 0x16d7;
+          else if (char_to_convert == 110)
+            converted_char = 0x16be;
+          else if (char_to_convert == 111)
+            converted_char = 0x16a9;
+          else if (char_to_convert == 112) // FIXME: better symbol?
+            converted_char = 0x16b3;
+          else if (char_to_convert == 113)
+            converted_char = 'h';         // FIXME: better symbol?;
+          else if (char_to_convert == 114)
+            converted_char = 0x16b1;
+          else if (char_to_convert == 115)
+            converted_char = 0x16cb;
+          else if (char_to_convert == 116)
+            converted_char = 0x16cf;
+          else if (char_to_convert == 117)
+            converted_char = 0x16a2;
+          else if (char_to_convert == 118)
+            converted_char = 0x16e0;
+          else if (char_to_convert == 119)
+            converted_char = 0x16b9;
+          else if (char_to_convert == 120)
+            converted_char = 0x16c9;
+          else if (char_to_convert == 121)
+            converted_char = 0x16a5;
+          else if (char_to_convert == 122)
+            converted_char = 0x16df;
 
           // inverted
 
-          else if (buf[size] == 123) // inverted arrow up, FIXME: symbol
-            buf[size] = 0x2191;
-          else if (buf[size] == 124) // inverted arrow down, FIXME: symbol
-            buf[size] = 0x2193;
-          else if (buf[size] == 125) // inverted arrow up-down, FIXME: symbol
-            buf[size] = 0x2195;
-          else if (buf[size] == 126) // inverted question mark, FIXME: symbol
-            buf[size] = '?';
+          else if (char_to_convert == 123) // inverted arrow up, FIXME: symbol
+            converted_char = 0x2191;
+          else if (char_to_convert == 124) // inverted arrow down, FIXME: symbol
+            converted_char = 0x2193;
+          else if (char_to_convert == 125) // inverted arrow up-down, FIXME: symbol
+            converted_char = 0x2195;
+          else if (char_to_convert == 126) // inverted question mark, FIXME: symbol
+            converted_char = '?';
 
-          size--;
+          // no match
+
+          else
+            converted_char = char_to_convert;
+
+          font3_conversion_buf[font3_buf_index] = converted_char;
+          font3_buf_index++;
+          output_pos++;
+          char_to_convert = *output_pos;
         }
+        font3_conversion_buf[font3_buf_index] = 0;
       }
 
       if (bool_equal(stream_1_active, true))
@@ -1352,21 +1382,6 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
           lower_window_font = current_resulting_font;
           active_interface->set_font(current_resulting_font);
         }
-
-        if (
-            (
-             (ver == 6)
-             ||
-             (active_window_number != 1)
-            )
-            &&
-            (outputhistory[active_window_number] != NULL)
-           )
-        {
-          store_z_ucs_output_in_history(
-              outputhistory[0],
-              converted_output);
-        }
 #endif /* DISABLE_OUTPUT_HISTORY */
 
 #ifndef DISABLE_BLOCKBUFFER
@@ -1391,17 +1406,46 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
                 upper_window_buffer, current_background_colour);
             upper_window_background_colour = current_background_colour;
           }
-
-          store_z_ucs_output_in_blockbuffer(
-              upper_window_buffer, converted_output);
         }
 #endif /* DISABLE_BLOCKBUFFER */
 
-        if (active_interface != NULL) {
-          active_interface->z_ucs_output(converted_output);
+        if (strcasecmp(get_configuration_value("flush-output-on-newline"),
+                      "true") != 0) {
+          // No split required, process all at once.
+          send_to_stream1_targets(processed_output);
+        }
+        else {
+          // Split output in newlines and process one by one.
+          processed_output_pos = processed_output;
+          next_newline_pos = NULL;
+          // We'll try to find a newline in the current string. In case this
+          // is the first iteration, next_newline_pos == NULL and we'll start
+          // looking from the front. In case we've already found a newline
+          // we'll start at the char behind it. This helps to ensure that
+          // the newline is actually included in the next output.
+          while ((next_newline_pos = z_ucs_chr(
+                   processed_output_pos + (next_newline_pos == NULL ? 0 : 1),
+                   Z_UCS_NEWLINE)) != NULL) {
+            *next_newline_pos = 0;
+            send_to_stream1_targets(processed_output_pos);
+            *next_newline_pos = Z_UCS_NEWLINE;
+            processed_output_pos = next_newline_pos;
+            if (paragraph_attribute_function != NULL) {
+              paragraph_attribute_function(&parameter1, &parameter2);
+              store_metadata_in_history(
+                outputhistory[0],
+                HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE,
+                parameter1,
+                parameter2);
+            }
+          }
+          send_to_stream1_targets(processed_output_pos);
         }
       }
 
+      // In case we're not converting and input == output we know that
+      // once we arrive here the entire output has been processed, so
+      // we can quit right away.
       if (font_conversion_active == false)
         break;
     }
@@ -1421,7 +1465,7 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
         {
           (void)fsi->closefile(stream_4);
           stream_4 = NULL;
-	}
+	      }
       }
     }
   }

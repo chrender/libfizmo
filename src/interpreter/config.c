@@ -102,6 +102,7 @@ struct configuration_option configuration_options[] = {
   { "start-file-input-when-story-starts", NULL },
   { "start-script-when-story-starts", NULL },
   { "sync-transcript", NULL },
+  { "flush-output-on-newline", NULL },
 
   // NULL terminates the option list.
   { NULL, NULL }
@@ -445,6 +446,8 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "sync-transcript") == 0)
           ||
           (strcmp(key, "dont-set-locale-from-config") == 0)
+          ||
+          (strcmp(key, "flush-output-on-newline") == 0)
           )
       {
         if (
@@ -599,6 +602,8 @@ char *get_configuration_value(char *key)
             (strcmp(key, "sync-transcript") == 0)
             ||
             (strcmp(key, "dont-set-locale-from-config") == 0)
+            ||
+            (strcmp(key, "flush-output-on-newline") == 0)
            )
         {
           if (configuration_options[i].value == NULL)

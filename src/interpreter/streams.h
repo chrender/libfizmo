@@ -35,8 +35,6 @@
 
 #include "../tools/types.h"
 
-#define ASCII_TO_Z_UCS_BUFFER_SIZE 64
-
 void init_streams();
 void open_input_stream_1(void);
 void close_input_stream_1(void);

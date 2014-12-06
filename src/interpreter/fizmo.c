@@ -110,6 +110,11 @@ static bool config_files_were_parsed = false;
 /*@null@*/ BLOCKBUF *upper_window_buffer = NULL;
 #endif // DISABLE_BLOCKBUFFER
 
+#ifndef DISABLE_OUTPUT_HISTORY
+void (*paragraph_attribute_function)(int *parameter1, int *parameter2) = NULL;
+#endif // DISABLE_OUTPUT_HISTORY
+
+
 
 // "load_z_story" returns malloc()ed z_story, may be freed using free_z_story().
 static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
@@ -1139,6 +1144,14 @@ char *unquote_special_chars(char *s)
 
   return result;
 }
+
+
+#ifndef DISABLE_OUTPUT_HISTORY
+void fizmo_register_paragraph_attribute_function(
+    void (*new_paragraph_attribute_function)(int *parameter1, int *parameter2)) {
+  paragraph_attribute_function = new_paragraph_attribute_function;
+}
+#endif // DISABLE_OUTPUT_HISTORY
 
 
 void fizmo_start(z_file* story_stream, z_file *blorb_stream,

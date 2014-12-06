@@ -16,7 +16,7 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -70,7 +70,7 @@
  */
 
 
-#ifndef history_c_INCLUDED 
+#ifndef history_c_INCLUDED
 #define history_c_INCLUDED
 
 #include <stdlib.h>
@@ -220,6 +220,10 @@ static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
 
         h->history_buffer_back_index_background
           = (z_colour)*current_index;
+      }
+      else if (*current_index == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
+        // do nothing but catch the case so we're not running into the
+        // error-else below.
       }
       else
       {
@@ -417,7 +421,7 @@ void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
         = new_size > h->z_history_maximum_buffer_size
         ? h->z_history_maximum_buffer_size
         : new_size;
-      
+
       if (desired_size > h->z_history_buffer_size)
         try_to_enlarge_buffer(h, desired_size);
     }
@@ -589,6 +593,8 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
       (metadata_type != HISTORY_METADATA_TYPE_STYLE)
       &&
       (metadata_type != HISTORY_METADATA_TYPE_COLOUR)
+      &&
+      (metadata_type != HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
      )
     return -1;
 
@@ -603,8 +609,10 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
   // warning: ‘int16_t’ is promoted to ‘int’ when passed through ‘...’
   // (so you should pass ‘int’ not ‘int16_t’ to ‘va_arg’)
   parameter = va_arg(ap, int);
-  if ( (parameter < -2) || (parameter > 15 ) )
-  {
+
+  // TODO: Add verifications for other metadata-types.
+  if ( (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
+           && ( (parameter < -2) || (parameter > 15 ) ) )   {
     // -2 is the lowest allowed value for Z_COLOUR_UNDEFINED, 15 the maximum
     // for all combinations of Z_STYLE.
     TRACE_LOG("Parameter value %d outside valid range.\n", parameter);
@@ -630,6 +638,10 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
     h->history_buffer_front_index_foreground = parameter;
     TRACE_LOG("storing colour.\n");
   }
+  else if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
+  {
+    TRACE_LOG("storing paragraph attribute.\n");
+  }
 
   // All parameter values are offset by +13. This is necessary to avoid
   // having LF characters in the buffer, which makes searching for paragraph
@@ -637,12 +649,13 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
   output_buffer[2] = (z_ucs)(parameter + HISTORY_METADATA_DATA_OFFSET);
   TRACE_LOG("param1: %d.\n", parameter);
 
-  if (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
-  {
+  if ( (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
+          || (metadata_type = HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) ) {
+    // Read second parameter for al metadatatypes which require it.
     parameter = va_arg(ap, int);
     TRACE_LOG("param2: %d.\n", parameter);
-    if ( (parameter < -2) || (parameter > 15 ) )
-    {
+    if ( (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
+          && ( (parameter < -2) || (parameter > 15 ) ) ) {
       TRACE_LOG("Parameter value %d outside valid range.\n", parameter);
       i18n_translate_and_exit(
           libfizmo_module_name,
@@ -689,7 +702,7 @@ z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr,
     unsigned int *nof_wraparounds)
 {
   if (
-      (ptr == h->z_history_buffer_back_index) 
+      (ptr == h->z_history_buffer_back_index)
       &&
       (ptr == h->z_history_buffer_front_index)
       &&
@@ -1345,6 +1358,11 @@ int output_repeat_paragraphs(history_output *output, int n,
           output->background_at_index = parameter2;
           if (include_metadata == true)
             output->target->set_colour(parameter, parameter2, -1);
+        }
+        else if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
+        {
+          // Don't do anything but catch the case in order that we're
+          // not running into the error-else below.
         }
         else
         {
