@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.7.10">
-    <datetime day-of-week="Sat" month="12" day="6" hour="12"
-      minute="43" second="34" timezone="CET" year="2014"/>
-    <logentry>Implemented “flush-output-on-newline” configuration option. This will ensure that any output is flushed to history and interface before a newline. This allows interfaces to store paragraph-relevant attribtues in the history with minor fuzz.</logentry>
+    <logentry>Adapted print_table opcode to work in lower window. This fixes output errors in “Sherlock”.</logentry>
+    <logentry>Implemented “flush-output-on-newline” configuration option. This will ensure that any output is flushed to history and interface before a newline. This allows interfaces to store paragraph-relevant attribtues in the history with minor fuzz (which is sued by fizmo-sdl).</logentry>
     <logentry>Added new metadata-type “paragraph attribute” for the purpose described above.</logentry>
     <logentry>Minor changes in processing when converting font 3 to unicode.</logentry>
   </change>

@@ -2506,21 +2506,40 @@ void opcode_print_table(void)
   int buffer_index;
   int cursor_y = active_interface->get_cursor_row();
   int cursor_x = active_interface->get_cursor_column();
+  bool no_cursor_placement;
 
   TRACE_LOG("Opcode: PRINT_TABLE.\n");
 
-  if (number_of_operands >= 3)
-  {
-    height = (uint16_t)op[2];
+  if ( (ver != 6) && (active_window_number != 1) ) {
+    // The Z-Spec from 2014-06-07 declares that "Version 5 games must only
+    // ue print_table in the upper window. Its behaviour in the lower window
+    // is undefined". Unfortunately, this prevents sherlock from displaying
+    // error messages of the kind "[You can play the game from start to
+    // finish, solve all the puzzles, get all the points, and STILL never
+    // need to use the word "(print_table)"]". In order to work around this,
+    // print_table in the lower windows just print the command's zscii
+    // text without any formatting.
+    height = 1;
+    skip = 0;
+    no_cursor_placement = true;
+  }
+  else {
+    no_cursor_placement = false;
 
-    if (number_of_operands >= 4)
-      skip = (uint16_t)op[3];
+    if (number_of_operands >= 3) {
+      height = (uint16_t)op[2];
+
+      if (number_of_operands >= 4)
+        skip = (uint16_t)op[3];
+    }
   }
 
   for (y=0; y<height; y++)
   {
     buffer_index = 0;
-    process_set_cursor(cursor_y, cursor_x, active_window_number);
+    if (no_cursor_placement == false) {
+      process_set_cursor(cursor_y, cursor_x, active_window_number);
+    }
 
     for (x=0; x<width; x++)
     {
