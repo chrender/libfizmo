@@ -112,6 +112,7 @@ static bool config_files_were_parsed = false;
 
 #ifndef DISABLE_OUTPUT_HISTORY
 void (*paragraph_attribute_function)(int *parameter1, int *parameter2) = NULL;
+void (*paragraph_removal_function)(int parameter1, int parameter2) = NULL;
 #endif // DISABLE_OUTPUT_HISTORY
 
 
@@ -1148,8 +1149,13 @@ char *unquote_special_chars(char *s)
 
 #ifndef DISABLE_OUTPUT_HISTORY
 void fizmo_register_paragraph_attribute_function(
-    void (*new_paragraph_attribute_function)(int *parameter1, int *parameter2)) {
+    void (*new_paragraph_attribute_function)(int *parameter1,
+      int *parameter2)) {
   paragraph_attribute_function = new_paragraph_attribute_function;
+}
+void fizmo_register_paragraph_removal_function(
+    void (*new_paragraph_removal_function)(int parameter1, int parameter2)) {
+  paragraph_removal_function = new_paragraph_removal_function;
 }
 #endif // DISABLE_OUTPUT_HISTORY
 

@@ -117,6 +117,7 @@ OUTPUTHISTORY *create_outputhistory(int window_number,
   result->z_history_buffer_back_index = NULL;
   result->nof_wraparounds = 0;
   result->last_metadata_block_index = 0;
+  result->next_newline_after_buffer_back = NULL;
 
   result->history_buffer_back_index_font = font;
   result->history_buffer_back_index_style = style;
@@ -154,14 +155,20 @@ static size_t get_buffer_space_used(OUTPUTHISTORY *h)
 static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
 {
   z_ucs *current_index = h->z_history_buffer_front_index;
+  z_ucs buf1, buf2;
 
   TRACE_LOG("Advancing buffer end from %p by %ld chars.\n",
       current_index,
       (long int)nof_zucs_chars);
 
-  do
-  {
+  do {
     TRACE_LOG("current-index: %p.\n", current_index);
+
+    // Check if we have caught up to the last processed paragraph-attribute
+    // position.
+    if (h->next_newline_after_buffer_back == current_index) {
+      h->next_newline_after_buffer_back = NULL;
+    }
 
     if (*current_index == HISTORY_METADATA_ESCAPE)
     {
@@ -224,6 +231,26 @@ static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
       else if (*current_index == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
         // do nothing but catch the case so we're not running into the
         // error-else below.
+        current_index
+          = current_index == h->z_history_buffer_end
+          ? h->z_history_buffer_start
+          : current_index + 1;
+        nof_zucs_chars--;
+        buf1 = *current_index;
+
+        // Advance to second parameter
+        current_index
+          = current_index == h->z_history_buffer_end
+          ? h->z_history_buffer_start
+          : current_index + 1;
+        nof_zucs_chars--;
+
+        if ( (paragraph_removal_function != NULL)
+            && (h->next_newline_after_buffer_back == NULL) ) {
+          paragraph_removal_function(
+              buf1 - HISTORY_METADATA_DATA_OFFSET,
+              *current_index - HISTORY_METADATA_DATA_OFFSET);
+        }
       }
       else
       {
@@ -248,6 +275,77 @@ static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
   // a metadata sequence occupies the end of the processing range. Since the
   // history bugger is specified to have minimum buffer size of a complete
   // metadata entry though, this will work without problems.
+
+  if ( (paragraph_removal_function != NULL)
+      && (h->next_newline_after_buffer_back == NULL) ) {
+    printf("passed next_newline_after_buffer_back.\n");
+    // Either we have never run "process_buffer_back" before, or we have
+    // passed the last evaluated paragraph-attribute position in the loop
+    // above. Either way, we now have to look for the next paragraph in
+    // order to keep the to keep a consistent paragraph attribute situation
+    // (meaning: Only whole paragraphs in the history count).
+
+    h->next_newline_after_buffer_back = current_index;
+
+    while (*current_index != Z_UCS_NEWLINE) {
+
+      if (current_index == h->z_history_buffer_front_index) {
+        // Only a single block of text in the buffer? Well, okay.
+        printf("XXXX\n");
+        break;
+      }
+
+      // Advance 1 char.
+      current_index
+        = current_index == h->z_history_buffer_end
+        ? h->z_history_buffer_start
+        : current_index + 1;
+
+      // In case there's some metadata at this point, process it.
+      if (*current_index == HISTORY_METADATA_ESCAPE) {
+
+        // Advance to metadata type.
+        current_index
+          = current_index == h->z_history_buffer_end
+          ? h->z_history_buffer_start
+          : current_index + 1;
+        // Remember this in buf1.
+        buf1 = *current_index;
+
+        // Advance to first parameter.
+        current_index
+          = current_index == h->z_history_buffer_end
+          ? h->z_history_buffer_start
+          : current_index + 1;
+        // Remember this in buf2.
+        buf2 = *current_index;
+
+        if ( (buf1 == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
+            || (buf1 == HISTORY_METADATA_TYPE_COLOUR) ) {
+
+          // Advance to second parameter.
+          current_index
+            = current_index == h->z_history_buffer_end
+            ? h->z_history_buffer_start
+            : current_index + 1;
+          nof_zucs_chars--;
+
+          if (buf1 == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
+            paragraph_removal_function(
+                buf2 - HISTORY_METADATA_DATA_OFFSET,
+                *current_index - HISTORY_METADATA_DATA_OFFSET);
+          }
+        }
+      }
+    }
+
+    printf("bufferback: next_newline_after_buffer_back %p.\n",
+        h->next_newline_after_buffer_back);
+
+    h->next_newline_after_buffer_back = current_index;
+  }
+
+  //result->next_newline_after_buffer_back = NULL;
 
   TRACE_LOG("Processed chars up to before %p.\n", current_index);
 }
@@ -662,8 +760,8 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
           i18n_libfizmo_INVALID_PARAMETER_TYPE_P0S,
           -1,
           "parameter");
+      h->history_buffer_front_index_background = parameter;
     }
-    h->history_buffer_front_index_background = parameter;
     output_buffer[3] = (z_ucs)(parameter + HISTORY_METADATA_DATA_OFFSET);
     len = 4;
   }
@@ -752,7 +850,11 @@ int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
 
     if ( (*ptr == HISTORY_METADATA_ESCAPE) && (last_data != 0) )
     {
-      nof_chars += (last_data = HISTORY_METADATA_TYPE_COLOUR ? 4 : 3);
+      nof_chars
+        += ( (last_data == HISTORY_METADATA_TYPE_COLOUR)
+            || (last_data == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) )
+        ? 4
+        : 3;
     }
     else
     {
@@ -1363,6 +1465,9 @@ int output_repeat_paragraphs(history_output *output, int n,
         {
           // Don't do anything but catch the case in order that we're
           // not running into the error-else below.
+          if (++output_ptr > output->history->z_history_buffer_end)
+            output_ptr = output->history->z_history_buffer_start;
+          parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
         }
         else
         {

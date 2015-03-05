@@ -48,6 +48,7 @@
 
 #define Z_HISTORY_INCREMENT_SIZE 8*1024 // given in units of z_ucs
 #define Z_HISTORY_MAXIMUM_SIZE 128*1024*1024 // given in units of z_ucs
+#define Z_HISTORY_MAXIMUM_SIZE 10*1024 // given in units of z_ucs
 #define Z_HISTORY_METADATA_STATE_BLOCK_SIZE 16*1024 // given in units of z_ucs
 
 
@@ -71,6 +72,7 @@ typedef struct
   z_ucs *z_history_buffer_back_index;
 
   long int last_metadata_block_index;
+  z_ucs *next_newline_after_buffer_back;
 
   // These four values are set when fizmo opens the interface (and when the
   // values are used in the current version). They keep the current state of
