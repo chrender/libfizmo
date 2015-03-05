@@ -48,7 +48,6 @@
 
 #define Z_HISTORY_INCREMENT_SIZE 8*1024 // given in units of z_ucs
 #define Z_HISTORY_MAXIMUM_SIZE 128*1024*1024 // given in units of z_ucs
-#define Z_HISTORY_MAXIMUM_SIZE 10*1024 // given in units of z_ucs
 #define Z_HISTORY_METADATA_STATE_BLOCK_SIZE 16*1024 // given in units of z_ucs
 
 
