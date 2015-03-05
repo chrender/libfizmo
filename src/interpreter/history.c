@@ -278,7 +278,7 @@ static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
 
   if ( (paragraph_removal_function != NULL)
       && (h->next_newline_after_buffer_back == NULL) ) {
-    printf("passed next_newline_after_buffer_back.\n");
+    //printf("passed next_newline_after_buffer_back.\n");
     // Either we have never run "process_buffer_back" before, or we have
     // passed the last evaluated paragraph-attribute position in the loop
     // above. Either way, we now have to look for the next paragraph in
@@ -291,7 +291,7 @@ static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
 
       if (current_index == h->z_history_buffer_front_index) {
         // Only a single block of text in the buffer? Well, okay.
-        printf("XXXX\n");
+        //printf("XXXX\n");
         break;
       }
 
@@ -339,8 +339,8 @@ static void process_buffer_back(OUTPUTHISTORY *h, long nof_zucs_chars)
       }
     }
 
-    printf("bufferback: next_newline_after_buffer_back %p.\n",
-        h->next_newline_after_buffer_back);
+    //printf("bufferback: next_newline_after_buffer_back %p.\n",
+    //    h->next_newline_after_buffer_back);
 
     h->next_newline_after_buffer_back = current_index;
   }
