@@ -1017,13 +1017,17 @@ static void close_script_file()
 static void send_to_stream1_targets(z_ucs *z_ucs_output)
 {
 #ifndef DISABLE_OUTPUT_HISTORY
-  store_z_ucs_output_in_history(
-    outputhistory[0],
-    z_ucs_output);
+  if (active_window_number == 0) {
+    store_z_ucs_output_in_history(
+        outputhistory[0],
+        z_ucs_output);
+  }
 #endif /* DISABLE_OUTPUT_HISTORY */
 #ifndef DISABLE_BLOCKBUFFER
-  store_z_ucs_output_in_blockbuffer(
-    upper_window_buffer, z_ucs_output);
+  if (active_window_number == 1) {
+    store_z_ucs_output_in_blockbuffer(
+        upper_window_buffer, z_ucs_output);
+  }
 #endif /* DISABLE_BLOCKBUFFER */
   if (active_interface != NULL) {
     active_interface->z_ucs_output(z_ucs_output);
@@ -1430,14 +1434,16 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
             send_to_stream1_targets(processed_output_pos);
             *next_newline_pos = Z_UCS_NEWLINE;
             processed_output_pos = next_newline_pos;
+#ifndef DISABLE_OUTPUT_HISTORY
             if (paragraph_attribute_function != NULL) {
               paragraph_attribute_function(&parameter1, &parameter2);
               store_metadata_in_history(
-                outputhistory[0],
-                HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE,
-                parameter1,
-                parameter2);
+                  outputhistory[0],
+                  HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE,
+                  parameter1,
+                  parameter2);
             }
+#endif /* DISABLE_OUTPUT_HISTORY */
           }
           send_to_stream1_targets(processed_output_pos);
         }
