@@ -1,6 +1,6 @@
 
 /* history.c
- *
+
  * This file is part of fizmo.
  *
  * Copyright (c) 2009-2014 Christoph Ender.
@@ -394,32 +394,26 @@ static void try_to_enlarge_buffer(OUTPUTHISTORY *h, size_t desired_z_ucs_size)
 }
 
 
+// This method helps to ensure that we have at least one entry for each
+// metadata type which is required to display on the screen (style, font
+// and color) every Z_HISTORY_METADATA_STATE_BLOCK_SIZE bytes. In case
+// we wouldn't be doing this, it would mean that games which never write a
+// certain metadata type (games without color support would for example never
+// write color metadata) we'd have to walk back the entire buffer to be able
+// to evaluate the color of the current char we're pointing at.
 static void write_metadata_state_block_if_necessary(OUTPUTHISTORY *h)
 {
   long int metadata_block_index;
   long int buffer_index
     = h->z_history_buffer_front_index - h->z_history_buffer_start;
 
-  TRACE_LOG("xyz: %ld, %d, %ld\n",
-      buffer_index,
-      Z_HISTORY_METADATA_STATE_BLOCK_SIZE,
-      buffer_index % (Z_HISTORY_METADATA_STATE_BLOCK_SIZE));
-
   metadata_block_index
     = buffer_index - (buffer_index % (Z_HISTORY_METADATA_STATE_BLOCK_SIZE));
-
-  /*
-  metadata_block_index
-    = buffer_index > Z_HISTORY_METADATA_STATE_BLOCK_SIZE
-    ? buffer_index % Z_HISTORY_METADATA_STATE_BLOCK_SIZE
-    : 0;
-    */
 
   TRACE_LOG("block_index %ld(%ld), last block %ld.\n",
       metadata_block_index, buffer_index, h->last_metadata_block_index);
 
-  if (metadata_block_index != h->last_metadata_block_index)
-  {
+  if (metadata_block_index != h->last_metadata_block_index) {
     // We've now crossed a metadata block state boundary and thus we'll now
     // write the current state block.
 
@@ -748,8 +742,8 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
   TRACE_LOG("param1: %d.\n", parameter);
 
   if ( (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
-          || (metadata_type = HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) ) {
-    // Read second parameter for al metadatatypes which require it.
+          || (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) ) {
+    // Read second parameter for all metadatatypes which require it.
     parameter = va_arg(ap, int);
     TRACE_LOG("param2: %d.\n", parameter);
     if ( (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
@@ -1101,20 +1095,22 @@ static void evaluate_metadata_for_paragraph(history_output *output)
       {
         TRACE_LOG("Hit end of buffer. Using back values to fill in.\n");
 
-        if (output->font_at_index == -1)
+        if (output->font_at_index == -1) {
           output->font_at_index = h->history_buffer_back_index_font;
+        }
 
-        if (output->style_at_index == -1)
-        {
+        if (output->style_at_index == -1) {
           output->style_at_index = h->history_buffer_back_index_style;
           TRACE_LOG("sai: #3\n");
         }
 
-        if (output->foreground_at_index == Z_COLOUR_UNDEFINED)
+        if (output->foreground_at_index == Z_COLOUR_UNDEFINED) {
           output->foreground_at_index=h->history_buffer_front_index_foreground;
+        }
 
-        if (output->background_at_index == Z_COLOUR_UNDEFINED)
+        if (output->background_at_index == Z_COLOUR_UNDEFINED) {
           output->background_at_index=h->history_buffer_front_index_background;
+        }
 
         break;
       }
@@ -1174,9 +1170,10 @@ static void evaluate_metadata_for_paragraph(history_output *output)
 // value is 0, in case the buffer back was encountered 1 and a negative value
 // in case of an error. In case char_count is non-null, the number of
 // non-metadata chars in this paragraph is stored at this reference.
-int output_rewind_paragraph(history_output *output, long *char_count)
+int output_rewind_paragraph(history_output *output, long *char_count,
+    int *paragraph_attr1, int *paragraph_attr2)
 {
-  z_ucs *index, *last_index;
+  z_ucs *index, *last_index, *last_index2, *last_index3;
   int nof_chars = 0;
   unsigned int nof_wraparounds, last_nof_wraparounds;
 
@@ -1277,11 +1274,17 @@ int output_rewind_paragraph(history_output *output, long *char_count)
   // to rewind over. We're rewinding until we find the newline or the
   // buffer start. In the latter case we've got a non-full paragraph which
   // we won't return.
+  last_index = NULL;
+  last_index2 = NULL;
   do {
     // In this loop we're remembering the last index position for two
     // reasons: One to be able to read the last z_ucs we've iterated over
-    // for eaasier metadata evaluation (see below), second to make
-    // skipping the newline we might find a bit easier.
+    // for easier metadata evaluation (see below), second to make
+    // skipping the newline we might find a bit easier. We're also
+    // remebering the second- and third-last-index for paragraph attribute
+    // envaluation.
+    last_index3 = last_index2;
+    last_index2 = last_index;
     last_index = index;
     last_nof_wraparounds = nof_wraparounds;
 
@@ -1313,7 +1316,24 @@ int output_rewind_paragraph(history_output *output, long *char_count)
     nof_chars++;
 
     if (*index == HISTORY_METADATA_ESCAPE) {
-      nof_chars -= (*last_index == HISTORY_METADATA_TYPE_COLOUR ? 4 : 3);
+      if (*last_index == HISTORY_METADATA_TYPE_COLOUR) {
+        nof_chars -= 4;
+      }
+      else if (*last_index == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
+
+        if (paragraph_attr1 != NULL) {
+          *paragraph_attr1 = *last_index2 - HISTORY_METADATA_DATA_OFFSET;
+        }
+
+        if (paragraph_attr2 != NULL) {
+          *paragraph_attr2 = *last_index3 - HISTORY_METADATA_DATA_OFFSET;
+        }
+
+        nof_chars -= 4;
+      }
+      else {
+        nof_chars -= 3;
+      }
     }
 
     TRACE_LOG("Index pointing at '%c' / %p.\n", *index, index);
@@ -1410,8 +1430,9 @@ int output_repeat_paragraphs(history_output *output, int n,
       n = -1;
       TRACE_LOG("Buffer front encountered.\n");
     }
-    else if (*output_ptr == '\n')
+    else if (*output_ptr == '\n') {
       n--;
+    }
 
     if ( (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
         || (n < 1)
@@ -1428,8 +1449,8 @@ int output_repeat_paragraphs(history_output *output, int n,
 
       buf_index = 0;
 
-      if (*output_ptr == HISTORY_METADATA_ESCAPE)
-      {
+      if (*output_ptr == HISTORY_METADATA_ESCAPE) {
+
         TRACE_LOG("Metadata found at %p in output.\n", output_ptr);
 
         if (++output_ptr > output->history->z_history_buffer_end)
@@ -1467,7 +1488,7 @@ int output_repeat_paragraphs(history_output *output, int n,
           // not running into the error-else below.
           if (++output_ptr > output->history->z_history_buffer_end)
             output_ptr = output->history->z_history_buffer_start;
-          parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
+          //parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
         }
         else
         {
@@ -1481,10 +1502,12 @@ int output_repeat_paragraphs(history_output *output, int n,
       }
     }
 
-    if (metadata_type == -1)
+    if (metadata_type == -1) {
       output_buf[buf_index++] = *output_ptr;
-    else
+    }
+    else {
       metadata_type = -1;
+    }
 
     if ((++output_ptr) > output->history->z_history_buffer_end)
       output_ptr = output->history->z_history_buffer_start;

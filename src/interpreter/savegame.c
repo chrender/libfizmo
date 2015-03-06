@@ -892,7 +892,7 @@ int save_game_to_stream(uint16_t address, uint16_t length, z_file *save_file,
 
       do
       {
-        return_code = output_rewind_paragraph(history, NULL);
+        return_code = output_rewind_paragraph(history, NULL, NULL, NULL);
         nof_paragraphs_to_save--;
       }
       while ( (nof_paragraphs_to_save > 0) && (return_code == 0) );
