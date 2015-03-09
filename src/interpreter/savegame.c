@@ -888,7 +888,8 @@ int save_game_to_stream(uint16_t address, uint16_t length, z_file *save_file,
         (outputhistory[0]->z_history_buffer_size > 0)
        )
     {
-      history = init_history_output(outputhistory[0], NULL);
+      history = init_history_output(
+          outputhistory[0], NULL, Z_HISTORY_OUTPUT_WITHOUT_EXTRAS);
 
       do
       {

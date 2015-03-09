@@ -795,27 +795,20 @@ z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr,
 {
   if (
       (ptr == h->z_history_buffer_back_index)
-      &&
-      (ptr == h->z_history_buffer_front_index)
-      &&
-      (*nof_wraparounds > 0)
-     )
-  {
+      && (ptr == h->z_history_buffer_front_index)
+      && (*nof_wraparounds > 0)) {
     TRACE_LOG("History index already at buffer back.\n");
     return NULL;
   }
 
   ptr--;
 
-  if (ptr < h->z_history_buffer_start)
-  {
-    if (h->nof_wraparounds == 0)
-    {
+  if (ptr < h->z_history_buffer_start) {
+    if (h->nof_wraparounds == 0) {
       TRACE_LOG("History index at front of non-wrapped buffer.\n");
       return NULL;
     }
-    else
-    {
+    else {
       TRACE_LOG("History index at front, wrapping around.\n");
       ptr = h->z_history_buffer_end;
       (*nof_wraparounds)--;
@@ -952,44 +945,62 @@ void destroy_history_output(history_output *output)
 
 // The OUTPUTHISTORY object will ony be valid as long as nothing new is
 // stored in the history while using it.
-history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t)
+history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
+    int output_init_flags)
 {
   history_output *result;
 
-  if ( (h == NULL) || (h->z_history_buffer_size == 0) )
+  if ( (h == NULL) || (h->z_history_buffer_size == 0) ) {
     return NULL;
+  }
 
   result = fizmo_malloc(sizeof(history_output));
 
   result->history = h;
   result->validity_wraparounds = h->nof_wraparounds;
   result->validity_frontindex = h->z_history_buffer_front_index;
-  result->target=t;
-  result->current_paragraph_index = h->z_history_buffer_front_index;
-  result->font_at_index = h->history_buffer_front_index_font;
-  result->style_at_index = h->history_buffer_front_index_style;
-  result->foreground_at_index = h->history_buffer_front_index_foreground;
-  result->background_at_index = h->history_buffer_front_index_background;
-  result->nof_wraparounds = 0;
-  result->found_end_of_buffer = false;
+  result->target = t;
   result->rewound_paragraph_was_newline_terminated = false;
-  result->first_iteration_done = false;
+  result->validation_disabled
+    = (output_init_flags & Z_HISTORY_OUTPUT_WITHOUT_VALIDATION) == 0
+    ? false : true;
   result->last_rewinded_paragraphs_block_index = -1;
   result->last_used_metadata_state_font = -1;
   result->last_used_metadata_state_style = -1;
   result->last_used_metadata_state_foreground = Z_COLOUR_UNDEFINED;
   result->last_used_metadata_state_background = Z_COLOUR_UNDEFINED;
 
-  // Since "z_history_buffer_front_index" always points to the place where
-  // the next char will be stored, we actually have to go back one char
-  // in order to find the last paragraph's stored char.
-  if ((result->current_paragraph_index = decrement_buffer_pointer(
-          result->history,
-          result->current_paragraph_index,
-          &result->nof_wraparounds)) == NULL)
-  {
-    free(result);
-    return NULL;
+  if ((output_init_flags & Z_HISTORY_OUTPUT_FROM_BUFFERBACK) == 0) {
+    result->current_paragraph_index = h->z_history_buffer_front_index;
+    result->font_at_index = h->history_buffer_front_index_font;
+    result->style_at_index = h->history_buffer_front_index_style;
+    result->foreground_at_index = h->history_buffer_front_index_foreground;
+    result->background_at_index = h->history_buffer_front_index_background;
+    result->found_end_of_buffer = false;
+    result->nof_wraparounds = 0;
+    result->first_iteration_done = false;
+ 
+    // Since "z_history_buffer_front_index" always points to the place where
+    // the next char will be stored, we actually have to go back one char
+    // in order to find the last paragraph's stored char.
+    if ((result->current_paragraph_index = decrement_buffer_pointer(
+            result->history,
+            result->current_paragraph_index,
+            &result->nof_wraparounds)) == NULL) {
+      free(result);
+      return NULL;
+    }
+  }
+  else {
+    result->current_paragraph_index = h->z_history_buffer_back_index;
+    result->font_at_index = h->history_buffer_back_index_font;
+    result->style_at_index = h->history_buffer_back_index_style;
+    result->foreground_at_index = h->history_buffer_back_index_foreground;
+    result->background_at_index = h->history_buffer_back_index_background;
+    result->found_end_of_buffer = true;
+    result->nof_wraparounds
+      = h->nof_wraparounds > 0 ? h->nof_wraparounds - 1 : 0;
+    result->first_iteration_done = true;
   }
 
   return result;
@@ -1021,7 +1032,9 @@ static void evaluate_metadata_for_paragraph(history_output *output)
   z_ucs *i2 = NULL, *i3 = NULL, *i4 = NULL;
   int metadata_type, parameter;
 
-  validate_outputhistory(output);
+  if (output->validation_disabled == false) {
+    validate_outputhistory(output);
+  }
 
   TRACE_LOG("Evaluating metadata for current paragraph from %p.\n",
       output->current_paragraph_index);
@@ -1180,7 +1193,9 @@ int output_rewind_paragraph(history_output *output, long *char_count,
   TRACE_LOG("Rewinding output history by one paragraph from %p.\n",
       output->current_paragraph_index);
 
-  validate_outputhistory(output);
+  if (output->validation_disabled == false) {
+    validate_outputhistory(output);
+  }
 
   if ( (output == NULL)
       || (output->history == NULL)
@@ -1373,7 +1388,10 @@ int output_rewind_paragraph(history_output *output, long *char_count,
 
 
 bool is_output_at_frontindex(history_output *output) {
-  validate_outputhistory(output);
+
+  if (output->validation_disabled == false) {
+    validate_outputhistory(output);
+  }
 
   if (output->current_paragraph_index
       == output->history->z_history_buffer_front_index) {
@@ -1393,7 +1411,9 @@ int output_repeat_paragraphs(history_output *output, int n,
   int buf_index;
   int metadata_type = -1, parameter, parameter2;
 
-  validate_outputhistory(output);
+  if (output->validation_disabled == false) {
+    validate_outputhistory(output);
+  }
 
   if (include_metadata == true)
     evaluate_metadata_for_paragraph(output);
@@ -1421,96 +1441,102 @@ int output_repeat_paragraphs(history_output *output, int n,
     output->found_end_of_buffer = false;
 
   buf_index = 0;
-  while (n > 0)
-  {
-    TRACE_LOG("Looking at %p.\n", output_ptr);
 
-    if (output_ptr == output->history->z_history_buffer_front_index)
+  if (output_ptr == output->history->z_history_buffer_front_index) {
+    TRACE_LOG("Already at buffer front.\n");
+    n = -1;
+  }
+  else {
+    while (n > 0)
     {
-      n = -1;
-      TRACE_LOG("Buffer front encountered.\n");
-    }
-    else if (*output_ptr == '\n') {
-      n--;
-    }
+      TRACE_LOG("Looking at %p.\n", output_ptr);
 
-    if ( (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
-        || (n < 1)
-        || (*output_ptr == HISTORY_METADATA_ESCAPE) ) {
-      output_buf[buf_index] = 0;
-      TRACE_LOG("Sending %d char(s) of output.\n", buf_index);
-      output->target->z_ucs_output(output_buf);
-
-      if (n < 1)
-      {
-        TRACE_LOG("n < 1.\n");
+      if (output_ptr == output->history->z_history_buffer_front_index) {
+        TRACE_LOG("Buffer front encountered.\n");
         break;
       }
+      else if (*output_ptr == '\n') {
+        n--;
+      }
 
-      buf_index = 0;
+      if ( (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
+          || (n < 1)
+          || (*output_ptr == HISTORY_METADATA_ESCAPE) ) {
+        output_buf[buf_index] = 0;
+        TRACE_LOG("Sending %d char(s) of output.\n", buf_index);
+        output->target->z_ucs_output(output_buf);
 
-      if (*output_ptr == HISTORY_METADATA_ESCAPE) {
-
-        TRACE_LOG("Metadata found at %p in output.\n", output_ptr);
-
-        if (++output_ptr > output->history->z_history_buffer_end)
-          output_ptr = output->history->z_history_buffer_start;
-        metadata_type = *output_ptr;
-        if (++output_ptr > output->history->z_history_buffer_end)
-          output_ptr = output->history->z_history_buffer_start;
-        parameter = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
-
-        if (metadata_type == HISTORY_METADATA_TYPE_FONT)
+        if (n < 1)
         {
-          output->font_at_index = parameter;
-          if (include_metadata == true)
-            output->target->set_font(parameter);
+          TRACE_LOG("n < 1.\n");
+          break;
         }
-        else if (metadata_type == HISTORY_METADATA_TYPE_STYLE)
-        {
-          output->style_at_index = parameter;
-          if (include_metadata == true)
-            output->target->set_text_style(parameter);
-        }
-        else if (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
-        {
+
+        buf_index = 0;
+
+        if (*output_ptr == HISTORY_METADATA_ESCAPE) {
+
+          TRACE_LOG("Metadata found at %p in output.\n", output_ptr);
+
           if (++output_ptr > output->history->z_history_buffer_end)
             output_ptr = output->history->z_history_buffer_start;
-          parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
-          output->foreground_at_index = parameter;
-          output->background_at_index = parameter2;
-          if (include_metadata == true)
-            output->target->set_colour(parameter, parameter2, -1);
-        }
-        else if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
-        {
-          // Don't do anything but catch the case in order that we're
-          // not running into the error-else below.
+          metadata_type = *output_ptr;
           if (++output_ptr > output->history->z_history_buffer_end)
             output_ptr = output->history->z_history_buffer_start;
-          //parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
-        }
-        else
-        {
-          TRACE_LOG("Invalid metadata type %d\n", metadata_type);
-          i18n_translate_and_exit(
-              libfizmo_module_name,
-              i18n_libfizmo_INVALID_PARAMETER_TYPE_P0S,
-              -1,
-              "metadata");
+          parameter = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
+
+          if (metadata_type == HISTORY_METADATA_TYPE_FONT)
+          {
+            output->font_at_index = parameter;
+            if (include_metadata == true)
+              output->target->set_font(parameter);
+          }
+          else if (metadata_type == HISTORY_METADATA_TYPE_STYLE)
+          {
+            output->style_at_index = parameter;
+            if (include_metadata == true)
+              output->target->set_text_style(parameter);
+          }
+          else if (metadata_type == HISTORY_METADATA_TYPE_COLOUR)
+          {
+            if (++output_ptr > output->history->z_history_buffer_end)
+              output_ptr = output->history->z_history_buffer_start;
+            parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
+            output->foreground_at_index = parameter;
+            output->background_at_index = parameter2;
+            if (include_metadata == true)
+              output->target->set_colour(parameter, parameter2, -1);
+          }
+          else if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
+          {
+            // Don't do anything but catch the case in order that we're
+            // not running into the error-else below.
+            if (++output_ptr > output->history->z_history_buffer_end)
+              output_ptr = output->history->z_history_buffer_start;
+            //parameter2 = (int)*output_ptr - HISTORY_METADATA_DATA_OFFSET;
+          }
+          else
+          {
+            TRACE_LOG("Invalid metadata type %d\n", metadata_type);
+            i18n_translate_and_exit(
+                libfizmo_module_name,
+                i18n_libfizmo_INVALID_PARAMETER_TYPE_P0S,
+                -1,
+                "metadata");
+          }
         }
       }
-    }
 
-    if (metadata_type == -1) {
-      output_buf[buf_index++] = *output_ptr;
-    }
-    else {
-      metadata_type = -1;
-    }
+      if (metadata_type == -1) {
+        output_buf[buf_index++] = *output_ptr;
+      }
+      else {
+        metadata_type = -1;
+      }
 
-    if ((++output_ptr) > output->history->z_history_buffer_end)
-      output_ptr = output->history->z_history_buffer_start;
+      if ((++output_ptr) > output->history->z_history_buffer_end)
+        output_ptr = output->history->z_history_buffer_start;
+    }
   }
 
   TRACE_LOG("n: %d.\n", n);
@@ -1555,7 +1581,9 @@ int output_repeat_paragraphs(history_output *output, int n,
 
 void remember_history_output_position(history_output *output)
 {
-  validate_outputhistory(output);
+  if (output->validation_disabled == false) {
+    validate_outputhistory(output);
+  }
 
   output->saved_current_paragraph_index =
     output->current_paragraph_index;
@@ -1592,7 +1620,9 @@ void remember_history_output_position(history_output *output)
 
 void restore_history_output_position(history_output *output)
 {
-  validate_outputhistory(output);
+  if (output->validation_disabled == false) {
+    validate_outputhistory(output);
+  }
 
   output->current_paragraph_index =
     output->saved_current_paragraph_index;

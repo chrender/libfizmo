@@ -50,6 +50,10 @@
 #define Z_HISTORY_MAXIMUM_SIZE 128*1024*1024 // given in units of z_ucs
 #define Z_HISTORY_METADATA_STATE_BLOCK_SIZE 16*1024 // given in units of z_ucs
 
+#define Z_HISTORY_OUTPUT_WITHOUT_EXTRAS 0
+#define Z_HISTORY_OUTPUT_FROM_BUFFERBACK 1
+#define Z_HISTORY_OUTPUT_WITHOUT_VALIDATION 2
+
 
 typedef struct
 {
@@ -115,6 +119,7 @@ typedef struct
   bool found_end_of_buffer;
   bool rewound_paragraph_was_newline_terminated;
   bool first_iteration_done;
+  bool validation_disabled;
 
   bool metadata_at_index_evaluated;
   z_font font_at_index;
@@ -169,7 +174,8 @@ void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
     bool evaluate_state_block);
 int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars);
 z_ucs *get_current_line(OUTPUTHISTORY *history);
-history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t);
+history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
+    int output_init_flags);
 int output_rewind_paragraph(history_output *output, long *char_count,
     int *paragraph_attr1, int *paragraph_attr2);
 int output_repeat_paragraphs(history_output *output, int n,

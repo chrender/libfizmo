@@ -1045,7 +1045,7 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
   z_ucs char_to_convert, converted_char;
   int font3_buf_index;
   z_ucs *processed_output, *output_pos, *processed_output_pos, *next_newline_pos;
-  int size;
+  //int size;
   int parameter1, parameter2;
   bool font_conversion_active
     = (
