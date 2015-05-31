@@ -969,6 +969,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
   result->last_used_metadata_state_style = -1;
   result->last_used_metadata_state_foreground = Z_COLOUR_UNDEFINED;
   result->last_used_metadata_state_background = Z_COLOUR_UNDEFINED;
+  result->last_paragraph_attribute_index = NULL;
 
   if ((output_init_flags & Z_HISTORY_OUTPUT_FROM_BUFFERBACK) == 0) {
     result->current_paragraph_index = h->z_history_buffer_front_index;
@@ -1387,6 +1388,33 @@ int output_rewind_paragraph(history_output *output, long *char_count,
 }
 
 
+int alter_last_paragraph_attributes(history_output *output,
+    int paragraph_attr1, int paragraph_attr2) {
+  z_ucs *index;
+
+  validate_outputhistory(output);
+
+  if (output->last_paragraph_attribute_index == NULL) {
+    TRACE_LOG("Not altering paragraph attributes, pointer is NULL.\n");
+    return -1;
+  }
+
+  TRACE_LOG("Altering paragraph attributes to %d and %d.\n",
+      paragraph_attr1, paragraph_attr2);
+
+  index = output->last_paragraph_attribute_index;
+
+  *index = (z_ucs)(paragraph_attr1 + HISTORY_METADATA_DATA_OFFSET);
+  if (++index > output->history->z_history_buffer_end) {
+    index = output->history->z_history_buffer_start;
+  }
+
+  *index = (z_ucs)(paragraph_attr2 + HISTORY_METADATA_DATA_OFFSET);
+
+  return 0;
+}
+
+
 bool is_output_at_frontindex(history_output *output) {
 
   if (output->validation_disabled == false) {
@@ -1509,6 +1537,8 @@ int output_repeat_paragraphs(history_output *output, int n,
           }
           else if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
           {
+            output->last_paragraph_attribute_index = output_ptr;
+
             // Don't do anything but catch the case in order that we're
             // not running into the error-else below.
             if (++output_ptr > output->history->z_history_buffer_end)

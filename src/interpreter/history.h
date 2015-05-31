@@ -153,6 +153,7 @@ typedef struct
   z_style saved_last_used_metadata_state_style;
   z_colour saved_last_used_metadata_state_foreground;
   z_colour saved_last_used_metadata_state_background;
+  z_ucs *last_paragraph_attribute_index;
 } history_output;
 
 
@@ -178,6 +179,8 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
     int output_init_flags);
 int output_rewind_paragraph(history_output *output, long *char_count,
     int *paragraph_attr1, int *paragraph_attr2);
+int alter_last_paragraph_attributes(history_output *output,
+    int paragraph_attr1, int paragraph_attr2);
 int output_repeat_paragraphs(history_output *output, int n,
     bool include_metadata, bool advance_history_pointer);
 void destroy_history_output(history_output *output);
