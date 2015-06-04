@@ -1479,20 +1479,22 @@ int output_repeat_paragraphs(history_output *output, int n,
     {
       TRACE_LOG("Looking at %p.\n", output_ptr);
 
-      if (output_ptr == output->history->z_history_buffer_front_index) {
-        TRACE_LOG("Buffer front encountered.\n");
-        break;
-      }
-      else if (*output_ptr == '\n') {
+      if (*output_ptr == '\n') {
         n--;
       }
 
       if ( (buf_index == REPEAT_PARAGRAPH_BUF_SIZE - 1)
           || (n < 1)
-          || (*output_ptr == HISTORY_METADATA_ESCAPE) ) {
+          || (*output_ptr == HISTORY_METADATA_ESCAPE)
+          || (output_ptr == output->history->z_history_buffer_front_index) ) {
         output_buf[buf_index] = 0;
         TRACE_LOG("Sending %d char(s) of output.\n", buf_index);
         output->target->z_ucs_output(output_buf);
+
+        if (output_ptr == output->history->z_history_buffer_front_index) {
+          TRACE_LOG("Buffer front encountered.\n");
+          break;
+        }
 
         if (n < 1)
         {

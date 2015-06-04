@@ -2272,17 +2272,18 @@ void opcode_read(void)
         if (bool_equal(interpreter_command_found, true))
         {
 #ifndef DISABLE_OUTPUT_HISTORY
-          if (current_line != NULL)
-          {
-            TRACE_LOG("Restoring original prompt: '");
+          if (current_line != NULL) {
+            TRACE_LOG("Restoring original prompt before interpreter command:'");
             TRACE_LOG_Z_UCS(current_line);
             TRACE_LOG("'.\n");
             (void)streams_z_ucs_output(current_line);
           }
-          else
-#endif // DISABLE_OUTPUT_HISTORY
+          else {
             (void)streams_latin1_output(">");
-
+          }
+#else  // DISABLE_OUTPUT_HISTORY
+          (void)streams_latin1_output(">");
+#endif // DISABLE_OUTPUT_HISTORY
           z_text_buffer[1] = 0;
 
           if (save_and_quit_if_required(true) != 0)
