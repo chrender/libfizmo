@@ -9,6 +9,11 @@
  - Minor changes in processing when converting font 3 to unicode.
  - Minor fixes for lib detection, will remove some warnings and possible some build issues on linux.
  - Fix in history/remove_chars_from_history.
+ - Fix for missing prompt after interpreter commands.
+ - Implemented "alter_last_paragraph_attributes".
+ - Implemented backwards-history reading.
+ - Minor extensions and bugfixes to history.
+ - Fix for erroneous upper window text in history.
 
 ---
 
