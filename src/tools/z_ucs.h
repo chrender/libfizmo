@@ -48,6 +48,7 @@
 #define Z_UCS_DOT ((z_ucs)'.')
 #define Z_UCS_MINUS ((z_ucs)'-')
 #define Z_UCS_SOFT_HYPEN ((z_ucs)0xad)
+#define Z_UCS_COMMA ((z_ucs)',')
 
 typedef struct
 {
