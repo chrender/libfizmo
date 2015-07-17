@@ -395,17 +395,8 @@ void ask_for_input_stream_filename(void)
   size_t bytes_required;
   z_ucs *ptr;
   int len;
-#ifndef DISABLE_OUTPUT_HISTORY
-  z_ucs *current_line;
-#endif // DISABLE_OUTPUT_HISTORY
 
   input_stream_init_underway = true;
-
-#ifndef DISABLE_OUTPUT_HISTORY
-  current_line = get_current_line(outputhistory[active_window_number]);
-#else
-  current_line = NULL;
-#endif /* DISABLE_OUTPUT_HISTORY */
 
   stream_1_active_buf = stream_1_active;
   stream_1_active = true;
@@ -515,14 +506,6 @@ void ask_for_input_stream_filename(void)
 
   TRACE_LOG("Converted filename: '%s'.\n", stream_2_filename);
 
-#ifndef DISABLE_OUTPUT_HISTORY
-  if (current_line != NULL)
-  {
-    (void)streams_z_ucs_output(current_line);
-    free(current_line);
-  }
-#endif // DISABLE_OUTPUT_HISTORY
-
   input_stream_init_underway = false;
 }
 
@@ -535,15 +518,8 @@ void ask_for_stream2_filename()
   size_t bytes_required;
   z_ucs *ptr;
   int len;
-#ifndef DISABLE_OUTPUT_HISTORY
-  z_ucs *current_line;
-#endif // DISABLE_OUTPUT_HISTORY
 
   stream_2_init_underway = true;
-
-#ifndef DISABLE_OUTPUT_HISTORY
-  current_line = get_current_line(outputhistory[active_window_number]);
-#endif /* DISABLE_OUTPUT_HISTORY */
 
   stream_1_active_buf = stream_1_active;
   stream_1_active = true;
@@ -658,14 +634,6 @@ void ask_for_stream2_filename()
       bytes_required);
 
   TRACE_LOG("Converted filename: '%s'.\n", stream_2_filename);
-
-#ifndef DISABLE_OUTPUT_HISTORY
-  if (current_line != NULL)
-  {
-    (void)streams_z_ucs_output(current_line);
-    free(current_line);
-  }
-#endif // DISABLE_OUTPUT_HISTORY
 
   stream_2_filename_stored = true;
   stream_2_init_underway = false;
@@ -782,11 +750,7 @@ static void stream_2_output(z_ucs *z_ucs_output)
 }
 
 
-#ifndef DISABLE_OUTPUT_HISTORY
-void ask_for_stream4_filename_if_required(bool dont_output_current_line)
-#else
-void ask_for_stream4_filename_if_required(bool UNUSED(dont_output_current_line))
-#endif // DISABLE_OUTPUT_HISTORY
+void ask_for_stream4_filename_if_required(void)
 {
   bool stream_1_active_buf;
   int16_t input_length;
@@ -795,9 +759,6 @@ void ask_for_stream4_filename_if_required(bool UNUSED(dont_output_current_line))
   z_ucs *ptr;
   int len;
   int return_code;
-#ifndef DISABLE_OUTPUT_HISTORY
-  z_ucs *current_line = NULL;
-#endif // DISABLE_OUTPUT_HISTORY
 
   if (
       (bool_equal(stream_4_active, true))
@@ -808,14 +769,6 @@ void ask_for_stream4_filename_if_required(bool UNUSED(dont_output_current_line))
      )
   {
     stream_4_init_underway = true;
-
-#ifndef DISABLE_OUTPUT_HISTORY
-    if (bool_equal(dont_output_current_line, false))
-    {
-      current_line = get_current_line(outputhistory[active_window_number]);
-      (void)streams_latin1_output("\n");
-    }
-#endif /* DISABLE_OUTPUT_HISTORY */
 
     return_code = active_interface->prompt_for_filename(
         "transcript",
@@ -912,7 +865,7 @@ void ask_for_stream4_filename_if_required(bool UNUSED(dont_output_current_line))
       last_stream_4_filename[i] = 0;
 
       (void)streams_z_ucs_output(last_stream_4_filename);
-      (void)streams_latin1_output("\n\n");
+      (void)streams_latin1_output("\n");
 
       TRACE_LOG("From ZSCII translated filename: \"");
       TRACE_LOG_Z_UCS(last_stream_4_filename);
@@ -942,13 +895,6 @@ void ask_for_stream4_filename_if_required(bool UNUSED(dont_output_current_line))
           &ptr,
           bytes_required);
 
-#ifndef DISABLE_OUTPUT_HISTORY
-      if (current_line != NULL)
-      {
-        (void)streams_z_ucs_output(current_line);
-        free(current_line);
-      }
-#endif // DISABLE_OUTPUT_HISTORY
       stream_4_was_already_active = true;
       stream_4_init_underway = false;
     }
@@ -969,7 +915,7 @@ void stream_4_latin1_output(char *latin1_output)
   // the OUTPUT_STREAM opcode is processed might garble then screen output.
   // So we'll just wait until the user has finished with the input and ask
   // for the filename to save to once he's finished.
-  ask_for_stream4_filename_if_required(false);
+  ask_for_stream4_filename_if_required();
 
   if (stream_4_init_underway == false)
   {

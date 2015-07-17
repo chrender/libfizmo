@@ -646,9 +646,11 @@ void store_data_in_history(OUTPUTHISTORY *h, z_ucs *data, size_t len,
 void store_z_ucs_output_in_history(OUTPUTHISTORY *h, z_ucs *z_ucs_output)
 {
   size_t len;
+/*
 #ifdef ENABLE_TRACING
   z_ucs *cl;
 #endif // ENABLE_TRACING
+*/
 
   if (z_ucs_output == NULL)
     return;
@@ -658,6 +660,7 @@ void store_z_ucs_output_in_history(OUTPUTHISTORY *h, z_ucs *z_ucs_output)
 
   store_data_in_history(h, z_ucs_output, len, true);
 
+/*
 #ifdef ENABLE_TRACING
   cl = get_current_line(h);
   TRACE_LOG("currentline:|");
@@ -668,6 +671,7 @@ void store_z_ucs_output_in_history(OUTPUTHISTORY *h, z_ucs *z_ucs_output)
   }
   TRACE_LOG("|line end.\n");
 #endif // ENABLE_TRACING
+  */
 }
 
 
@@ -876,6 +880,11 @@ static z_ucs* find_older_paragraph(OUTPUTHISTORY *h, z_ucs *index)
 }
 
 
+/*
+// The "get_current_line" function is deprecated. The problem is that the
+// conecpt of getting the current line/prompt in a single string cannot
+// work once metadata is encountered.
+//
 z_ucs *get_current_line(OUTPUTHISTORY *h)
 {
   z_ucs *last_stored_char_index, *last_newline_index, *result;
@@ -935,6 +944,7 @@ z_ucs *get_current_line(OUTPUTHISTORY *h)
 
   return result;
 }
+*/
 
 
 void destroy_history_output(history_output *output)

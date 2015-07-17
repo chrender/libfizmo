@@ -1490,7 +1490,7 @@ static bool process_interpreter_command()
     (void)streams_latin1_output(fizmo_command_prefix_string);
     (void)streams_latin1_output("debug\n");
 #endif // ENABLE_DEBUGGER
-    //(void)streams_latin1_output("\n");
+    (void)streams_latin1_output("\n");
     return true;
   }
   else if (z_ucs_cmp_latin1(prefixed_command, "predictable") == 0)
@@ -1510,7 +1510,7 @@ static bool process_interpreter_command()
           libfizmo_module_name,
           i18n_libfizmo_RANDOM_GENERATOR_IS_NOW_IN_RANDOM_MODE);
     }
-    (void)streams_latin1_output("\n");
+    (void)streams_latin1_output("\n\n");
 
     return true;
   }
@@ -1640,6 +1640,7 @@ static bool process_interpreter_command()
 #endif
 
     //(void)streams_latin1_output("\n");
+    streams_latin1_output("\n");
 
     return true;
   }
@@ -1649,7 +1650,8 @@ static bool process_interpreter_command()
     if ( (ptr == NULL) || (strcasecmp(ptr, "true") != 0) )
     {
       stream_4_active = true;
-      ask_for_stream4_filename_if_required(true);
+      ask_for_stream4_filename_if_required();
+      (void)streams_latin1_output("Recording started.\n\n");
     }
     else
     {
@@ -1663,8 +1665,10 @@ static bool process_interpreter_command()
   else if (z_ucs_cmp_latin1(prefixed_command, "recstop") == 0)
   {
     ptr = get_configuration_value("disable-external-streams");
-    if ( (ptr == NULL) || (strcasecmp(ptr, "true") != 0) )
+    if ( (ptr == NULL) || (strcasecmp(ptr, "true") != 0) ) {
       stream_4_active = false;
+      (void)streams_latin1_output("Recording stopped.\n\n");
+    }
     else
     {
       (void)i18n_translate(
@@ -1739,6 +1743,7 @@ static bool process_interpreter_command()
       }
     }
 
+    streams_latin1_output("\n");
     return true;
   }
 #ifdef ENABLE_DEBUGGER
@@ -1939,10 +1944,6 @@ void opcode_read(void)
   zscii nof_preloaded_chars;
   bool interpreter_command_found;
   int i;
-  // TODO: Implement permanent buffer for current_line.
-#ifndef DISABLE_OUTPUT_HISTORY
-  z_ucs *current_line = NULL;
-#endif /* DISABLE_OUTPUT_HISTORY */
   bool stream_1_active_buf;
   int offset;
   size_t bytes_required;
@@ -1961,16 +1962,6 @@ void opcode_read(void)
     return;
 
   TRACE_LOG("Reading input (%x, %x).\n", op[0], parsebuffer_offset);
-
-#ifndef DISABLE_OUTPUT_HISTORY
-  current_line = get_current_line(outputhistory[active_window_number]);
-  if (current_line != NULL)
-  {
-    TRACE_LOG("Current line (%p): '", current_line);
-    TRACE_LOG_Z_UCS(current_line);
-    TRACE_LOG("'.\n");
-  }
-#endif /* DISABLE_OUTPUT_HISTORY */
 
   if (ver >= 5)
     read_z_result_variable();
@@ -2078,16 +2069,6 @@ void opcode_read(void)
               TRACE_LOG(
                   "Invoking verification routine, 1/10s counter: %d(%d).\n",
                   tenth_seconds_to_delay , tenth_seconds);
-#ifndef DISABLE_OUTPUT_HISTORY
-              if ((stream_output_has_occured == true) && (current_line != NULL))
-              {
-                TRACE_LOG("Restoring original prompt: '");
-                TRACE_LOG_Z_UCS(current_line);
-                TRACE_LOG("'.\n");
-                (void)streams_z_ucs_output(current_line);
-                stream_output_has_occured = false;
-              }
-#endif // DISABLE_OUTPUT_HISTORY
               if ((timed_routine_retval=interpret_from_call(
                       get_packed_routinecall_address(timed_routine_offset)))!=0)
               {
@@ -2122,10 +2103,6 @@ void opcode_read(void)
 
         if (terminate_interpreter != INTERPRETER_QUIT_NONE)
         {
-#ifndef DISABLE_OUTPUT_HISTORY
-          if (current_line != NULL)
-            free(current_line);
-#endif // DISABLE_OUTPUT_HISTORY
           return;
         }
 
@@ -2271,19 +2248,7 @@ void opcode_read(void)
 
         if (bool_equal(interpreter_command_found, true))
         {
-#ifndef DISABLE_OUTPUT_HISTORY
-          if (current_line != NULL) {
-            TRACE_LOG("Restoring original prompt before interpreter command:'");
-            TRACE_LOG_Z_UCS(current_line);
-            TRACE_LOG("'.\n");
-            (void)streams_z_ucs_output(current_line);
-          }
-          else {
-            (void)streams_latin1_output(">");
-          }
-#else  // DISABLE_OUTPUT_HISTORY
           (void)streams_latin1_output(">");
-#endif // DISABLE_OUTPUT_HISTORY
           z_text_buffer[1] = 0;
 
           if (save_and_quit_if_required(true) != 0)
@@ -2307,16 +2272,6 @@ void opcode_read(void)
   // If we just had a command that was processed internally by the
   // interpreter, not the story, we'll continue with the input.
   while (interpreter_command_found != false);
-
-#ifndef DISABLE_OUTPUT_HISTORY
-  if (current_line != NULL)
-  {
-    TRACE_LOG("Free current line (%p): '", current_line);
-    TRACE_LOG_Z_UCS(current_line);
-    TRACE_LOG("'.\n");
-    free(current_line);
-  }
-#endif // DISABLE_OUTPUT_HISTORY
 
   number_of_commands++;
 }
