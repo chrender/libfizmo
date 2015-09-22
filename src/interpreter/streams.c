@@ -963,7 +963,7 @@ static void close_script_file()
 static void send_to_stream1_targets(z_ucs *z_ucs_output)
 {
 #ifndef DISABLE_OUTPUT_HISTORY
-  if (active_window_number == 0) {
+  if ((active_window_number == 0) && (outputhistory[0] != NULL) ) {
     store_z_ucs_output_in_history(
         outputhistory[0],
         z_ucs_output);
