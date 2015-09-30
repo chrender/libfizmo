@@ -4,8 +4,9 @@
    **Version 0.7.10**
 
  - Adapted print_table opcode to work in lower window. This fixes output errors in “Sherlock”.
+ - Fix for Debian bug #795800: When the ncurses screen is resized when Inform's menu library displays hints or instructions fizmo will no longer exit and complain about an error in the “output_rewind_paragraph” function. Thanks to Lewis Gentry for reporting this problem.
  - Implemented “flush-output-on-newline” configuration option. This will ensure that any output is flushed to history and interface before a newline. This allows interfaces to store paragraph-relevant attributes in the history with minor fuzz (which is used by fizmo-sdl).
- - Added new metadata-type “paragraph attribute” for the purpose described above, along woth auxiliary callbacks “paragraph_attribute_function” and “paragraph_removal_function” which are invoked from the history.
+ - Added new metadata-type “paragraph attribute” for the purpose described above, along with auxiliary callbacks “paragraph_attribute_function” and “paragraph_removal_function” which are invoked from the history.
  - Minor changes in processing when converting font 3 to unicode.
  - Minor fixes for lib detection, will remove some warnings and possible some build issues on linux.
  - Fix in history/remove_chars_from_history.

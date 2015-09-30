@@ -982,6 +982,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
   result->last_paragraph_attribute_index = NULL;
 
   if ((output_init_flags & Z_HISTORY_OUTPUT_FROM_BUFFERBACK) == 0) {
+    TRACE_LOG("Init from buffer front.\n");
     result->current_paragraph_index = h->z_history_buffer_front_index;
     result->font_at_index = h->history_buffer_front_index_font;
     result->style_at_index = h->history_buffer_front_index_style;
@@ -1003,6 +1004,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
     }
   }
   else {
+    TRACE_LOG("Init from buffer back.\n");
     result->current_paragraph_index = h->z_history_buffer_back_index;
     result->font_at_index = h->history_buffer_back_index_font;
     result->style_at_index = h->history_buffer_back_index_style;
@@ -1233,14 +1235,21 @@ int output_rewind_paragraph(history_output *output, long *char_count,
     // always newline-terminated.
     output->rewound_paragraph_was_newline_terminated = true;
 
-    if ((index = decrement_buffer_pointer(
-            output->history,
-            index,
-            &nof_wraparounds)) == NULL) {
-      TRACE_LOG("Couldn't execute initial index decrement.\n");
-      return -3;
+    // It's possible that we're already on the newline in case the very
+    // first paragraph didn't contain anything but a newline, so we'll
+    // only rewind further in case we're not yet there.
+    if (*index != '\n') {
+      TRACE_LOG("Rewinding from %p.\n", index);
+      if ((index = decrement_buffer_pointer(
+              output->history,
+              index,
+              &nof_wraparounds)) == NULL) {
+        TRACE_LOG("Couldn't execute initial index decrement.\n");
+        return -3;
+      }
     }
 
+    TRACE_LOG("Looking at %p.\n", index);
     if (*index != '\n') {
       TRACE_LOG("Internal error rewinding.\n");
       return -4;
