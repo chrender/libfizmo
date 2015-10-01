@@ -8,6 +8,7 @@
  - Implemented “flush-output-on-newline” configuration option. This will ensure that any output is flushed to history and interface before a newline. This allows interfaces to store paragraph-relevant attributes in the history with minor fuzz (which is used by fizmo-sdl).
  - Added new metadata-type “paragraph attribute” for the purpose described above, along with auxiliary callbacks “paragraph_attribute_function” and “paragraph_removal_function” which are invoked from the history.
  - Minor changes in processing when converting font 3 to unicode.
+ - Fixed possible garbled upper window after erase_window(-1) invocation.
  - Minor fixes for lib detection, will remove some warnings and possible some build issues on linux.
  - Fix in history/remove_chars_from_history.
  - Fix for missing prompt after interpreter commands.
