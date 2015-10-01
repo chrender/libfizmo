@@ -120,6 +120,7 @@ typedef struct
   bool rewound_paragraph_was_newline_terminated;
   bool first_iteration_done;
   bool validation_disabled;
+  bool dont_skip_newline;
 
   bool metadata_at_index_evaluated;
   z_font font_at_index;

@@ -980,6 +980,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
   result->last_used_metadata_state_foreground = Z_COLOUR_UNDEFINED;
   result->last_used_metadata_state_background = Z_COLOUR_UNDEFINED;
   result->last_paragraph_attribute_index = NULL;
+  result->dont_skip_newline = false;
 
   if ((output_init_flags & Z_HISTORY_OUTPUT_FROM_BUFFERBACK) == 0) {
     TRACE_LOG("Init from buffer front.\n");
@@ -1238,7 +1239,7 @@ int output_rewind_paragraph(history_output *output, long *char_count,
     // It's possible that we're already on the newline in case the very
     // first paragraph didn't contain anything but a newline, so we'll
     // only rewind further in case we're not yet there.
-    if (*index != '\n') {
+    if (output->dont_skip_newline == false) {
       TRACE_LOG("Rewinding from %p.\n", index);
       if ((index = decrement_buffer_pointer(
               output->history,
@@ -1247,6 +1248,9 @@ int output_rewind_paragraph(history_output *output, long *char_count,
         TRACE_LOG("Couldn't execute initial index decrement.\n");
         return -3;
       }
+    }
+    else {
+      output->dont_skip_newline = false;
     }
 
     TRACE_LOG("Looking at %p.\n", index);
@@ -1284,6 +1288,7 @@ int output_rewind_paragraph(history_output *output, long *char_count,
   }
   else {
     if (*index == '\n') {
+      output->dont_skip_newline = true;
       TRACE_LOG("Last output char is newline, returning from 1st iteration.\n");
       output->first_iteration_done = true;
       output->metadata_at_index_evaluated = false;
@@ -1295,6 +1300,7 @@ int output_rewind_paragraph(history_output *output, long *char_count,
       return 0;
     }
     else {
+      output->dont_skip_newline = false;
       output->rewound_paragraph_was_newline_terminated = false;
     }
 

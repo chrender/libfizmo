@@ -151,6 +151,7 @@ void opcode_erase_window(void)
     active_window_number = 0;
     active_interface->set_window(0);
     active_interface->erase_window(0);
+    upper_window_height = 0;
   }
   else
     active_interface->erase_window((int16_t)op[0]);
