@@ -3,7 +3,7 @@
  *
  * This file is part of fizmo.
  *
- * Copyright (c) 2011-2014 Andrew Plotkin and Christoph Ender.
+ * Copyright (c) 2011-2015 Andrew Plotkin and Christoph Ender.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
