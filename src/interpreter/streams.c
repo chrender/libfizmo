@@ -1383,11 +1383,13 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
 #ifndef DISABLE_OUTPUT_HISTORY
             if (paragraph_attribute_function != NULL) {
               paragraph_attribute_function(&parameter1, &parameter2);
-              store_metadata_in_history(
-                  outputhistory[0],
-                  HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE,
-                  parameter1,
-                  parameter2);
+              if (outputhistory[0] != NULL) {
+                store_metadata_in_history(
+                    outputhistory[0],
+                    HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE,
+                    parameter1,
+                    parameter2);
+              }
             }
 #endif /* DISABLE_OUTPUT_HISTORY */
           }

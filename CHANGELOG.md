@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.7.11**
+
+ - Fix segfault in case metadata is written to output history when screen interface is not open.
+
+---
+
+
    **Version 0.7.10 — October 9, 2015**
 
  - Adapted print_table opcode to work in lower window. This fixes output errors in “Sherlock”.
