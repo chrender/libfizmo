@@ -863,6 +863,7 @@ int remove_chars_from_history(OUTPUTHISTORY *history, int nof_chars)
 }
 
 
+/*
 // Search from index in direction of the back index and return the position
 // of the next encountered newline char.
 static z_ucs* find_older_paragraph(OUTPUTHISTORY *h, z_ucs *index)
@@ -878,6 +879,7 @@ static z_ucs* find_older_paragraph(OUTPUTHISTORY *h, z_ucs *index)
 
   return index;
 }
+*/
 
 
 /*
