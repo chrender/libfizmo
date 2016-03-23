@@ -118,6 +118,7 @@ OUTPUTHISTORY *create_outputhistory(int window_number,
   result->nof_wraparounds = 0;
   result->last_metadata_block_index = 0;
   result->next_newline_after_buffer_back = NULL;
+  result->last_written_paragraph_attribute_index = NULL;
 
   result->history_buffer_back_index_font = font;
   result->history_buffer_back_index_style = style;
@@ -675,6 +676,39 @@ void store_z_ucs_output_in_history(OUTPUTHISTORY *h, z_ucs *z_ucs_output)
 }
 
 
+// This function will really only decrement the pointer. "Only" means that
+// even after a successful decrement the pointer is not guaraneteed to
+// point at text, it may also point at the end of a metadata-entry.
+z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr,
+    unsigned int *nof_wraparounds)
+{
+  if (
+      (ptr == h->z_history_buffer_back_index)
+      && (ptr == h->z_history_buffer_front_index)
+      && (*nof_wraparounds > 0)) {
+    TRACE_LOG("History index already at buffer back.\n");
+    return NULL;
+  }
+
+  ptr--;
+
+  if (ptr < h->z_history_buffer_start) {
+    if (h->nof_wraparounds == 0) {
+      TRACE_LOG("History index at front of non-wrapped buffer.\n");
+      return NULL;
+    }
+    else {
+      TRACE_LOG("History index at front, wrapping around.\n");
+      ptr = h->z_history_buffer_end;
+      (*nof_wraparounds)--;
+    }
+  }
+
+  return ptr;
+}
+
+
+
 // All "..." values must be int16_t.
 int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
 {
@@ -682,6 +716,7 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
   va_list ap;
   int16_t parameter;
   size_t len;
+  unsigned int nof_wraparounds;
 
   if (
       (metadata_type != HISTORY_METADATA_TYPE_FONT)
@@ -760,6 +795,9 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
           "parameter");
       h->history_buffer_front_index_background = parameter;
     }
+    if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
+      printf("STORING PARAGRAPH ATTRIBUTE \"%d\".\n", parameter);
+    }
     output_buffer[3] = (z_ucs)(parameter + HISTORY_METADATA_DATA_OFFSET);
     len = 4;
   }
@@ -771,6 +809,41 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
   va_end(ap);
 
   store_data_in_history(h, output_buffer, len, false);
+
+  if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
+
+    // z_history_buffer_front_index is now pointing at the next element
+    // in the outputhistory. In order to locate the first metadata
+    // index we'll have to decrement it twice.
+
+    h->last_written_paragraph_attribute_index
+      = h->z_history_buffer_front_index;
+    nof_wraparounds = h->nof_wraparounds;
+
+    if ((h->last_written_paragraph_attribute_index
+          = decrement_buffer_pointer(
+            h,
+            h->last_written_paragraph_attribute_index,
+            &nof_wraparounds)) == NULL) {
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
+          -0x0100,
+          "decrement_buffer_pointer");
+    }
+
+    if ((h->last_written_paragraph_attribute_index
+          = decrement_buffer_pointer(
+            h,
+            h->last_written_paragraph_attribute_index,
+            &nof_wraparounds)) == NULL) {
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_FUNCTION_CALL_P0S_ABORTED_DUE_TO_ERROR,
+          -0x0100,
+          "decrement_buffer_pointer");
+    }
+  }
 
   return 0;
 }
@@ -789,38 +862,6 @@ int get_paragraph_y_positions(OUTPUTHISTORY *history, int screen_width,
     int bottom_y, int *bottom_y_pos, int top_y, int *top_y_pos,
     int left_padding);
 */
-
-
-// This function will really only decrement the pointer. "Only" means that
-// even after a successful decrement the pointer is not guaraneteed to
-// point at text, it may also point at the end of a metadata-entry.
-z_ucs *decrement_buffer_pointer(OUTPUTHISTORY *h, z_ucs *ptr,
-    unsigned int *nof_wraparounds)
-{
-  if (
-      (ptr == h->z_history_buffer_back_index)
-      && (ptr == h->z_history_buffer_front_index)
-      && (*nof_wraparounds > 0)) {
-    TRACE_LOG("History index already at buffer back.\n");
-    return NULL;
-  }
-
-  ptr--;
-
-  if (ptr < h->z_history_buffer_start) {
-    if (h->nof_wraparounds == 0) {
-      TRACE_LOG("History index at front of non-wrapped buffer.\n");
-      return NULL;
-    }
-    else {
-      TRACE_LOG("History index at front, wrapping around.\n");
-      ptr = h->z_history_buffer_end;
-      (*nof_wraparounds)--;
-    }
-  }
-
-  return ptr;
-}
 
 
 // Used to remove preloaded input:
@@ -981,7 +1022,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
   result->last_used_metadata_state_style = -1;
   result->last_used_metadata_state_foreground = Z_COLOUR_UNDEFINED;
   result->last_used_metadata_state_background = Z_COLOUR_UNDEFINED;
-  result->last_paragraph_attribute_index = NULL;
+  result->last_read_paragraph_attribute_index = NULL;
   result->dont_skip_newline = false;
 
   if ((output_init_flags & Z_HISTORY_OUTPUT_FROM_BUFFERBACK) == 0) {
@@ -994,7 +1035,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
     result->found_end_of_buffer = false;
     result->nof_wraparounds = 0;
     result->first_iteration_done = false;
- 
+
     // Since "z_history_buffer_front_index" always points to the place where
     // the next char will be stored, we actually have to go back one char
     // in order to find the last paragraph's stored char.
@@ -1289,8 +1330,10 @@ int output_rewind_paragraph(history_output *output, long *char_count,
     }
   }
   else {
+    printf("----------1st iteration.\n");
     if (*index == '\n') {
       output->dont_skip_newline = true;
+      printf("Last output char is newline, returning from 1st iteration.\n");
       TRACE_LOG("Last output char is newline, returning from 1st iteration.\n");
       output->first_iteration_done = true;
       output->metadata_at_index_evaluated = false;
@@ -1415,25 +1458,55 @@ int output_rewind_paragraph(history_output *output, long *char_count,
 }
 
 
-int alter_last_paragraph_attributes(history_output *output,
+int alter_last_read_paragraph_attributes(history_output *output,
     int paragraph_attr1, int paragraph_attr2) {
   z_ucs *index;
 
   validate_outputhistory(output);
 
-  if (output->last_paragraph_attribute_index == NULL) {
+  if (output->last_read_paragraph_attribute_index == NULL) {
     TRACE_LOG("Not altering paragraph attributes, pointer is NULL.\n");
     return -1;
   }
 
-  TRACE_LOG("Altering paragraph attributes to %d and %d.\n",
+  printf("Alter last read paragraph metadata at %p.\n",
+      output->last_read_paragraph_attribute_index);
+
+  printf("Altering last read paragraph attributes to %d and %d.\n",
       paragraph_attr1, paragraph_attr2);
 
-  index = output->last_paragraph_attribute_index;
+  TRACE_LOG("Altering last read paragraph attributes to %d and %d.\n",
+      paragraph_attr1, paragraph_attr2);
+
+  index = output->last_read_paragraph_attribute_index;
 
   *index = (z_ucs)(paragraph_attr1 + HISTORY_METADATA_DATA_OFFSET);
   if (++index > output->history->z_history_buffer_end) {
     index = output->history->z_history_buffer_start;
+  }
+
+  *index = (z_ucs)(paragraph_attr2 + HISTORY_METADATA_DATA_OFFSET);
+
+  return 0;
+}
+
+
+int alter_last_written_paragraph_attributes(OUTPUTHISTORY *h,
+    int paragraph_attr1, int paragraph_attr2) {
+  z_ucs *index;
+
+  if (h->last_written_paragraph_attribute_index == NULL) {
+    TRACE_LOG("Not altering paragraph attributes, pointer is NULL.\n");
+    return -1;
+  }
+
+  index = h->last_written_paragraph_attribute_index;
+
+  printf("ALTER PARAGRAPH ATTR HISTORY TO %d.\n", paragraph_attr1);
+
+  *index = (z_ucs)(paragraph_attr1 + HISTORY_METADATA_DATA_OFFSET);
+  if (++index > h->z_history_buffer_end) {
+    index = h->z_history_buffer_start;
   }
 
   *index = (z_ucs)(paragraph_attr2 + HISTORY_METADATA_DATA_OFFSET);
@@ -1566,7 +1639,7 @@ int output_repeat_paragraphs(history_output *output, int n,
           }
           else if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE)
           {
-            output->last_paragraph_attribute_index = output_ptr;
+            output->last_read_paragraph_attribute_index = output_ptr;
 
             // Don't do anything but catch the case in order that we're
             // not running into the error-else below.
