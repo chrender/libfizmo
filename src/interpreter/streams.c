@@ -16,7 +16,7 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
  *    derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -257,12 +257,12 @@ void init_streams()
   int stream2width;
 
   stream2width
-    = stream_2_line_width != NULL       
+    = stream_2_line_width != NULL
     ? atoi(stream_2_line_width)
     : DEFAULT_STREAM_2_LINE_WIDTH;
 
   stream2margin
-    = stream_2_left_margin != NULL       
+    = stream_2_left_margin != NULL
     ? atoi(stream_2_left_margin)
     : DEFAULT_STREAM_2_LEFT_PADDING;
 
@@ -990,7 +990,8 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
   z_ucs font3_conversion_buf[FONT3_CONVERSION_BUF_SIZE];
   z_ucs char_to_convert, converted_char;
   int font3_buf_index;
-  z_ucs *processed_output, *output_pos, *processed_output_pos, *next_newline_pos;
+  z_ucs *processed_output, *output_pos, *processed_output_pos;
+  z_ucs *next_newline_pos;
   //int size;
   int parameter1, parameter2;
   bool font_conversion_active
@@ -1373,20 +1374,38 @@ static int _streams_z_ucs_output(z_ucs *z_ucs_output, bool is_user_input)
           // looking from the front. In case we've already found a newline
           // we'll start at the char behind it. This helps to ensure that
           // the newline is actually included in the next output.
-          while ((next_newline_pos = z_ucs_chr(
-                   processed_output_pos + (next_newline_pos == NULL ? 0 : 1),
-                   Z_UCS_NEWLINE)) != NULL) {
+          while ((next_newline_pos
+                = z_ucs_chr(processed_output_pos, Z_UCS_NEWLINE)) != NULL) {
             *next_newline_pos = 0;
             send_to_stream1_targets(processed_output_pos);
             *next_newline_pos = Z_UCS_NEWLINE;
             processed_output_pos = next_newline_pos;
 #ifndef DISABLE_OUTPUT_HISTORY
             if (paragraph_attribute_function != NULL) {
-              paragraph_attribute_function(&parameter1, &parameter2);
+              //paragraph_attribute_function(&parameter1, &parameter2);
+
+              // Write paragraph attribute metadata dummy block. It is
+              // written to make sure the block is placed before the
+              // paragraph's final newline, but we'll replace it's contents
+              // later (since we can only know the correct contents once the
+              // newline char has been flushed).
               if (outputhistory[0] != NULL) {
                 store_metadata_in_history(
                     outputhistory[0],
                     HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE,
+                    0,
+                    0);
+              }
+
+              // Write newline and advance stream accordingly.
+              send_to_stream1_targets(z_ucs_newline_string);
+              processed_output_pos++;
+
+              paragraph_attribute_function(&parameter1, &parameter2);
+
+              if (outputhistory[0] != NULL) {
+                alter_last_written_paragraph_attributes(
+                    outputhistory[0],
                     parameter1,
                     parameter2);
               }
@@ -1522,7 +1541,7 @@ void opcode_output_stream(void)
 
     TRACE_LOG("stream-3 depth: %d.\n", stream_3_current_depth);
 
-    TRACE_LOG("Current stream-3 dest is %p.\n", 
+    TRACE_LOG("Current stream-3 dest is %p.\n",
         stream_3_start[stream_3_current_depth]);
   }
 
