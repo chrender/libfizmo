@@ -795,9 +795,11 @@ int store_metadata_in_history(OUTPUTHISTORY *h, int metadata_type, ...)
           "parameter");
       h->history_buffer_front_index_background = parameter;
     }
+    /*
     if (metadata_type == HISTORY_METADATA_TYPE_PARAGRAPHATTRIBUTE) {
       printf("STORING PARAGRAPH ATTRIBUTE \"%d\".\n", parameter);
     }
+    */
     output_buffer[3] = (z_ucs)(parameter + HISTORY_METADATA_DATA_OFFSET);
     len = 4;
   }
@@ -1330,7 +1332,7 @@ int output_rewind_paragraph(history_output *output, long *char_count,
     }
   }
   else {
-    printf("----------1st iteration.\n");
+    //printf("----------1st iteration.\n");
     if (*index == '\n') {
       output->dont_skip_newline = true;
       printf("Last output char is newline, returning from 1st iteration.\n");
@@ -1502,7 +1504,7 @@ int alter_last_written_paragraph_attributes(OUTPUTHISTORY *h,
 
   index = h->last_written_paragraph_attribute_index;
 
-  printf("ALTER PARAGRAPH ATTR HISTORY TO %d.\n", paragraph_attr1);
+  //printf("ALTER PARAGRAPH ATTR HISTORY TO %d.\n", paragraph_attr1);
 
   *index = (z_ucs)(paragraph_attr1 + HISTORY_METADATA_DATA_OFFSET);
   if (++index > h->z_history_buffer_end) {
