@@ -76,6 +76,7 @@ typedef struct
 
   long int last_metadata_block_index;
   z_ucs *next_newline_after_buffer_back;
+  z_ucs *last_written_paragraph_attribute_index;
 
   // These four values are set when fizmo opens the interface (and when the
   // values are used in the current version). They keep the current state of
@@ -154,7 +155,7 @@ typedef struct
   z_style saved_last_used_metadata_state_style;
   z_colour saved_last_used_metadata_state_foreground;
   z_colour saved_last_used_metadata_state_background;
-  z_ucs *last_paragraph_attribute_index;
+  z_ucs *last_read_paragraph_attribute_index;
 } history_output;
 
 
@@ -180,7 +181,9 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
     int output_init_flags);
 int output_rewind_paragraph(history_output *output, long *char_count,
     int *paragraph_attr1, int *paragraph_attr2);
-int alter_last_paragraph_attributes(history_output *output,
+int alter_last_read_paragraph_attributes(history_output *output,
+    int paragraph_attr1, int paragraph_attr2);
+int alter_last_written_paragraph_attributes(OUTPUTHISTORY *h,
     int paragraph_attr1, int paragraph_attr2);
 int output_repeat_paragraphs(history_output *output, int n,
     bool include_metadata, bool advance_history_pointer);
