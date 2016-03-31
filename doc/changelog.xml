@@ -2,6 +2,7 @@
 <changelog>
   <change version="0.7.11">
     <logentry>Fix segfault in case metadata is written to output history when screen interface is not open.</logentry>
+    <logentry>Added write/read of last paragraph_attributes.</logentry>
   </change>
 
   <change version="0.7.10">
