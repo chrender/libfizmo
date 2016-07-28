@@ -5,6 +5,7 @@
 
  - Fix segfault in case metadata is written to output history when screen interface is not open.
  - Added write/read of last paragraph_attributes.
+ - Implement init for config default values.
 
 ---
 
