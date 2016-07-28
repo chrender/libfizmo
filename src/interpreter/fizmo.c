@@ -1175,6 +1175,8 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
     return;
   }
 
+  init_config_default_values();
+
   register_i18n_stream_output_function(
       streams_z_ucs_output);
 

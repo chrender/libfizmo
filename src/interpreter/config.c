@@ -336,8 +336,6 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           ||
           (strcmp(key, "transcript-filename") == 0)
           ||
-          (strcmp(key, "save-text-history-paragraphs") == 0)
-          ||
           (strcmp(key, "input-command-filename") == 0)
           ||
           (strcmp(key, "record-command-filename") == 0)
@@ -356,6 +354,8 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
           (strcmp(key, "stream-2-left-margin") == 0)
           ||
           (strcmp(key, "max-undo-steps") == 0)
+          ||
+          (strcmp(key, "save-text-history-paragraphs") == 0)
           )
       {
         if (new_value == NULL)
@@ -775,6 +775,11 @@ char *get_user_homedir()
   }
 
   return user_homedir;
+}
+
+
+void init_config_default_values() {
+  set_configuration_value("save-text-history-paragraphs", "1000");
 }
 
 
