@@ -1516,8 +1516,6 @@ static bool process_interpreter_command()
   }
   else if (z_ucs_cmp_latin1(prefixed_command, "info") == 0)
   {
-    active_interface->output_interface_info();
-
 #ifdef FIZMO_DIST_VERSION
     i18n_translate(
         libfizmo_module_name,
@@ -1531,6 +1529,8 @@ static bool process_interpreter_command()
         i18n_libfizmo_LIBFIZMO_VERSION_P0S,
         LIBFIZMO_VERSION);
     (void)streams_latin1_output("\n");
+
+    active_interface->output_interface_info();
 
     if (active_sound_interface != NULL)
     {
