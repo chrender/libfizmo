@@ -15,7 +15,7 @@ Please send bug reports (or other requests) to fizmo@spellbreaker.org.
 
 libfizmo was written by Christoph Ender in 2005-2016.
 
-For the latest version, see [http://spellbreaker.org/~chrender/fizmo/](http://spellbreaker.org/~chrender/fizmo/).
+For the latest version, see [https://fizmo.spellbreaker.org](https://fizmo.spellbreaker.org).
 
 libfizmo uses the Mersenne twister from [http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html) as a random number generator implementation:  
 “A C-program for MT19937, with initialization improved 2002/1/26.  

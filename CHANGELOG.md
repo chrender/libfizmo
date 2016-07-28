@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.11**
+   **Version 0.7.11 — July 28, 2016**
 
  - Fix segfault in case metadata is written to output history when screen interface is not open.
  - Added write/read of last paragraph_attributes.

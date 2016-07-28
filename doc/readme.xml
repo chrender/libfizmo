@@ -15,7 +15,7 @@
 
     <p>libfizmo was written by Christoph Ender in 2005-2016.</p>
 
-    <p>For the latest version, see <a href="http://spellbreaker.org/~chrender/fizmo/"/>.</p>
+    <p>For the latest version, see <a href="https://fizmo.spellbreaker.org"/>.</p>
 
     <p>libfizmo uses the Mersenne twister from <a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html"/> as a random number generator implementation:<br/>“A C-program for MT19937, with initialization improved 2002/1/26.<br/>Coded by Takuji Nishimura and Makoto Matsumoto.<br/>Copyright (C) 1997 – 2002, Makoto Matsumoto and Takuji Nishimura,<br/>All rights reserved.”<br/>For full copyright notice see “src/fizmo/mt19937ar.c”.</p>
 
