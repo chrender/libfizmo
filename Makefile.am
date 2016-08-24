@@ -43,6 +43,10 @@ PKGFILE = $(PKG_DIR)/libfizmo.pc
 SUBDIRS = src/tools src/interpreter .
 noinst_LIBRARIES = libfizmo.a
 
+# Object files are stored in pre-defined order into the static library in
+# order to make the build reproducible for Debian's ReproducibleBuilds
+# project, see https://wiki.debian.org/ReproducibleBuilds
+# Patch provided by Sascha Steinbiss <satta@debian.org>.
 libfizmo.a::
 	cd src/tools ; make
 	cd src/interpreter ; make
@@ -50,7 +54,7 @@ libfizmo.a::
 	cd "$(tmplibdir)" ; \
 	"$(AR)" x ../src/tools/libtools.a ; \
 	"$(AR)" x ../src/interpreter/libinterpreter.a ; \
-	"$(AR)" $(ARFLAGS) ../libfizmo.a *.o ; \
+	find -name '*.o' -print0 | LC_ALL=C sort -z | xargs -0 "$(AR)" $(ARFLAGS) ../libfizmo.a ; \
 	"$(RANLIB)" ../libfizmo.a ; \
 	cd .. ; \
 	rm -r "$(tmplibdir)"
@@ -78,7 +82,7 @@ install-dev:: libfizmo.a
 	echo >>"$(PKGFILE)"
 	echo 'Name: libfizmo' >>"$(PKGFILE)"
 	echo 'Description: libfizmo' >>"$(PKGFILE)"
-	echo 'Version: 0.7.11' >>"$(PKGFILE)"
+	echo 'Version: 0.7.12' >>"$(PKGFILE)"
 	echo "Requires: $(LIBFIZMO_REQS)" >>"$(PKGFILE)"
 	echo 'Requires.private:' >>"$(PKGFILE)"
 	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(PKGFILE)"
