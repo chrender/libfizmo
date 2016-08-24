@@ -868,7 +868,7 @@ int save_game_to_stream(uint16_t address, uint16_t length, z_file *save_file,
     }
 
     fsi->fileprintf(save_file,
-        "Interpreter: fizmo, version: %s.\n", FIZMO_VERSION);
+        "Interpreter: libfizmo, version: %s.\n", LIBFIZMO_VERSION);
 
     if (end_current_chunk(save_file) != 0)
     {

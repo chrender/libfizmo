@@ -163,9 +163,9 @@ void debugger_story_has_been_loaded()
   flags = fcntl(newsockfd, F_GETFL, 0);
   fcntl(newsockfd, F_SETFL, flags | O_NONBLOCK);
 
-  debugger_output(newsockfd, "\nFizmo ");
-  debugger_output(newsockfd, FIZMO_VERSION);
-  debugger_output(newsockfd, " debugger.\n");
+  debugger_output(newsockfd, "\nFizmo debugger, libfizmo version ");
+  debugger_output(newsockfd, LIBFIZMO_VERSION);
+  debugger_output(newsockfd, ".\n");
   debugger_output(newsockfd, "Enter \"");
   debugger_output(newsockfd, prefix_string);
   debugger_output(newsockfd, "debug\" as story input to start debugging.\n\n");

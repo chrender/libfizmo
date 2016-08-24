@@ -1,6 +1,15 @@
 
 
 
+   **Version 0.7.12**
+
+ - In the context of the Debian Reproducible Builds, building libfizmo is now reproducible, see https://wiki.debian.org/ReproducibleBuilds. Thhanks to Sascha Steinbiss for the patch.
+ - Use tiny-xml-doc-tools for documentation files.
+ - Cleaned up versioning mess a little bit: Removed FIZMO_VERSION, use LIBFIZMO_VERSION instead, since this is more helpful if libfizmo is used stand-alone.
+
+---
+
+
    **Version 0.7.11 — July 28, 2016**
 
  - Fix segfault in case metadata is written to output history when screen interface is not open.
