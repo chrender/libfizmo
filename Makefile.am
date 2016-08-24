@@ -54,7 +54,7 @@ libfizmo.a::
 	cd "$(tmplibdir)" ; \
 	"$(AR)" x ../src/tools/libtools.a ; \
 	"$(AR)" x ../src/interpreter/libinterpreter.a ; \
-	find -name '*.o' -print0 | LC_ALL=C sort -z | xargs -0 "$(AR)" $(ARFLAGS) ../libfizmo.a ; \
+	find . -name '*.o' -print0 | LC_ALL=C sort -z | xargs -0 "$(AR)" $(ARFLAGS) ../libfizmo.a ; \
 	"$(RANLIB)" ../libfizmo.a ; \
 	cd .. ; \
 	rm -r "$(tmplibdir)"
