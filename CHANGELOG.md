@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.12**
+   **Version 0.7.12 — August 31, 2016**
 
  - In the context of the Debian Reproducible Builds, building libfizmo is now reproducible, see https://wiki.debian.org/ReproducibleBuilds. Thhanks to Sascha Steinbiss for the patch.
  - Use tiny-xml-doc-tools for documentation files.

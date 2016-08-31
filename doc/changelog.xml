@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.7.12">
+    <datetime day-of-week="Wed" month="8" day="31" hour="7"
+      minute="44" second="20" timezone="CEST" year="2016"/>
     <logentry>In the context of the Debian Reproducible Builds, building libfizmo is now reproducible, see <a>https://wiki.debian.org/ReproducibleBuilds</a>. Thhanks to Sascha Steinbiss for the patch.</logentry>
     <logentry>Use tiny-xml-doc-tools for documentation files.</logentry>
     <logentry>Cleaned up versioning mess a little bit: Removed FIZMO_VERSION, use LIBFIZMO_VERSION instead, since this is more helpful if libfizmo is used stand-alone.</logentry>
