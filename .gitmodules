@@ -1,3 +1,3 @@
 [submodule "doc/tiny-xml-doc-tools"]
 	path = doc/tiny-xml-doc-tools
-	url = git@github.com:chrender/tiny-xml-doc-tools
+	url = https://github.com/chrender/tiny-xml-doc-tools
