@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.7.13**
+
+ - Fixed a crash which occurred after entering an invalid filename for the /fileinput command and then re-invoking the same command. Thanks to Michael Baltes for reporting the problem.
+
+---
+
+
    **Version 0.7.12 — August 31, 2016**
 
  - In the context of the Debian Reproducible Builds, building libfizmo is now reproducible, see https://wiki.debian.org/ReproducibleBuilds. Thhanks to Sascha Steinbiss for the patch.

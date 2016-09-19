@@ -82,7 +82,7 @@ install-dev:: libfizmo.a
 	echo >>"$(PKGFILE)"
 	echo 'Name: libfizmo' >>"$(PKGFILE)"
 	echo 'Description: libfizmo' >>"$(PKGFILE)"
-	echo 'Version: 0.7.12' >>"$(PKGFILE)"
+	echo 'Version: 0.7.13' >>"$(PKGFILE)"
 	echo "Requires: $(LIBFIZMO_REQS)" >>"$(PKGFILE)"
 	echo 'Requires.private:' >>"$(PKGFILE)"
 	echo 'Cflags: -I$(fizmo_build_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(PKGFILE)"
