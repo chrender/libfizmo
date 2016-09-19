@@ -504,7 +504,7 @@ void ask_for_input_stream_filename(void)
       &ptr,
       bytes_required);
 
-  TRACE_LOG("Converted filename: '%s'.\n", stream_2_filename);
+  TRACE_LOG("Converted filename: '%s'.\n", input_stream_1_filename);
 
   input_stream_init_underway = false;
 }

@@ -1863,6 +1863,7 @@ int read_command_from_file(zscii *input_buffer, int input_buffer_size,
           input_stream_1_active = false;
           input_stream_1_filename_size = 0;
           free(input_stream_1_filename);
+          input_stream_1_filename = NULL;
           return -1;
         }
       }
