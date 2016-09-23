@@ -113,7 +113,8 @@ AC_PROG_RANLIB
 AM_PROG_AR
 
 AC_SUBST([LIBFIZMO_REQS], $libfizmo_reqs)
-AC_SUBST([DEV_BUILD_PREFIX], "$DESTDIR$prefix")
+
+AM_CONDITIONAL([FIZMO_DIST_BUILD], [test "x" = ""])
 
 AM_CONDITIONAL([ENABLE_TRACING],
                 [test "$enable_tracing" = "yes"])
