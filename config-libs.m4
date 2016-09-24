@@ -9,7 +9,9 @@ AS_IF([test "x$enable_babel" != "xno"], [
 # it appears that the math functions are often automatically included
 # (which leads to something like "error: conflicting types for built-in
 # function 'cos'"). Since there's probably no C installation without libm
-# we'll include it by default.
-# AC_CHECK_LIB([m], [cos], m_LIBS="-lm")
-m_LIBS="-lm"
+# we can include it by default.
+AS_IF([test "x$libfizmo_reqs" != "x"], [
+  libfizmo_reqs+=", "
+])
+libfizmo_reqs+="-lm"
 
