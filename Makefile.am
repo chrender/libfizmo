@@ -93,7 +93,7 @@ install-dev:: libfizmo.a
 	echo "Requires: $(LIBFIZMO_REQS)" >>"$(pkgfile)"
 	echo 'Requires.private:' >>"$(pkgfile)"
 	echo 'Cflags: -I$(dev_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(pkgfile)"
-	echo 'Libs: -L$(dev_prefix)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS)'  >>"$(pkgfile)"
+	echo 'Libs: -L$(dev_prefix)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS) -lm'  >>"$(pkgfile)"
 	echo >>"$(pkgfile)"
 
 install-data-local::
