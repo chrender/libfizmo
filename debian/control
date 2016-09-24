@@ -1,0 +1,29 @@
+Source: libfizmo
+Section: libdevel
+Priority: extra
+Maintainer: Christoph Ender <christoph.ender@spellbreaker.org>
+Build-Depends: debhelper (>= 9.0.0),
+ dpkg-dev (>= 1.16.1~),
+ dh-autoreconf,
+ automake,
+ autoconf,
+ pkg-config,
+ libxml2-dev
+Standards-Version: 3.9.8
+Homepage: https://fizmo.spellbreaker.org/
+
+Package: libfizmo-common
+Architecture: all
+Depends: ${misc:Depends}
+Description: Provides localization data for libfizmo. This package is required
+ by all packages which are utilizing libfizmo.
+
+Package: libfizmo-dev
+Architecture: any
+Depends: libfizmo-common,
+ libxml2-dev,
+ ${misc:Depends}
+Description: Z-Machine interpreter developer library. Will handle the entire
+ execution of Z-Machine programs and allows linked programs to capture and
+ evaluate all output events.
+
