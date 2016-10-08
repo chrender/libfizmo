@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.13**
+   **Version 0.7.13 — October 8, 2016**
 
  - Fixed a crash which occurred after entering an invalid filename for the /fileinput command and then re-invoking the same command. Thanks to Michael Baltes for reporting the problem.
  - Improved build system for separate library and interface builds.
