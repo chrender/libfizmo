@@ -16,7 +16,7 @@ Package: libfizmo-common
 Breaks: fizmo-common (<= 0.7.10-2)
 Architecture: all
 Depends: ${misc:Depends}
-Description: Provides localization data for libfizmo.
+Description: Provides localization data for libfizmo
  This package is required by all packages which are using libfizmo. It contains
  the localization data and hyphenation patterns. Usually there's no need to
  install this package manually.
@@ -26,7 +26,7 @@ Architecture: any
 Depends: libfizmo-common,
  libxml2-dev,
  ${misc:Depends}
-Description: Z-Machine interpreter developer library.
+Description: Z-Machine interpreter developer library
  Will handle the entire execution of Z-Machine programs and allows linked
  programs to capture and evaluate all output events. This package will allow
  you to execute Z-Machine code as specified in the Z-Machine specification
