@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.7.14**
+
+ - User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.
+
+---
+
+
    **Version 0.7.13 — October 8, 2016**
 
  - Fixed a crash which occurred after entering an invalid filename for the /fileinput command and then re-invoking the same command. Thanks to Michael Baltes for reporting the problem.
