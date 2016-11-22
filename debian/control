@@ -3,7 +3,6 @@ Section: libdevel
 Priority: extra
 Maintainer: Christoph Ender <christoph.ender@spellbreaker.org>
 Build-Depends: debhelper (>= 9.0.0),
- dpkg-dev (>= 1.16.1~),
  dh-autoreconf,
  automake,
  autoconf,
@@ -13,7 +12,8 @@ Standards-Version: 3.9.8
 Homepage: https://fizmo.spellbreaker.org/
 
 Package: libfizmo-common
-Breaks: fizmo-common (<= 0.7.10-2)
+Breaks: fizmo-common (<= 0.7.13)
+Replaces: fizmo-common (<= 0.7.13)
 Architecture: all
 Depends: ${misc:Depends}
 Description: Provides localization data for libfizmo
