@@ -2,6 +2,7 @@
 <changelog>
   <change version="0.7.14">
     <logentry>User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.</logentry>
+    <logentry>Added “is_history_empty” method as helper for libpixelif.</logentry>
   </change>
 
   <change version="0.7.13">
