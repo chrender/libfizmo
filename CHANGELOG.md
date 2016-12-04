@@ -5,6 +5,7 @@
 
  - User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.
  - Added “is_history_empty” method as helper for libpixelif.
+ - Fixed “delete_list_and_get_null_terminated_ptrs” for empty lists.
 
 ---
 
