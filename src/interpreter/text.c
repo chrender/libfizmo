@@ -1952,7 +1952,7 @@ void opcode_read(void)
   char *time_output;
   int tenth_seconds_to_delay = 0;
   char *value;
-  int timed_routine_retval;
+  bool verification_error_occured;
 #ifndef DISABLE_COMMAND_HISTORY
   uint8_t buf;
 #endif /* DISABLE_COMMAND_HISTORY */
@@ -2047,81 +2047,84 @@ void opcode_read(void)
 
       if ( (number_of_operands >= 4)
           && (tenth_seconds != 0) && (timed_routine_offset != 0) )
+    {
+      TRACE_LOG("Timed input requested: %d/10s, routine at %x.\n",
+          tenth_seconds, timed_routine_offset);
+      // In this case a time-intervall and routine to call for
+      // timed input are given.
+      input_length = -1;
+      verification_error_occured = false;
+      if (
+          (input_stream_1_active == true)
+          &&
+          ( (value == NULL) || (strcasecmp(value, "true") != 0) )
+         )
       {
-        TRACE_LOG("Timed input requested: %d/10s, routine at %x.\n",
-            tenth_seconds, timed_routine_offset);
-        // In this case a time-intervall and routine to call for
-        // timed input are given.
-        input_length = -1;
-        if (
-            (input_stream_1_active == true)
-            &&
-            ( (value == NULL) || (strcasecmp(value, "true") != 0) )
-           )
+        if ((input_length
+              = read_command_from_file(z_text_buffer+2, maximum_length,
+                &tenth_seconds_to_delay)) != -1)
         {
-          if ((input_length
-                = read_command_from_file(z_text_buffer+2, maximum_length,
-                  &tenth_seconds_to_delay)) != -1)
+          TRACE_LOG("1/10s to wait: %d\n", tenth_seconds_to_delay);
+          stream_output_has_occured = false;
+          while ((tenth_seconds_to_delay -= tenth_seconds) >= 0)
           {
-            TRACE_LOG("1/10s to wait: %d\n", tenth_seconds_to_delay);
-            stream_output_has_occured = false;
-            while ((tenth_seconds_to_delay -= tenth_seconds) >= 0)
+            TRACE_LOG(
+                "Invoking verification routine, 1/10s counter: %d(%d).\n",
+                tenth_seconds_to_delay , tenth_seconds);
+            if ((interpret_from_call(
+                    get_packed_routinecall_address(timed_routine_offset))) !=0 )
             {
-              TRACE_LOG(
-                  "Invoking verification routine, 1/10s counter: %d(%d).\n",
-                  tenth_seconds_to_delay , tenth_seconds);
-              if ((timed_routine_retval=interpret_from_call(
-                      get_packed_routinecall_address(timed_routine_offset)))!=0)
-              {
-                TRACE_LOG("verification routine returned != 0.\n");
-                input_length = -1;
-                break;
-              }
+              TRACE_LOG("verification routine returned != 0.\n");
+              verification_error_occured = true;
+              break;
             }
           }
         }
-
-        if (input_length == -1)
-        {
-          if (active_interface->is_timed_keyboard_input_available() == false)
-            i18n_translate_and_exit(
-                libfizmo_module_name,
-                i18n_libfizmo_TIMED_INPUT_NOT_IMPLEMENTED_IN_INTERFACE_P0S,
-                -1,
-                active_interface->get_interface_name());
-          else
-            input_length
-              = active_interface->read_line(
-                  z_text_buffer + 2,
-                  maximum_length,
-                  tenth_seconds,
-                  get_packed_routinecall_address(timed_routine_offset),
-                  z_text_buffer[1],
-                  &tenth_seconds_elapsed,
-                  false,
-                  false);
-        }
-
-        if (terminate_interpreter != INTERPRETER_QUIT_NONE)
-        {
-          return;
-        }
-
-        // input_length always defined, since "i18n_translate_and_exit" does
-        // not return.
-        /*@-usedef@*/
-        if (input_length >= 0)
-        /*@+usedef@*/
-        {
-          set_variable(z_res_var, (zscii)10, false);
-          z_text_buffer[1] = (zscii)input_length;
-        }
-        else
-        {
-          set_variable(z_res_var, 0, false);
-          z_text_buffer[1] = 0;
-        }
       }
+
+      if ( (bool_equal(verification_error_occured, false))
+          && (input_length == -1) ) {
+
+        if (active_interface->is_timed_keyboard_input_available() == false)
+          i18n_translate_and_exit(
+              libfizmo_module_name,
+              i18n_libfizmo_TIMED_INPUT_NOT_IMPLEMENTED_IN_INTERFACE_P0S,
+              -1,
+              active_interface->get_interface_name());
+        else
+          input_length
+            = active_interface->read_line(
+                z_text_buffer + 2,
+                maximum_length,
+                tenth_seconds,
+                get_packed_routinecall_address(timed_routine_offset),
+                z_text_buffer[1],
+                &tenth_seconds_elapsed,
+                false,
+                false);
+      }
+
+      if (terminate_interpreter != INTERPRETER_QUIT_NONE)
+      {
+        return;
+      }
+
+      // input_length always defined, since "i18n_translate_and_exit" does
+      // not return.
+      /*@-usedef@*/
+      if ( (bool_equal(verification_error_occured, false))
+          && (input_length > 0) )
+      /*@+usedef@*/
+      {
+        set_variable(z_res_var, (zscii)10, false);
+        z_text_buffer[1] = (zscii)input_length;
+      }
+      else
+      {
+        set_variable(z_res_var, 0, false);
+        z_text_buffer[1] = 0;
+      }
+    }
       else
       {
         input_length = -1;
@@ -2318,7 +2321,7 @@ void opcode_show_status(void)
 
 void opcode_read_char(void)
 {
-  //static z_ucs buf[] = { 0, 0 };
+  static z_ucs buf[] = { 0, Z_UCS_NEWLINE, 0 };
   static zscii command_input;
   char *time_output;
   int tenth_seconds_elapsed = -1;
@@ -2326,7 +2329,8 @@ void opcode_read_char(void)
   int input_delay_tenth_seconds = 0;
   int input_length;
   char *value = get_configuration_value("disable-external-streams");
-  int timed_routine_retval;
+  bool verification_error_occured;
+  uint16_t tenth_seconds = op[1];
 
   TRACE_LOG("Opcode: READ_CHAR.\n");
 
@@ -2344,8 +2348,8 @@ void opcode_read_char(void)
   {
     TRACE_LOG("Starting reading character via timed input.\n");
 
+    verification_error_occured = false;
     input_length = -1;
-
     if (
         (input_stream_1_active == true)
         &&
@@ -2354,13 +2358,34 @@ void opcode_read_char(void)
       input_length
         = read_command_from_file(&command_input, 1, &input_delay_tenth_seconds);
 
-    input_char 
-      = (input_length == -1)
-      ? active_interface->read_char(
-          op[1],
-          get_packed_routinecall_address(op[2]),
-          &tenth_seconds_elapsed)
-      : command_input;
+    if (input_delay_tenth_seconds > 0) {
+      TRACE_LOG("1/10s to wait: %d\n", input_delay_tenth_seconds);
+      stream_output_has_occured = false;
+      while ((input_delay_tenth_seconds -= tenth_seconds) >= 0) {
+        TRACE_LOG(
+            "Invoking verification routine, 1/10s counter: %d(%d).\n",
+            input_delay_tenth_seconds, tenth_seconds);
+        if ((interpret_from_call(get_packed_routinecall_address(op[2]))) !=0 )
+        {
+          TRACE_LOG("verification routine returned != 0.\n");
+          verification_error_occured = true;
+          break;
+        }
+
+        if (terminate_interpreter != INTERPRETER_QUIT_NONE)
+          return;
+      }
+    }
+
+    if (bool_equal(verification_error_occured, false)) {
+      input_char
+        = (input_length == -1)
+        ? active_interface->read_char(
+            op[1],
+            get_packed_routinecall_address(op[2]),
+            &tenth_seconds_elapsed)
+        : command_input;
+    }
 
     if (terminate_interpreter != INTERPRETER_QUIT_NONE)
       return;
@@ -2376,21 +2401,17 @@ void opcode_read_char(void)
         free(time_output);
       }
 
-      if (input_char == -1)
+      if (input_char == -1) {
         stream_4_latin1_output("(Interrupted input)");
+      }
+      else {
+        *buf = input_char;
+        stream_4_z_ucs_output(buf);
+      }
     }
 
     if (input_char == -1)
       input_char = 0;
-    /*
-    // No output of input in case of read_char.
-    else
-    {
-      *buf = input_char;
-      (void)streams_z_ucs_output_user_input(buf);
-    }
-    (void)streams_z_ucs_output_user_input(z_ucs_newline_string);
-    */
 
     set_variable(z_res_var, input_char, false);
 
@@ -2410,11 +2431,14 @@ void opcode_read_char(void)
       input_length
         = read_command_from_file(&command_input, 1, &input_delay_tenth_seconds);
 
+    TRACE_LOG("input_delay_tenth_seconds: %d\n", input_delay_tenth_seconds);
+
     input_char 
       = (input_length == -1)
       ? active_interface->read_char(0, 0, NULL)
       : command_input;
 
+    /*
     if (input_delay_tenth_seconds > 0)
     {
       TRACE_LOG("1/10s to wait: %d\n", input_delay_tenth_seconds);
@@ -2423,8 +2447,7 @@ void opcode_read_char(void)
         TRACE_LOG(
             "Invoking verification routine, 1/10s counter: %d(%d).\n",
             input_delay_tenth_seconds , op[1]);
-        if ((timed_routine_retval = interpret_from_call(
-                get_packed_routinecall_address(op[2]))) != 0)
+        if ((interpret_from_call(get_packed_routinecall_address(op[2]))) != 0)
         {
           TRACE_LOG("verification routine returned != 0.\n");
           input_length = -1;
@@ -2432,13 +2455,13 @@ void opcode_read_char(void)
         }
       }
     }
-
-    /*
-    *buf = input_char;
-    // No output of input in case of read_char.
-    (void)streams_z_ucs_output_user_input(buf);
-    (void)streams_z_ucs_output_user_input(z_ucs_newline_string);
     */
+
+    if (bool_equal(stream_4_active, true)) {
+      *buf = input_char;
+      stream_4_z_ucs_output(buf);
+    }
+
     set_variable(z_res_var, input_char, false);
     TRACE_LOG("Reading single character done.\n");
   }
@@ -2584,4 +2607,3 @@ void opcode_check_unicode(void)
 }
 
 #endif /* text_c_INCLUDED */
-

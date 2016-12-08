@@ -192,6 +192,7 @@ void remember_history_output_position(history_output *output);
 void restore_history_output_position(history_output *output);
 size_t get_allocated_text_history_size(OUTPUTHISTORY *h);
 bool is_output_at_frontindex(history_output *output);
+bool is_history_empty(OUTPUTHISTORY *h);
 
 #endif /* history_h_INCLUDED */
 

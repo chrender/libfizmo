@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
+  <change version="0.7.14">
+    <logentry>User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.</logentry>
+    <logentry>Added “is_history_empty” method as helper for libpixelif.</logentry>
+    <logentry>Fixed “delete_list_and_get_null_terminated_ptrs” for empty lists.</logentry>
+  </change>
+
   <change version="0.7.13">
     <datetime day-of-week="Sat" month="10" day="8" hour="21"
       minute="21" second="15" timezone="CEST" year="2016"/>

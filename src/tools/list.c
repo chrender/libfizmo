@@ -129,14 +129,16 @@ void **delete_list_and_get_null_terminated_ptrs(list *l)
 {
   void **result = l->elements;
 
-  if (l->space_available > l->nof_elements_stored + 1)
-    if ((result = realloc(l->elements,
-            sizeof(void*) * (l->nof_elements_stored + 1)))
-        == NULL)
-      result = l->elements;
-  result[l->nof_elements_stored] = NULL;
+  if (get_list_size(l) > 0) {
+    if (l->space_available > l->nof_elements_stored + 1)
+      if ((result = realloc(l->elements,
+              sizeof(void*) * (l->nof_elements_stored + 1)))
+          == NULL)
+        result = l->elements;
+    result[l->nof_elements_stored] = NULL;
 
-  free(l);
+    free(l);
+  }
   return result;
 }
 
