@@ -1381,7 +1381,7 @@ int output_rewind_paragraph(history_output *output, long *char_count,
       // In case we can't move back any more we've hit the buffer start.
       TRACE_LOG("Couldn't decrement history index.\n");
       output->found_end_of_buffer = true;
-      return 1;
+      break;
 
       /*
          if (output->current_paragraph_index != last_index) {
