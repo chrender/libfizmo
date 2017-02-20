@@ -16,13 +16,14 @@
   <section>
     <p>This package includes software written by other authors:</p>
 
-    <p>libfizmo includes the Mersenne Twister random number generator, available at <a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html"></a>. This is available via a BSD license, which is stored in the source file “libfizmo/src/interpreter/mt19937ar.c”.</p>
+    <ul>
+      <li>The Mersenne Twister random number generator, available at <a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html"></a>. This is available via a BSD license, which is stored in the source file “libfizmo/src/interpreter/mt19937ar.c”.</li>
 
-    <p>British english hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a> under a permissive license.</p>
+      <li>British english hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a> under a permissive license.</li>
 
-    <p>German hyphenation patterns, provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the LaTeX Project Public License.</p>
+      <li>German hyphenation patterns, provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the LaTeX Project Public License.</li>
 
-    <p>French hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the MIT License.</p>
+      <li>French hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the MIT License.</li>
+    </ul>
   </section>
 </document>
-

@@ -19,11 +19,10 @@ THIS SOFTWARE IS PROVIDED BY THE AUTHOR “AS IS” AND ANY EXPRESS OR IMPLIED W
 
 This package includes software written by other authors:
 
-libfizmo includes the Mersenne Twister random number generator, available at [http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html). This is available via a BSD license, which is stored in the source file “libfizmo/src/interpreter/mt19937ar.c”.
 
-British english hyphenation patterns as provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/) under a permissive license.
+ - The Mersenne Twister random number generator, available at [http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html](http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html). This is available via a BSD license, which is stored in the source file “libfizmo/src/interpreter/mt19937ar.c”.
+ - British english hyphenation patterns as provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/) under a permissive license.
+ - German hyphenation patterns, provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/), distributed under the terms of the LaTeX Project Public License.
+ - French hyphenation patterns as provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/), distributed under the terms of the MIT License.
 
-German hyphenation patterns, provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/), distributed under the terms of the LaTeX Project Public License.
-
-French hyphenation patterns as provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/), distributed under the terms of the MIT License.
 
