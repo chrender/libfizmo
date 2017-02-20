@@ -19,13 +19,11 @@
 
     <p>libfizmo uses the Mersenne twister from <a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html"/> as a random number generator implementation:<br/>“A C-program for MT19937, with initialization improved 2002/1/26.<br/>Coded by Takuji Nishimura and Makoto Matsumoto.<br/>Copyright (C) 1997 – 2002, Makoto Matsumoto and Takuji Nishimura,<br/>All rights reserved.”<br/>For full copyright notice see “src/fizmo/mt19937ar.c”.</p>
 
-    <p>libfizmo includes hyphenation patterns provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"/>. For every file's detailed respective copyright information, please refer to the description stored at the top of the corresponding file:
-      <ul>
-        <li>“src/locales/en_US/patterns.txt” from hyph-utf8's “hyph-en-us.tex”.</li>
-        <li>“src/locales/de_DE/patterns.txt” from hyph-utf8's “hyph-de-1996.tex”.</li>
-        <li>“src/locales/fr_FR/patterns.txt” from hyph-utf8's “hyph-fr.tex”.</li>
-      </ul>
-    </p>
+    <p>British english hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a> under a permissive license.</p>
+
+    <p>German hyphenation patterns, provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the LaTeX Project Public License.</p>
+
+    <p>French hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the MIT License.</p>
 
     <p>Currently fizmo is in beta status, meaning it might do unexpected things such as stop with an error message, crash or cleesh your machine into a frog. There is no warranty of any kind whatsoever and you're entirely on your own when running it.</p>
   </section>

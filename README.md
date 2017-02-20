@@ -24,13 +24,11 @@ Copyright (C) 1997 – 2002, Makoto Matsumoto and Takuji Nishimura,
 All rights reserved.”  
 For full copyright notice see “src/fizmo/mt19937ar.c”.
 
-libfizmo includes hyphenation patterns provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/). For every file's detailed respective copyright information, please refer to the description stored at the top of the corresponding file:       
+British english hyphenation patterns as provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/) under a permissive license.
 
- - “src/locales/en_US/patterns.txt” from hyph-utf8's “hyph-en-us.tex”.
- - “src/locales/de_DE/patterns.txt” from hyph-utf8's “hyph-de-1996.tex”.
- - “src/locales/fr_FR/patterns.txt” from hyph-utf8's “hyph-fr.tex”.
+German hyphenation patterns, provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/), distributed under the terms of the LaTeX Project Public License.
 
-
+French hyphenation patterns as provided by the hyph-utf8 project at [http://www.ctan.org/tex-archive/language/hyph-utf8/](http://www.ctan.org/tex-archive/language/hyph-utf8/), distributed under the terms of the MIT License.
 
 Currently fizmo is in beta status, meaning it might do unexpected things such as stop with an error message, crash or cleesh your machine into a frog. There is no warranty of any kind whatsoever and you're entirely on your own when running it.
 
