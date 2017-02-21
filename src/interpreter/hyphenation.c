@@ -170,7 +170,7 @@ static int load_patterns()
   size_t nof_zucs_chars;
   z_ucs *linestart;
   z_ucs input;
-  char in_char;
+  int in_char;
   z_ucs *data;
   size_t nof_comments;
 #ifdef ENABLE_TRACING
