@@ -151,7 +151,7 @@ static locale_module *parse_locale_file(z_ucs *module_name,
   z_file *in;
   z_ucs *locale_data;
   locale_module *result;
-  char in_char;
+  int in_char;
   long nof_zucs_chars;
   z_ucs input;
   z_ucs *linestart;
