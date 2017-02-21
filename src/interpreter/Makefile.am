@@ -39,10 +39,18 @@ LDADD =
 RANLIB = true
 
 noinst_LIBRARIES = libinterpreter.a
-libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c hyphenation.c \
- iff.c mathemat.c misc.c mt19937ar.c object.c output.c property.c routine.c \
+
+# Using clang-800.0.42.1 on macOS Sierra causes an EXC_BAD_ACCESS
+# when loading the hyphenation patterns in case "hyphenation.c" is
+# compiled with -O2. Using -O0 works around this issue.
+hyphenation.o: hyphenation.c
+	$(CC) -O0 -c hyphenation.c
+
+libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c iff.c \
+ mathemat.c misc.c mt19937ar.c object.c output.c property.c routine.c \
  savegame.c sound.c stack.c streams.c table.c text.c undo.c variable.c \
  wordwrap.c zpu.c
+libinterpreter_a_LIBADD = hyphenation.o
 
 if ENABLE_TRACING
 AM_CFLAGS += -DENABLE_TRACING=

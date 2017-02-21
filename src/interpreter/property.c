@@ -657,7 +657,7 @@ static void set_property_value(uint16_t object_number,
         i18n_libfizmo_CANNOT_READ_PROPERTIES_WITH_A_LENGTH_GREATER_THAN_2,
         -1);
 
-    return;
+  return;
 }
 
 

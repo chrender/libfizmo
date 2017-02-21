@@ -99,7 +99,7 @@ AC_ARG_ENABLE([debugger],
 
 AC_INIT(
  [libfizmo],
- [0.7.13],
+ [0.7.14],
  fizmo@spellbreaker.org,
  libfizmo)
 

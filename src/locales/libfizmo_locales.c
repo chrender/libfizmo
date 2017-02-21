@@ -36,7 +36,7 @@
 #include "../tools/types.h"
 
 z_ucs libfizmo_module_name[] = { 'l', 'i', 'b', 'f', 'i', 'z', 'm', 'o', 0 };
-z_ucs default_locale_name[]  = { 'e', 'n', '_', 'U', 'S', 0 };
+z_ucs default_locale_name[]  = { 'e', 'n', '_', 'G', 'B', 0 };
 
 #endif /* libfizmo_locales_c_INCLUDED */
 

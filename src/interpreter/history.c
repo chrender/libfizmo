@@ -1003,7 +1003,7 @@ history_output *init_history_output(OUTPUTHISTORY *h, history_output_target *t,
 {
   history_output *result;
 
-  if ( (h == NULL) || (h->z_history_buffer_size == 0) ) {
+  if (is_history_empty(h)) {
     return NULL;
   }
 
@@ -1381,7 +1381,7 @@ int output_rewind_paragraph(history_output *output, long *char_count,
       // In case we can't move back any more we've hit the buffer start.
       TRACE_LOG("Couldn't decrement history index.\n");
       output->found_end_of_buffer = true;
-      return 1;
+      break;
 
       /*
          if (output->current_paragraph_index != last_index) {
@@ -1796,6 +1796,17 @@ size_t get_allocated_text_history_size(OUTPUTHISTORY *h)
 {
   return h->z_history_buffer_size;
 }
+
+
+bool is_history_empty(OUTPUTHISTORY *h) {
+  if ( (h == NULL) || (h->z_history_buffer_size == 0) ) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 
 #endif /* history_c_INCLUDED */
 
