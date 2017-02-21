@@ -36,19 +36,13 @@ License: BSD-3-clause
 
 Files: debian/*
 Copyright: 2009-2016, Christoph Ender <Christoph.Ender@Spellbreaker.org>
-License: permissive
-
-License: permissive
- Copying and distribution of this package, with or without
- modification, are permitted in any medium without royalty
- provided the copyright notice and this notice are
- preserved.
+License: BSD-3-clause
 
 Files: src/interpreter/mt19937ar.c
 Copyright: 1997-2002, Makoto Matsumoto and Takuji Nishimura
 License: BSD-3-clause
 
-Files: src/locales/en_US/patterns.txt
+Files: src/locales/en_GB/patterns.txt
 Copyright: 1990, 2004, 2005, Gerard D.C. Kuiken
 License: permissive
 
@@ -63,4 +57,5 @@ License: LPPL
 
 Files: src/locales/fr_FR/patterns.txt
 Copyright:  R. Bastian, D. Flipo, B. Gaulle <cesure-l at gutenberg.eu.org>
-License: permissive
+License: MIT
+
