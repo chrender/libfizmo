@@ -54,9 +54,9 @@ static z_ucs i18n_fallback_error_message[] = {
    'e', 'r', 'r', 'o', 'r', '.',
    0 };
 
-static char *locale_aliases[4][5] =
+static char *locale_aliases[4][6] =
 {
-  { "en_US", "en-GB", "en-US", "en", NULL },
+  { "en_GB", "en-GB", "en_US", "en-US", "en", NULL },
   { "de_DE", "de", NULL },
   { "fr_FR", "fr", NULL },
   { NULL }
@@ -1386,7 +1386,7 @@ int set_current_locale_name(char *new_locale_name)
     return -1;
 
   // Check if the locale name given was an alias: If, in case "en" was
-  // given as locale name, this should be interpreted as "en_US" instead --
+  // given as locale name, this should be interpreted as "en_GB" instead --
   // see the "locale_aliases" definition above.
   i = 0;
   while (locale_aliases[i][0] != NULL)
