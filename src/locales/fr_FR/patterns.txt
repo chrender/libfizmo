@@ -1,96 +1,42 @@
 %
-% This file has been renamed from hyph-fr.tex to patterns.tex in July 2011
+% This file has been renamed from hyph-fr.tex to patterns.tex in Febuary 2017
 % for usage in the fizmo z-machine interpreter. Empty lines were removed
 % and lines containing comments divided into separate data and comments
 % lines for technical reasons. No other changes made.
 %
-% This file is part of hyph-utf8 package and resulted from
-% semi-manual conversions of hyphenation patterns into UTF-8 in June 2008.
+% copyright: Daniel Flipo and Bernard Gaulle 1994-2002, Arthur Reutenauer 2016
+% title: French hyphenation patterns
+% version: V2.13 2016/05/12
+% language:
+%     name: French
+%     tag: fr
+% notice: >
+%     This file is part of the hyph-utf8 package.
+%     See http://www.hyphenation.org for more information.
+% licence:
+%     name: MIT
+%     url: https://opensource.org/licenses/MIT
+%     text: >
+%         Permission is hereby granted, free of charge, to any person obtaining
+%         a copy of this software and associated documentation files (the
+%         "Software"), to deal in the Software without restriction, including
+%         without limitation the rights to use, copy, modify, merge, publish,
+%         distribute, sublicense, and/or sell copies of the Software, and to
+%         permit persons to whom the Software is furnished to do so, subject to
+%         the following conditions:
 %
-% Source: frhyph.tex <2006-10-20>
-% Author: R. Bastian, D. Flipo, B. Gaulle <cesure-l at gutenberg.eu.org>
+%         The above copyright notice and this permission notice shall be
+%         included in all copies or substantial portions of the Software.
 %
-% The above mentioned file should become obsolete,
-% and the author of the original file should preferaby modify this file
-% instead.
-%
-% Modificatios were needed in order to support native UTF-8 engines,
-% but functionality (hopefully) didn't change in any way, at least not
-% intentionally.
-% This file is no longer stand-alone; at least for 8-bit engines
-% you probably want to use loadhyph-foo.tex (which will load this file)
-% instead.
-%
-% Modifications were done by Jonathan Kew, Mojca Miklavec & Arthur Reutenauer
-% with help & support from:
-% - Karl Berry, who gave us free hands and all resources
-% - Taco Hoekwater, with useful macros
-% - Hans Hagen, who did the unicodifisation of patterns already long before
-%               and helped with testing, suggestions and bug reports
-% - Norbert Preining, who tested & integrated patterns into TeX Live
-%
-% However, the "copyright/copyleft" owner of patterns remains the original
-% author.
-%
-% The copyright statement of this file is thus:
-%
-%    Do with this file whatever needs to be done in future for the sake of
-%    "a better world" as long as you respect the copyright of original file.
-%    If you're the original author of patterns or taking over a new revolution,
-%    plese remove all of the TUG comments & credits that we added here -
-%    you are the Queen / the King, we are only the servants.
-%
-% If you want to change this file, rather than uploading directly to CTAN,
-% we would be grateful if you could send it to us (http://tug.org/tex-hyphen)
-% or ask for credentials for SVN repository and commit it yourself;
-% we will then upload the whole "package" to CTAN.
-%
-% Before a new "pattern-revolution" starts,
-% please try to follow some guidelines if possible:
-%
-% - \lccode is *forbidden*, and I really mean it
-% - all the patterns should be in UTF-8
-% - the only "allowed" TeX commands in this file are: \patterns, \hyphenation,
-%   and if you really cannot do without, also \input and \message
-% - in particular, please no \catcode or \lccode changes,
-%   they belong to loadhyph-foo.tex,
-%   and no \lefthyphenmin and \righthyphenmin,
-%   they have no influence here and belong elsewhere
-% - \begingroup and/or \endinput is not needed
-% - feel free to do whatever you want inside comments
-%
-% We know that TeX is extremely powerful, but give a stupid parser
-% at least a chance to read your patterns.
-%
-% For more unformation see
-%
-%    http://tug.org/tex-hyphen
-%
-%------------------------------------------------------------------------------
-%
-% French hyphenation patterns
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This file is available for free and can used and redistributed
-% asis for free. Modified versions should have another name.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \message{frhyph.tex - French hyphenation patterns (V2.12) <2002/12/11>}
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%          *BEFORE* using this file *PLEASE* run checksum on it:
-% 
-%                       checksum -v frhyph.tex
-% 
-% to make sure that it hasn't been damaged.
-% 
-% Then if you notice anything wrong in french hyphenation please report to
-% 
-% R. Bastian, D. Flipo, B. Gaulle at the email address:
-% 
-%                                              cesure-l@gutenberg.eu.org
-% 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%      checksum        = "37208 1458 3078 34821"
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+%         EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+%         MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+%         NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+%         BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+%         ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+%         CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+%         SOFTWARE.
+% ==========================================
 %%%%%%%% The most famous good guys who worked hard to obtain something usable.
 % Jacques Desarmenien, Universite de Strasbourg :
 %          -  << how to run TeX in a French environment: hyphenation, fonts,
@@ -105,18 +51,6 @@
 % after that, GUTenberg  and specially Daniel Flipo and Bernard Gaulle
 % did their best effort to improve the list of patterns.
 %
-% -----------------------------------------------------------------
-%
-% Adaption of these patterns for
-%  - TeX Version 3.x and MLTeX 3.x (2.x)
-% and
-%  - all fonts in T1/`Cork' and/or CM/OT1 encoding
-% by Bernd Raichle 1996/08/28 (using ideas from `ghyph31.tex'
-% as of 1994-02-13 maintained by Bernd Raichle).
-% (An adaption for the old MLTeX 2.x exists but can not be
-% tested in lack of an executable.)
-%
-% -----------------------------------------------------------------
 %
 %\patterns{
 %-------------------%-----------------------%
@@ -132,22 +66,24 @@
 'a4
 .â4
 'â4
-ab2h
 % df-bg 1998/02/07 for abhorrer
+ab2h
 .ab3réa
 'ab3réa
-ad2h
 % df-bg 1998/02/07 for adhèsion & co
+ad2h
 a1è2dre
 .ae3s4ch
 'ae3s4ch
 1alcool
+'2alcool
 a2l1algi
 .amino1a2c
 'amino1a2c
 .ana3s4tr
 'ana3s4tr
 1a2nesthési
+'2a2nesthési
 .anti1a2
 'anti1a2
 .anti1e2
@@ -171,21 +107,21 @@ a2s3tro
 %%b
 1ba
 1bâ
-.bai2se3main
 % hyphen disappeared from french  5/2/94
+.bai2se3main
 1be
 1bé
 1bè
 1bê
 4be.
 4bes.
-2bent.
 % mute syllable: tombent (df) 22/02/94
+2bent.
 1bi
 1bî
 .bi1a2c
-.bi1a2t
 % like .tri1a2t for tri-athlon bg 12/27/93
+.bi1a2t
 .bi1au
 .bio1a2
 .bi2s1a2
@@ -193,15 +129,15 @@ a2s3tro
 1b2l
 4ble.
 4bles.
-2blent.
 % mute syllable: troublent (df) 28/02/94
+2blent.
 1bo
 1bô
 1b2r
 4bre.
 4bres.
-2brent.
 % mute syllable: palabrent (df) 28/02/94
+2brent.
 1bu
 1bû
 1by
@@ -212,8 +148,8 @@ a2s3tro
 1ç
 1ca
 1câ
-ca3ou3t2
 % for caoutchou... added 3/1/94 df-bg
+ca3ou3t2
 1ce
 1cé
 1cè
@@ -240,10 +176,10 @@ immis4cent.
 2chb
 4che.
 4ches.
-2chent.
 % mute syllable: touchent (df) 22/02/94
-.chè2vre3feuille
+2chent.
 % hyphen disappeared from french 5/2/94
+.chè2vre3feuille
 2chg
 ch2l
 4chle.
@@ -267,8 +203,8 @@ ch2r
 2ckb
 4cke.
 4ckes.
-2ckent.
 % mute syllable: stockent (df) 22/02/94
+2ckent.
 2ckf
 2ckg
 2ck3h
@@ -278,8 +214,8 @@ ch2r
 1c2l
 4cle.
 4cles.
-2clent.
 % mute syllable: encerclent (df) 28/02/94
+2clent.
 1co
 1cô
 co1acc
@@ -296,26 +232,26 @@ co1é2
 co1ef
 co1en
 co1ex
+% missing from nb list
 .con4
 % missing from nb list
 .cons4
-% missing from nb list
 .contre1s2c
-.contre3maître
 % hyphen disappeared from french 5/2/94
+.contre3maître
 co2nurb
 .co1o2
 .co2o3lie
 1c2r
 4cre.
 4cres.
-2crent.
 % mute syllable: massacrent (df) 28/02/94
+2crent.
 1cu
 1cû
 1cy
-.cul4
 % -- as .con4 .cons4 (march 92)
+.cul4
 %-------------------%-----------------------%
 % phonetic patterns % etymological patterns %
 %-------------------%-----------------------%
@@ -348,27 +284,27 @@ pru3dent.
 .dé1a2
 .dé1io
 .dé1o2
-.dé2s
 % originaly in JD file
-% .dé2s1a2 removed 09/17/92 because wrong for the
+.dé2s
+%.dé2s1a2 removed 09/17/92 because wrong for the
 % original JD 500 words test
 .dé3s2a3cr
-.dés2a3m
 % .dés2a2mi introduced 09/17/92 bec. i
+.dés2a3m
 % can't see why désamidonner ran in JD.
 % Moved to .dés2a3m df 12/27/93.
 .dé3s2a3tell
 .dé3s2astr
-.dé3s2c
 % 1 moved 3 due to .dé2s 09/17/92
-% .dé2s1e2 removed 09/17/92 because wrong for the
+.dé3s2c
+%.dé2s1e2 removed 09/17/92 because wrong for the
 % original JD 500 words test
 .dé2s1é2
 .dé3s2é3gr
 .dé3s2ensib
 .dé3s2ert
 .dé3s2exu
-% .dé2s3h removed 09/17/92 because wrong for the
+%.dé2s3h removed 09/17/92 because wrong for the
 % original JD 500 words test
 .dé2s1i2
 .dé3s2i3d
@@ -378,7 +314,7 @@ pru3dent.
 .dé3s2invo
 .dé3s2i3r
 .dé3s2ist
-% .dé2s1o2 removed 09/17/92 because wrong for the
+%.dé2s1o2 removed 09/17/92 because wrong for the
 % original JD 500 words test
 .dé3s2o3dé
 .dé2s1œ
@@ -387,10 +323,10 @@ pru3dent.
 .dé3s2orm
 .dé3s2orp
 .dé3s2oufr
+% 1 moved 3 due to .dé2s 09/17/92
 .dé3s2p
 % 1 moved 3 due to .dé2s 09/17/92
 .dé3s2t
-% 1 moved 3 due to .dé2s 09/17/92
 .dé2s1u2n
 3d2hal
 3d2houd
@@ -404,15 +340,15 @@ di2s3cop
 .di1a2tom
 .di1e2n
 .di2s3h
-2dlent.
 % mute syllable: jodlent (df) 28/02/94
+2dlent.
 1do
 1dô
 1d2r
 4dre.
 4dres.
-2drent.
 % mute syllable: engendrent (df) 28/02/94
+2drent.
 d1s2
 1du
 1dû
@@ -420,8 +356,8 @@ d1s2
 .dy2s3
 .dy2s1a2
 .dy2s1i2
-.dy2s1o2
 % missing from nb list
+.dy2s1o2
 .dy2s1u2
 %-------------------%-----------------------%
 % phonetic patterns % etymological patterns %
@@ -435,8 +371,8 @@ d1s2
 'é4
 .è4
 'è4
-éd2hi
 % df-bg 1998/02/07 for rédhibitoire
+éd2hi
 1é2drie
 1é2drique
 1é2lectr
@@ -468,23 +404,23 @@ extra2i
 1fê
 4fe.
 4fes.
-2fent.
 % mute syllable: agrafent chauffent (df) 22/02/94
+2fent.
 %
 1fi
 1fî
 1f2l
 4fle.
 4fles.
-2flent.
 % mute syllable: gonflent (df) 28/02/94
+2flent.
 1fo
 1fô
 1f2r
 4fre.
 4fres.
-2frent.
 % mute syllable: balafrent (df) 28/02/94
+2frent.
 f1s2
 1fu
 1fû
@@ -528,15 +464,16 @@ résur3gent.
 1g2l
 4gle.
 4gles.
-2glent.
 % mute syllable: meuglent (df) 28/02/94
+2glent.
 1g2n
+% (df) 16/01/02
 'a2g3nat
 % (df) 16/01/02
 .a2g3nat
-% (df) 16/01/02
-a2g3nos
 % (df) 16/01/02 (pattern dia2g3n deleted)
+a2g3nos
+% (df) 16/01/02
 co2g3niti
 % (df) 16/01/02
 'i2g3né
@@ -562,22 +499,21 @@ o2g3nosi
 pu2g3nable
 % (df) 16/01/02
 pu2g3nac
-% (df) 16/01/02
 .sta2g3n
-.syn2g3nath
 % (df) 16/01/02
+.syn2g3nath
 wa2g3n
 4gne.
 4gnes.
-2gnent.
 % mute syllable: accompagnent (df) 28/02/94
+2gnent.
 1go
 1gô
 1g2r
 4gre.
 4gres.
-2grent.
 % mute syllable: immigrent (df) 28/02/94
+2grent.
 1gu
 1gû
 g1s2
@@ -619,8 +555,8 @@ hypers2
 hype4r1
 hyperu2
 hypo1a2
-hypo1e2
 % missing from nb list
+hypo1e2
 hypo1é2
 hypo1i2
 hypo1o2
@@ -678,8 +614,9 @@ uevil4l
 uvil4l
 xil3l
 % end of ill patterns
-1informat
 % missing from nb list
+1informat
+'2informat
 .in1a2
 'in1a2
 .in2a3nit
@@ -690,8 +627,8 @@ xil3l
 'in1e2
 .in1é2
 'in1é2
-.in2effab
 % missing from nb list
+.in2effab
 'in2effab
 .in2é3lucta
 'in2é3lucta
@@ -701,8 +638,8 @@ xil3l
 'in2ept
 .in2er
 'in2er
-.in2exora
 % missing from nb list
+.in2exora
 'in2exora
 .in1i2
 'in1i2
@@ -753,8 +690,8 @@ i1s2tat
 2jk
 4je.
 4jes.
-2jent.
 % mute syllable: galèjent (df) 22/02/94
+2jent.
 %-------------------%-----------------------%
 % phonetic patterns % etymological patterns %
 %-------------------%-----------------------%
@@ -767,8 +704,8 @@ i1s2tat
 1kê
 4ke.
 4kes.
-2kent.
 % mute syllable: jerkent (df) 22/02/94
+2kent.
 1k2h
 4kh.
 .kh4
@@ -839,17 +776,17 @@ l1s2t
 .ma2l1int
 .ma2l1oc
 .ma2l1o2d
-.ma2r1x
 % nb (jbb: ?)
+.ma2r1x
 1me
 1mé
 1mè
 1mê
 .mé2g1oh
+% missing from nb list
 .mé2sa
 % missing from nb list
 .mé3san
-% missing from nb list
 .mé2s1es
 .mé2s1i
 .mé2s1u2s
@@ -934,8 +871,8 @@ tu2ment.
 .mono1o2
 .mono1u2
 .mono1s2
-mon2t3réal
 % missing from nb list
+mon2t3réal
 m1s2
 1mu
 1mû
@@ -954,8 +891,8 @@ moye2n1â2g
 4ne.
 4nes.
 % words ending with -nent (df) 22/02/94
-2nent.
 % fric-tionnent - syllable muette - bg 27/12/93
+2nent.
 réma3nent.
 imma3nent.
 perma3nent.
@@ -988,11 +925,11 @@ n1x
 'o4
 'ô4
 .ô4
-%'\"o2
-% mjf % deleted 3/1/94 df-bg
+%'\"o2 % mjf % deleted 3/1/94 df-bg
 o2b3long
-1octet
 % missing from nb list
+1octet
+'2octet
 o1d2l
 o1è2dre
 o1ioni
@@ -1041,11 +978,11 @@ re3pent.
 'ar3pent.
 ser3pent.
 %
-.pen2ta
 % pent- or penta- but never pen-ta bg 12/27/93
+.pen2ta
 per3h
-pé2nul
 % pé2n1ul moved back 09/17/92 to JD def.
+pé2nul
 .pe4r
 .per1a2
 .per1e2
@@ -1053,8 +990,8 @@ pé2nul
 .per1i2
 .per1o2
 .per1u2
-pé1r2é2q
 % 2r1 moved 09/17/92 to 1r2(it was a typo)
+pé1r2é2q
 .péri1os
 .péri1s2
 .péri2s3s
@@ -1066,8 +1003,8 @@ pé1r2é2q
 .phalan3s2t
 4phe.
 4phes.
-2phent.
 % mute syllable: triomphent (df) 22/02/94
+2phent.
 ph2l
 4phle.
 4phles.
@@ -1081,17 +1018,15 @@ ph2r
 3ph2talé
 3ph2tis
 %%%% Here is an example of a pb involving phonetic and etymologic patterns 5/94
-%%%%                .phyto3ph2
-% originaly, but wrong for phy-toph-thora   9/92
-%%%%                .phy2topha
-% for -pharmacie but wrong for phyto-biol.. 5/94
+%%%%                .phyto3ph2 % originaly, but wrong for phy-toph-thora   9/92
+%%%%                .phy2topha % for -pharmacie but wrong for phyto-biol.. 5/94
 1pi
 1pî
 1p2l
 4ple.
 4ples.
-2plent.
 % mute syllable: accouplent (df) 28/02/94
+2plent.
 .pluri1a
 1p2né
 1p2neu
@@ -1106,8 +1041,8 @@ poly1i2
 poly1o2
 poly1s2
 poly1u2
-.pon2tet
 % JD hypenated it asis 09/17/92, exception
+.pon2tet
 .pos2t3h
 .pos2t1in
 .pos2t1o2
@@ -1116,11 +1051,11 @@ poly1u2
 1p2r
 4pre.
 4pres.
-2prent.
 % mute syllable: empourprent (df) 28/02/94
+2prent.
 .pré1a2
-.pré2a3la
 % missing from nb list
+.pré2a3la
 .pré2au
 .pré1é2
 .pré1e2
@@ -1158,8 +1093,8 @@ grandilo3quent.
 %%r
 1ra
 1râ
-radio1a2
 % missing from nb list
+radio1a2
 1re
 1ré
 1rè
@@ -1179,10 +1114,10 @@ radio1a2
 .ré1o2
 .re1s2
 .re2s3cap
-.re2s3cisi
 % for res-cision  09/17/92 (missing from nb)
-.re2s3ciso
+.re2s3cisi
 % for res-cisoire 09/17/92(missing from nb)
+.re2s3ciso
 .re2s3cou
 .re2s3cri
 .re2s3pect
@@ -1208,16 +1143,16 @@ radio1a2
 .re4s5trin
 .re3s4tu
 .re3s4ty
+%.ré1u2 % pattern rejected 12/2/92
 .réu2
-% .ré1u2 % pattern rejected 12/2/92
 % (don't hyphenate as ré-union nor réu-nion)
 .ré2uss
 .rétro1a2
 4re.
 4res.
 % words ending with -rent (df) 22/02/94
-2rent.
 % es-pèrent - syllable muette - bg 27/12/93
+2rent.
 .pa3rent.
 appa3rent.
 transpa3rent.
@@ -1264,21 +1199,21 @@ sesqui1a2
 4se.
 4ses.
 % words ending with -sent (df) 22/02/94
-2sent.
 % massent - syllable muette - bg 27/12/93
+2sent.
 ab3sent.
 pré3sent.
 .res3sent.
 %
-.seu2le
 % jbb
+.seu2le
 .sh4
 1s2h
 4sh.
 4she.
 4shes.
-2shent.
 % mute syllable: smashent (df) 22/02/94
+2shent.
 2shm
 2s3hom
 2shr
@@ -1357,8 +1292,8 @@ télé1s2
 4te.
 4tes.
 % words ending with -tent (df) 22/02/94
-2tent.
 % mentent - syllable muette - bg 27/12/93
+2tent.
 .la3tent.
 .pa3tent.
 compé3tent.
@@ -1377,8 +1312,8 @@ mit3tent.
 4thes.
 thermo1s2
 2t3heur
-2thl
 % th2l  was wrong for ...ath-lon (jd said 2thl) df 12/27/93
+2thl
 2thm
 2thn
 th2r
@@ -1399,8 +1334,8 @@ tran2s3p
 tran2s1u2
 4tre.
 4tres.
-2trent.
 % mute syllable: infiltrent (df) 28/02/94
+2trent.
 .tri1a2c
 .tri1a2n
 .tri1a2t
@@ -1447,8 +1382,8 @@ vol2t1amp
 1v2r
 4vre.
 4vres.
-2vrent.
 % mute syllable: recouvrent (df) 28/02/94
+2vrent.
 1vu
 1vû
 1vy
@@ -1460,8 +1395,8 @@ vol2t1amp
 1we
 4we.
 4wes.
-2went.
 % mute syllable: interviewent (df) 22/02/94
+2went.
 1wi
 1wo
 1wu
@@ -1470,8 +1405,8 @@ vol2t1amp
 % phonetic patterns % etymological patterns %
 %-------------------%-----------------------%
 %%x
-2xent.
 % mute syllable:  malaxent (df) 22/02/94
+2xent.
 %-------------------%-----------------------%
 % phonetic patterns % etymological patterns %
 %-------------------%-----------------------%
