@@ -154,26 +154,25 @@ am__v_AR_1 =
 libinterpreter_a_AR = $(AR) $(ARFLAGS)
 libinterpreter_a_LIBADD =
 am__libinterpreter_a_SOURCES_DIST = babel.c blorb.c config.c fizmo.c \
-	hyphenction.c iff.c mathemat.c misc.c mt19937ar.c object.c \
+	hyphenation.c iff.c mathemat.c misc.c mt19937ar.c object.c \
 	output.c property.c routine.c savegame.c sound.c stack.c \
 	streams.c table.c text.c undo.c variable.c wordwrap.c zpu.c \
-	hyphenation.c filelist.c blockbuf.c cmd_hst.c history.c \
-	debugger.c
+	filelist.c blockbuf.c cmd_hst.c history.c debugger.c
 @ENABLE_FILELIST_TRUE@am__objects_1 = filelist.$(OBJEXT)
 @ENABLE_BLOCKBUFFER_TRUE@am__objects_2 = blockbuf.$(OBJEXT)
 @ENABLE_COMMAND_HISTORY_TRUE@am__objects_3 = cmd_hst.$(OBJEXT)
 @ENABLE_OUTPUT_HISTORY_TRUE@am__objects_4 = history.$(OBJEXT)
 @ENABLE_DEBUGGER_TRUE@am__objects_5 = debugger.$(OBJEXT)
 am_libinterpreter_a_OBJECTS = babel.$(OBJEXT) blorb.$(OBJEXT) \
-	config.$(OBJEXT) fizmo.$(OBJEXT) hyphenction.$(OBJEXT) \
+	config.$(OBJEXT) fizmo.$(OBJEXT) hyphenation.$(OBJEXT) \
 	iff.$(OBJEXT) mathemat.$(OBJEXT) misc.$(OBJEXT) \
 	mt19937ar.$(OBJEXT) object.$(OBJEXT) output.$(OBJEXT) \
 	property.$(OBJEXT) routine.$(OBJEXT) savegame.$(OBJEXT) \
 	sound.$(OBJEXT) stack.$(OBJEXT) streams.$(OBJEXT) \
 	table.$(OBJEXT) text.$(OBJEXT) undo.$(OBJEXT) \
 	variable.$(OBJEXT) wordwrap.$(OBJEXT) zpu.$(OBJEXT) \
-	hyphenation.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_4) $(am__objects_5)
+	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
+	$(am__objects_4) $(am__objects_5)
 libinterpreter_a_OBJECTS = $(am_libinterpreter_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -345,11 +344,11 @@ noinst_LIBRARIES = libinterpreter.a
 DISOPT_FLAG = -O0
 HYPHENATION_O = hyphenation.o
 libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c \
-	hyphenction.c iff.c mathemat.c misc.c mt19937ar.c object.c \
+	hyphenation.c iff.c mathemat.c misc.c mt19937ar.c object.c \
 	output.c property.c routine.c savegame.c sound.c stack.c \
 	streams.c table.c text.c undo.c variable.c wordwrap.c zpu.c \
-	hyphenation.c $(am__append_9) $(am__append_11) \
-	$(am__append_13) $(am__append_15) $(am__append_19)
+	$(am__append_9) $(am__append_11) $(am__append_13) \
+	$(am__append_15) $(am__append_19)
 all: all-am
 
 .SUFFIXES:
@@ -408,7 +407,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fizmo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/history.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hyphenation.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hyphenction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iff.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mathemat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Po@am__quote@
