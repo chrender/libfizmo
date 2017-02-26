@@ -50,10 +50,10 @@ HYPHENATION_O = hyphenation.o
 $(HYPHENATION_O): hyphenation.c
 	$(MAKE) hyphenation.o CFLAGS="$(CFLAGS) $(DISOPT_FLAG)" HYPHENATION_O=dummy-hyphenation.o
 
-libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c hyphenction.c\
+libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c hyphenation.c\
  iff.c mathemat.c misc.c mt19937ar.c object.c output.c property.c routine.c \
  savegame.c sound.c stack.c streams.c table.c text.c undo.c variable.c \
- wordwrap.c zpu.c hyphenation.c
+ wordwrap.c zpu.c
 
 if ENABLE_TRACING
 AM_CFLAGS += -DENABLE_TRACING=
