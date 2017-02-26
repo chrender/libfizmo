@@ -31,7 +31,7 @@
 #    documentation and/or other materials provided with the distribution.
 # 3. The name of the author may not be used to endorse or promote products
 #    derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 # OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -152,27 +152,28 @@ am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
 am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libinterpreter_a_AR = $(AR) $(ARFLAGS)
-libinterpreter_a_DEPENDENCIES = hyphenation.o
+libinterpreter_a_LIBADD =
 am__libinterpreter_a_SOURCES_DIST = babel.c blorb.c config.c fizmo.c \
-	iff.c mathemat.c misc.c mt19937ar.c object.c output.c \
-	property.c routine.c savegame.c sound.c stack.c streams.c \
-	table.c text.c undo.c variable.c wordwrap.c zpu.c filelist.c \
-	blockbuf.c cmd_hst.c history.c debugger.c
+	hyphenction.c iff.c mathemat.c misc.c mt19937ar.c object.c \
+	output.c property.c routine.c savegame.c sound.c stack.c \
+	streams.c table.c text.c undo.c variable.c wordwrap.c zpu.c \
+	hyphenation.c filelist.c blockbuf.c cmd_hst.c history.c \
+	debugger.c
 @ENABLE_FILELIST_TRUE@am__objects_1 = filelist.$(OBJEXT)
 @ENABLE_BLOCKBUFFER_TRUE@am__objects_2 = blockbuf.$(OBJEXT)
 @ENABLE_COMMAND_HISTORY_TRUE@am__objects_3 = cmd_hst.$(OBJEXT)
 @ENABLE_OUTPUT_HISTORY_TRUE@am__objects_4 = history.$(OBJEXT)
 @ENABLE_DEBUGGER_TRUE@am__objects_5 = debugger.$(OBJEXT)
 am_libinterpreter_a_OBJECTS = babel.$(OBJEXT) blorb.$(OBJEXT) \
-	config.$(OBJEXT) fizmo.$(OBJEXT) iff.$(OBJEXT) \
-	mathemat.$(OBJEXT) misc.$(OBJEXT) mt19937ar.$(OBJEXT) \
-	object.$(OBJEXT) output.$(OBJEXT) property.$(OBJEXT) \
-	routine.$(OBJEXT) savegame.$(OBJEXT) sound.$(OBJEXT) \
-	stack.$(OBJEXT) streams.$(OBJEXT) table.$(OBJEXT) \
-	text.$(OBJEXT) undo.$(OBJEXT) variable.$(OBJEXT) \
-	wordwrap.$(OBJEXT) zpu.$(OBJEXT) $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
-	$(am__objects_5)
+	config.$(OBJEXT) fizmo.$(OBJEXT) hyphenction.$(OBJEXT) \
+	iff.$(OBJEXT) mathemat.$(OBJEXT) misc.$(OBJEXT) \
+	mt19937ar.$(OBJEXT) object.$(OBJEXT) output.$(OBJEXT) \
+	property.$(OBJEXT) routine.$(OBJEXT) savegame.$(OBJEXT) \
+	sound.$(OBJEXT) stack.$(OBJEXT) streams.$(OBJEXT) \
+	table.$(OBJEXT) text.$(OBJEXT) undo.$(OBJEXT) \
+	variable.$(OBJEXT) wordwrap.$(OBJEXT) zpu.$(OBJEXT) \
+	hyphenation.$(OBJEXT) $(am__objects_1) $(am__objects_2) \
+	$(am__objects_3) $(am__objects_4) $(am__objects_5)
 libinterpreter_a_OBJECTS = $(am_libinterpreter_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -335,13 +336,20 @@ AM_CFLAGS = $(am__append_1) $(am__append_2) $(am__append_4) \
 AM_CPPFLAGS = $(am__append_3)
 LDADD = $(am__append_5)
 noinst_LIBRARIES = libinterpreter.a
-libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c iff.c \
-	mathemat.c misc.c mt19937ar.c object.c output.c property.c \
-	routine.c savegame.c sound.c stack.c streams.c table.c text.c \
-	undo.c variable.c wordwrap.c zpu.c $(am__append_9) \
-	$(am__append_11) $(am__append_13) $(am__append_15) \
-	$(am__append_19)
-libinterpreter_a_LIBADD = hyphenation.o
+
+# Using clang-800.0.42.1 on macOS Sierra causes an EXC_BAD_ACCESS
+# when loading the hyphenation patterns in case "hyphenation.c" is
+# compiled with -O2. Using -O0 works around this issue. Solution by
+# Sander Niemeijer at http://gnu-automake.7480.n7.nabble.com/
+# Force-O0-flags-inhibit-the-default-O2-flags-td422.html.
+DISOPT_FLAG = -O0
+HYPHENATION_O = hyphenation.o
+libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c \
+	hyphenction.c iff.c mathemat.c misc.c mt19937ar.c object.c \
+	output.c property.c routine.c savegame.c sound.c stack.c \
+	streams.c table.c text.c undo.c variable.c wordwrap.c zpu.c \
+	hyphenation.c $(am__append_9) $(am__append_11) \
+	$(am__append_13) $(am__append_15) $(am__append_19)
 all: all-am
 
 .SUFFIXES:
@@ -399,6 +407,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filelist.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fizmo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/history.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hyphenation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hyphenction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iff.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mathemat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc.Po@am__quote@
@@ -634,12 +644,8 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
-
-# Using clang-800.0.42.1 on macOS Sierra causes an EXC_BAD_ACCESS
-# when loading the hyphenation patterns in case "hyphenation.c" is
-# compiled with -O2. Using -O0 works around this issue.
-hyphenation.o: hyphenation.c
-	$(CC) -O0 -c hyphenation.c
+$(HYPHENATION_O): hyphenation.c
+	$(MAKE) hyphenation.o CFLAGS="$(CFLAGS) $(DISOPT_FLAG)" HYPHENATION_O=dummy-hyphenation.o
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
