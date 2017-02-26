@@ -16,7 +16,7 @@
 #    documentation and/or other materials provided with the distribution.
 # 3. The name of the author may not be used to endorse or promote products
 #    derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
 # IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
 # OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
@@ -42,15 +42,18 @@ noinst_LIBRARIES = libinterpreter.a
 
 # Using clang-800.0.42.1 on macOS Sierra causes an EXC_BAD_ACCESS
 # when loading the hyphenation patterns in case "hyphenation.c" is
-# compiled with -O2. Using -O0 works around this issue.
-hyphenation.o: hyphenation.c
-	$(CC) -O0 -c hyphenation.c
+# compiled with -O2. Using -O0 works around this issue. Solution by
+# Sander Niemeijer at http://gnu-automake.7480.n7.nabble.com/
+# Force-O0-flags-inhibit-the-default-O2-flags-td422.html.
+DISOPT_FLAG = -O0
+HYPHENATION_O = hyphenation.o
+$(HYPHENATION_O): hyphenation.c
+	$(MAKE) hyphenation.o CFLAGS="$(CFLAGS) $(DISOPT_FLAG)" HYPHENATION_O=dummy-hyphenation.o
 
-libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c iff.c \
- mathemat.c misc.c mt19937ar.c object.c output.c property.c routine.c \
+libinterpreter_a_SOURCES = babel.c blorb.c config.c fizmo.c hyphenction.c\
+ iff.c mathemat.c misc.c mt19937ar.c object.c output.c property.c routine.c \
  savegame.c sound.c stack.c streams.c table.c text.c undo.c variable.c \
- wordwrap.c zpu.c
-libinterpreter_a_LIBADD = hyphenation.o
+ wordwrap.c zpu.c hyphenation.c
 
 if ENABLE_TRACING
 AM_CFLAGS += -DENABLE_TRACING=
