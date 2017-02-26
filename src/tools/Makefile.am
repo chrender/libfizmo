@@ -33,7 +33,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 localedir = $(datarootdir)/fizmo/locales
 
-AM_CFLAGS =
+AM_CFLAGS = -fPIC
 
 # Don't run ranlib directly, since in case OS X universal libraries are
 # built, files processed by ranlib cannot be any longer processed by ar
