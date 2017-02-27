@@ -2344,7 +2344,7 @@ void opcode_read_char(void)
     display_status_line();
 
 
-  if ((number_of_operands >= 3) && (ver >= 4))
+  if ((number_of_operands >= 3) && (ver >= 4) && (op[1] != 0) && (op[2] != 0))
   {
     TRACE_LOG("Starting reading character via timed input.\n");
 
