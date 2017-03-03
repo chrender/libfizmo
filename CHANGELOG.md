@@ -8,6 +8,7 @@
  - Fixed possible crash when invoking read_char with a non-zero verification routine address. Thanks to Stephen Gutknecht for reporting the problem.
  - Replaced en_US locale with en_GB due to license issues with the US hyphenation patterns from the “hyph-utf8” package for the time being. Adapted localization aliases so any current configuration should be still working without problems.
  - Fixed missing repeat-paragraph-output in case buffer back was encountered in output history. This fixes the initial missing line of text in “eliza.z5”.
+ - Added detection whether supplied story file is a valid Z-Machine file or a blorb file containing a "ZCOD" chunk and show error message if it's not the case.
  - Added “is_history_empty” method as helper for libpixelif.
  - Fixed “delete_list_and_get_null_terminated_ptrs” for empty lists.
 
