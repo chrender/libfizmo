@@ -80,3 +80,5 @@ Ungültiger Wert „\{0s}“ for Parameters „\{1s}“.
 Story hat Z-Versionsnummer \{0d}.
 HistoryOutput ist nicht mehr gültig.
 fizmo version \{0s}.
+Angegebenes Blorbfile enthält keinen „ZCOD“-chunk.
+Die Datei ist kein gültiges Z-Machine-File.

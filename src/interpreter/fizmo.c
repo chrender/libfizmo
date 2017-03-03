@@ -128,6 +128,8 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
   long story_size = -1;
   char *absolute_directory_name;
   char *story_filename;
+  uint8_t buf[30];
+  uint32_t val;
 #ifndef DISABLE_FILELIST
   struct z_story_list_entry *story_data;
 #endif
@@ -149,8 +151,10 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
       // The IFF file we've received is not an (Z-)executable blorb file
       // so there's nothing we can start. The IFF file can also not be
       // a savegame, since this case has already been handled in fizmo_start.
-      TRACE_LOG("No executable blorb.");
-      return NULL;
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_SUPPLIED_BLORB_FILE_PROVIDES_NO_ZCOD_CHUNK,
+          -0x0101);
     }
 
     // The supplied first file is a valid .zblorb file so we can initiate
@@ -199,6 +203,31 @@ static struct z_story *load_z_story(z_file *story_stream, z_file *blorb_stream)
           -0x0101,
           "getfilepos",
           errno);
+
+    if ((fsi->setfilepos(result->z_story_file, 0, SEEK_SET)) != 0)
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_FUNCTION_CALL_P0S_RETURNED_ERROR_CODE_P1D,
+          -0x0101,
+          "setfilepos",
+          errno);
+
+    memset(buf, 0, 30);
+    if (fsi->readchars(buf, 30, result->z_story_file) != 30)
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_FUNCTION_CALL_P0S_RETURNED_ERROR_CODE_P1D,
+          -0x0101,
+          "readchars",
+          -1);
+
+    val = (buf[16] << 24) | (buf[17] << 16) | (buf[18] << 8) | (buf[19]);
+    if ( ((val & 0xbe00f0f0) != 0x3030) || (*buf < 1) || (*buf > 8) ) {
+      i18n_translate_and_exit(
+          libfizmo_module_name,
+          i18n_libfizmo_SUPPLIED_FILE_IS_NOT_A_VALID_Z_MACHINE_FILE,
+          -0x0101);
+    }
 
     result->story_file_exec_offset = 0;
     result->blorb_file = blorb_stream;
