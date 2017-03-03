@@ -115,6 +115,8 @@
 #define i18n_libfizmo_STORY_HAS_Z_VERSION_NUMBER_P0D 79
 #define i18n_libfizmo_HISTORYOUTPUT_NO_LONGER_VALID 80
 #define i18n_libfizmo_FIZMO_VERSION_P0S 81
+#define i18n_libfizmo_SUPPLIED_BLORB_FILE_PROVIDES_NO_ZCOD_CHUNK 82
+#define i18n_libfizmo_SUPPLIED_FILE_IS_NOT_A_VALID_Z_MACHINE_FILE 83
 
 extern z_ucs libfizmo_module_name[];
 extern z_ucs default_locale_name[];

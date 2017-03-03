@@ -14,6 +14,9 @@
  - Fixed missing repeat-paragraph-output in case buffer back was encountered
    in output history. This fixes the initial missing line of text in
    "eliza.z5".
+ - Added detection whether supplied story file is a valid Z-Machine file or a
+   blorb file containing a "ZCOD" chunk and show error message if it's not
+   the case.
  - Added "is_history_empty" method as helper for libpixelif.
  - Fixed "delete_list_and_get_null_terminated_ptrs" for empty lists.
 
