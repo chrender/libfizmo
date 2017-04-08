@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.7.14">
+    <datetime day-of-week="Sat" month="4" day="8" hour="9"
+      minute="46" second="15" timezone="CEST" year="2017"/>
     <logentry>User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.</logentry>
     <logentry>Fix for crashes on startup when loading hyphenation patterns und localiazation data for machines which have chars as unsigned types. Thanks to Lewis Gentry for the patch.</logentry>
     <logentry>Fixed possible crash when invoking read_char with a non-zero verification routine address. Thanks to Stephen Gutknecht for reporting the problem.</logentry>
