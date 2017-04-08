@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.14**
+   **Version 0.7.14 — April 8, 2017**
 
  - User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.
  - Fix for crashes on startup when loading hyphenation patterns und localiazation data for machines which have chars as unsigned types. Thanks to Lewis Gentry for the patch.
