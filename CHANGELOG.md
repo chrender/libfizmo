@@ -1,6 +1,13 @@
 
 
 
+   **Version 0.7.15**
+
+ - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
+
+---
+
+
    **Version 0.7.14 — April 8, 2017**
 
  - User input for read_char is now supported in stream 4. Thanks to Michael Baltes for the initial implementation.
