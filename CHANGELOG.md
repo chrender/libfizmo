@@ -4,6 +4,7 @@
    **Version 0.7.15**
 
  - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
+ - Made screen size functions use 16-bit instead of 8-bit values, allowing version 5+ games to work with screen dimensions > 255.
 
 ---
 
