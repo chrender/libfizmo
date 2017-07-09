@@ -43,7 +43,7 @@ endif
 
 fizmo_build_prefix=$(dev_prefix)
 
-pkg_dir = $(DESTDIR)$(dev_prefix)/lib/pkgconfig
+pkg_dir = $(dev_prefix)/lib/pkgconfig
 pkgfile = $(pkg_dir)/libfizmo.pc
 
 SUBDIRS = src/tools src/interpreter .
