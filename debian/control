@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 9.0.0),
  autoconf,
  pkg-config,
  libxml2-dev
-Standards-Version: 3.9.8
+Standards-Version: 4.0.0
 Homepage: https://fizmo.spellbreaker.org/
 
 Package: libfizmo-common
