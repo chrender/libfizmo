@@ -3,7 +3,7 @@ libfizmo (0.7.14-2) experimental; urgency=low
   * Switch to unstable.
   * New Standards version 4.0.0.
 
- -- Christoph Ender <christoph.ender@spellbreaker.org>  Fri, 14 Juli 2017 21:35:00 +0200
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Fri, 14 Jul 2017 21:35:00 +0200
 
 
 libfizmo (0.7.14-1) experimental; urgency=low
