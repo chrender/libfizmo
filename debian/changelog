@@ -1,4 +1,4 @@
-libfizmo (0.7.14-2) experimental; urgency=low
+libfizmo (0.7.14-2) unstable; urgency=low
 
   * Switch to unstable.
   * New Standards version 4.0.0.
