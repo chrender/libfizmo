@@ -6,6 +6,7 @@
  - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
  - Made screen size functions use 16-bit instead of 8-bit values, allowing version 5+ games to work with screen dimensions > 255.
  - In case of screen dimensions > 255, write 255 into the byte-sized header entries $20 and $21.
+ - Fix compile-time error which occurred when --disable-output-history was set. Thanks to Jared Reisinger for the patch.
 
 ---
 
