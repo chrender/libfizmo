@@ -286,10 +286,12 @@ void opcode_set_text_style(void)
 
       // Since it's possible to have combinations of styles we'll handle
       // storing metadata and interface updates right here.
+#ifndef DISABLE_OUTPUT_HISTORY
       store_metadata_in_history(
           outputhistory[0],
           HISTORY_METADATA_TYPE_STYLE,
           new_z_style);
+#endif // DISABLE_OUTPUT_HISTORY
       //lower_window_style = current_style;
       active_interface->set_text_style(new_z_style);
       current_style = new_z_style;

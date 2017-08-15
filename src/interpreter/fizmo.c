@@ -737,7 +737,7 @@ void ensure_dot_fizmo_dir_exists()
 #endif // DISABLE_CONFIGFILES
 
 
-void fizmo_new_screen_size(uint8_t width, uint8_t height)
+void fizmo_new_screen_size(uint16_t width, uint16_t height)
 {
   if (!z_mem)
   {
@@ -758,8 +758,8 @@ void fizmo_new_screen_size(uint8_t width, uint8_t height)
   if (ver >= 4)
   {
     TRACE_LOG("Writing %d to $20, %d to $21.\n", height, width);
-    z_mem[0x20] = height;
-    z_mem[0x21] = width;
+    z_mem[0x20] = (height > 255 ? 255 : height);
+    z_mem[0x21] = (width > 255 ? 255 : width);
   }
 
   if (ver >= 5)
