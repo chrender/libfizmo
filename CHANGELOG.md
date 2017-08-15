@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.15**
+   **Version 0.7.15 — August 14, 2017**
 
  - Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.
  - Made screen size functions use 16-bit instead of 8-bit values, allowing version 5+ games to work with screen dimensions > 255.
@@ -35,7 +35,7 @@
 
    **Version 0.7.12 — August 31, 2016**
 
- - In the context of the Debian Reproducible Builds, building libfizmo is now reproducible, see https://wiki.debian.org/ReproducibleBuilds. Thhanks to Sascha Steinbiss for the patch.
+ - In the context of the Debian Reproducible Builds, building libfizmo is now reproducible, see [https://wiki.debian.org/ReproducibleBuilds](). Thhanks to Sascha Steinbiss for the patch.
  - Use tiny-xml-doc-tools for documentation files.
  - Cleaned up versioning mess a little bit: Removed FIZMO_VERSION, use LIBFIZMO_VERSION instead, since this is more helpful if libfizmo is used stand-alone.
 
