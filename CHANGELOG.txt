@@ -1,4 +1,14 @@
 
+   Version 0.7.15 -- August 14, 2017
+ - Fix superfluous libraries and includes during install when using $DESTDIR,
+   addressing github issue #21.
+ - Made screen size functions use 16-bit instead of 8-bit values, allowing
+   version 5+ games to work with screen dimensions > 255.
+ - In case of screen dimensions > 255, write 255 into the byte-sized header
+   entries $20 and $21.
+ - Fix compile-time error which occurred when --disable-output-history was
+   set. Thanks to Jared Reisinger for the patch.
+
    Version 0.7.14 -- April 8, 2017
  - User input for read_char is now supported in stream 4. Thanks to Michael
    Baltes for the initial implementation.
@@ -28,7 +38,7 @@
 
    Version 0.7.12 -- August 31, 2016
  - In the context of the Debian Reproducible Builds, building libfizmo is now
-   reproducible, see https://wiki.debian.org/ReproducibleBuilds. Thhanks to
+   reproducible, see https://wiki.debian.org/ReproducibleBuilds. Thanks to
    Sascha Steinbiss for the patch.
  - Use tiny-xml-doc-tools for documentation files.
  - Cleaned up versioning mess a little bit: Removed FIZMO_VERSION, use
