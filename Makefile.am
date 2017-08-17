@@ -38,12 +38,12 @@ localedir = $(datarootdir)/fizmo/locales
 if FIZMO_DIST_BUILD
   dev_prefix=$(FIZMO_DIST_BUILD_PREFIX)
 else
-  dev_prefix=$(prefix)
+  dev_prefix=$(DESTDIR)/$(prefix)
 endif
 
 fizmo_build_prefix=$(dev_prefix)
 
-pkg_dir = $(DESTDIR)$(dev_prefix)/lib/pkgconfig
+pkg_dir = $(dev_prefix)/lib/pkgconfig
 pkgfile = $(pkg_dir)/libfizmo.pc
 
 SUBDIRS = src/tools src/interpreter .
@@ -66,21 +66,21 @@ libfizmo.a::
 	rm -r "$(tmplibdir)"
 
 install-dev:: libfizmo.a
-	mkdir -p "$(DESTDIR)$(dev_prefix)/lib/fizmo"
-	cp libfizmo.a "$(DESTDIR)$(dev_prefix)/lib/fizmo"
-	mkdir -p "$(DESTDIR)$(dev_prefix)/include/fizmo/interpreter"
+	mkdir -p "$(dev_prefix)/lib/fizmo"
+	cp libfizmo.a "$(dev_prefix)/lib/fizmo"
+	mkdir -p "$(dev_prefix)/include/fizmo/interpreter"
 	cp src/interpreter/*.h \
-	  "$(DESTDIR)$(dev_prefix)/include/fizmo/interpreter"
-	mkdir -p "$(DESTDIR)$(dev_prefix)/include/fizmo/tools"
-	cp src/tools/*.h "$(DESTDIR)$(dev_prefix)/include/fizmo/tools"
-	mkdir -p "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface"
+	  "$(dev_prefix)/include/fizmo/interpreter"
+	mkdir -p "$(dev_prefix)/include/fizmo/tools"
+	cp src/tools/*.h "$(dev_prefix)/include/fizmo/tools"
+	mkdir -p "$(dev_prefix)/include/fizmo/screen_interface"
 	cp src/screen_interface/*.h \
-	  "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface"
+	  "$(dev_prefix)/include/fizmo/screen_interface"
 	cp src/screen_interface/*.cpp \
-	  "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface"
-	cp -r src/sound_interface "$(DESTDIR)$(dev_prefix)/include/fizmo/"
-	cp -r src/filesys_interface "$(DESTDIR)$(dev_prefix)/include/fizmo/"
-	cp -r src/blorb_interface "$(DESTDIR)$(dev_prefix)/include/fizmo/"
+	  "$(dev_prefix)/include/fizmo/screen_interface"
+	cp -r src/sound_interface "$(dev_prefix)/include/fizmo/"
+	cp -r src/filesys_interface "$(dev_prefix)/include/fizmo/"
+	cp -r src/blorb_interface "$(dev_prefix)/include/fizmo/"
 	mkdir -p "$(pkg_dir)"
 	echo 'prefix=$(dev_prefix)' >"$(pkgfile)"
 	echo 'exec_prefix=$${prefix}' >>"$(pkgfile)"
@@ -89,7 +89,7 @@ install-dev:: libfizmo.a
 	echo >>"$(pkgfile)"
 	echo 'Name: libfizmo' >>"$(pkgfile)"
 	echo 'Description: libfizmo' >>"$(pkgfile)"
-	echo 'Version: 0.7.14' >>"$(pkgfile)"
+	echo 'Version: 0.7.15' >>"$(pkgfile)"
 	echo "Requires: $(LIBFIZMO_REQS)" >>"$(pkgfile)"
 	echo 'Requires.private:' >>"$(pkgfile)"
 	echo 'Cflags: -I$(dev_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(pkgfile)"
@@ -108,17 +108,17 @@ install-data-local::
 # a - sign. rmdir may fail in clean-dev in case other libs have installed
 # development files, or in case clean-dev has been run before.
 clean-dev::
-	-rm    "$(DESTDIR)$(dev_prefix)/lib/fizmo/libfizmo.a"
-	-rmdir "$(DESTDIR)$(dev_prefix)/lib/fizmo"
-	rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/interpreter"
-	rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/tools"
-	rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/sound_interface"
-	rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/filesys_interface"
-	rm -rf "$(DESTDIR)$(dev_prefix)/include/fizmo/blorb_interface"
-	-rm    "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface/ScreenInterface.cpp"
-	-rm    "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface/ScreenInterface.h"
-	-rm    "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface/screen_interface.h"
-	-rmdir "$(DESTDIR)$(dev_prefix)/include/fizmo/screen_interface"
-	-rmdir "$(DESTDIR)$(dev_prefix)/include/fizmo"
+	-rm    "$(dev_prefix)/lib/fizmo/libfizmo.a"
+	-rmdir "$(dev_prefix)/lib/fizmo"
+	rm -rf "$(dev_prefix)/include/fizmo/interpreter"
+	rm -rf "$(dev_prefix)/include/fizmo/tools"
+	rm -rf "$(dev_prefix)/include/fizmo/sound_interface"
+	rm -rf "$(dev_prefix)/include/fizmo/filesys_interface"
+	rm -rf "$(dev_prefix)/include/fizmo/blorb_interface"
+	-rm    "$(dev_prefix)/include/fizmo/screen_interface/ScreenInterface.cpp"
+	-rm    "$(dev_prefix)/include/fizmo/screen_interface/ScreenInterface.h"
+	-rm    "$(dev_prefix)/include/fizmo/screen_interface/screen_interface.h"
+	-rmdir "$(dev_prefix)/include/fizmo/screen_interface"
+	-rmdir "$(dev_prefix)/include/fizmo"
 	-rm    "$(pkgfile)"
 

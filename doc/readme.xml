@@ -19,5 +19,19 @@
 
     <p>Currently fizmo is in beta status, meaning it might do unexpected things such as stop with an error message, crash or cleesh your machine into a frog. There is no warranty of any kind whatsoever and you're entirely on your own when running it.</p>
   </section>
+
+  <section>
+    <p>This package includes software written by other authors:</p>
+
+    <ul>
+      <li>The Mersenne Twister random number generator, available at <a href="http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/MT2002/emt19937ar.html"></a>. This is available via a BSD license, which is stored in the source file “libfizmo/src/interpreter/mt19937ar.c”.</li>
+
+      <li>British english hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a> under a permissive license.</li>
+
+      <li>German hyphenation patterns, provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the LaTeX Project Public License.</li>
+
+      <li>French hyphenation patterns as provided by the hyph-utf8 project at <a href="http://www.ctan.org/tex-archive/language/hyph-utf8/"></a>, distributed under the terms of the MIT License.</li>
+    </ul>
+  </section>
 </document>
 

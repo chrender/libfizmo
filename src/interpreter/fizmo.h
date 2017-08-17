@@ -41,7 +41,7 @@
 #include "../blorb_interface/blorb_interface.h"
 #include "blockbuf.h"
 
-#define LIBFIZMO_VERSION "0.7.14"
+#define LIBFIZMO_VERSION "0.7.15"
 
 #define FIZMO_INTERPRETER_NUMBER 6
 /*
@@ -84,7 +84,7 @@ void fizmo_register_paragraph_removal_function(
 
 void fizmo_start(z_file* story_stream, z_file *blorb_stream,
     z_file *restore_on_start_file);
-void fizmo_new_screen_size(uint8_t width, uint8_t height);
+void fizmo_new_screen_size(uint16_t width, uint16_t height);
 
 void write_interpreter_info_into_header();
 int close_interface(z_ucs *error_message);
