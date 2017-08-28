@@ -37,8 +37,10 @@ localedir = $(datarootdir)/fizmo/locales
 
 if FIZMO_DIST_BUILD
   dev_prefix=$(FIZMO_DIST_BUILD_PREFIX)
+  pkg_prefix=$(FIZMO_DIST_BUILD_PREFIX)
 else
   dev_prefix=$(DESTDIR)/$(prefix)
+  pkg_prefix=$(prefix)
 endif
 
 fizmo_build_prefix=$(dev_prefix)
@@ -82,7 +84,7 @@ install-dev:: libfizmo.a
 	cp -r src/filesys_interface "$(dev_prefix)/include/fizmo/"
 	cp -r src/blorb_interface "$(dev_prefix)/include/fizmo/"
 	mkdir -p "$(pkg_dir)"
-	echo 'prefix=$(dev_prefix)' >"$(pkgfile)"
+	echo 'prefix=$(pkg_prefix)' >"$(pkgfile)"
 	echo 'exec_prefix=$${prefix}' >>"$(pkgfile)"
 	echo 'libdir=$${exec_prefix}/lib/fizmo' >>"$(pkgfile)"
 	echo 'includedir=$${prefix}/include/fizmo' >>"$(pkgfile)"
@@ -92,8 +94,8 @@ install-dev:: libfizmo.a
 	echo 'Version: 0.7.15' >>"$(pkgfile)"
 	echo "Requires: $(LIBFIZMO_REQS)" >>"$(pkgfile)"
 	echo 'Requires.private:' >>"$(pkgfile)"
-	echo 'Cflags: -I$(dev_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(pkgfile)"
-	echo 'Libs: -L$(dev_prefix)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS) -lm'  >>"$(pkgfile)"
+	echo 'Cflags: -I$(pkg_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(pkgfile)"
+	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS) -lm'  >>"$(pkgfile)"
 	echo >>"$(pkgfile)"
 
 install-data-local::
