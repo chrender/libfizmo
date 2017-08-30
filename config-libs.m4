@@ -1,17 +1,9 @@
 
-# In case libxml2 is found via PKG_CHECK_MODULES, it does not go into
-# Requires.private, but into Libs.private and CFlags. This is contrary
-# to the pkg-config recommendations, but since at least debian does
-# not provide a pkg-config file in case only libxml2 installed without
-# libxml2-dev, this is the only may to make things work properly.
-
 AS_IF([test "x$enable_babel" != "xno"], [
   PKG_CHECK_MODULES(
     [libxml2],
     [libxml-2.0],
-    [libfizmo_private_reqs=""
-     libxml2_nonpkg_cflags="$libxml2_CFLAGS"
-     libxml2_nonpkg_libs="$libxml2_LIBS"],
+    [libfizmo_private_reqs="libxml-2.0"],
     [for dir in $with_libxml2_includedir /usr/include/libxml2 /usr/local/include/libxml2 /opt/local/include/libxml2 ; do
        AC_MSG_CHECKING(for libxml/tree.h in $dir)
        if [ test -e $dir/libxml/tree.h ]; then
