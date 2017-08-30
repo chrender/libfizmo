@@ -24,7 +24,7 @@ Description: Provides localization data for libfizmo
 Package: libfizmo-dev
 Architecture: any
 Depends: libfizmo-common,
- libxml2-dev,
+ libxml2,
  ${misc:Depends}
 Description: Z-Machine interpreter developer library
  Will handle the entire execution of Z-Machine programs and allows linked
