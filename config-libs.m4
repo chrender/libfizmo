@@ -3,7 +3,7 @@ AS_IF([test "x$enable_babel" != "xno"], [
   PKG_CHECK_MODULES(
     [libxml2],
     [libxml-2.0],
-    [libfizmo_private_reqs="libxml-2.0"],
+    [libfizmo_reqs="libxml-2.0"],
     [for dir in $with_libxml2_includedir /usr/include/libxml2 /usr/local/include/libxml2 /opt/local/include/libxml2 ; do
        AC_MSG_CHECKING(for libxml/tree.h in $dir)
        if [ test -e $dir/libxml/tree.h ]; then

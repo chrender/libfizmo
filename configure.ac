@@ -114,7 +114,7 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_PROG_AR
 
-AC_SUBST([LIBFIZMO_PRIVATE_REQS], $libfizmo_private_reqs)
+AC_SUBST([LIBFIZMO_REQS], $libfizmo_reqs)
 AC_SUBST([LIBXML2_NONPKG_CFLAGS], $libxml2_nonpkg_cflags)
 AC_SUBST([LIBXML2_NONPKG_LIBS], $libxml2_nonpkg_libs)
 
