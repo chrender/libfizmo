@@ -614,7 +614,9 @@ ENABLE_TRACING_FALSE
 ENABLE_TRACING_TRUE
 FIZMO_DIST_BUILD_FALSE
 FIZMO_DIST_BUILD_TRUE
-LIBFIZMO_REQS
+LIBXML2_NONPKG_LIBS
+LIBXML2_NONPKG_CFLAGS
+LIBFIZMO_PRIVATE_REQS
 ac_ct_AR
 AR
 RANLIB
@@ -720,6 +722,8 @@ enable_output_history
 enable_config_files
 enable_prefix_commands
 enable_debugger
+with_libxml2_includedir
+with_libxml2_libdir
 enable_dependency_tracking
 enable_silent_rules
 '
@@ -1384,6 +1388,13 @@ if test -n "$ac_init_help"; then
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
 
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-libxml2-includedir
+                          Specify include directory to use for libxml2
+  --with-libxml2-libdir   Specify library directory for libxml2
+
 Some influential environment variables:
   PKG_CONFIG  path to pkg-config utility
   PKG_CONFIG_PATH
@@ -1948,6 +1959,12 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 
 
+
+# In case libxml2 is found via PKG_CHECK_MODULES, it does not go into
+# Requires.private, but into Libs.private and CFlags. This is contrary
+# to the pkg-config recommendations, but since at least debian does
+# not provide a pkg-config file in case only libxml2 installed without
+# libxml2-dev, this is the only may to make things work properly.
 
 
 
@@ -2982,87 +2999,150 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$libxml2_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (libxml-2.0) were not met:
-
-$libxml2_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables libxml2_CFLAGS
-and libxml2_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details." "$LINENO" 5
-elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables libxml2_CFLAGS
-and libxml2_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details" "$LINENO" 5; }
-else
-	libxml2_CFLAGS=$pkg_cv_libxml2_CFLAGS
-	libxml2_LIBS=$pkg_cv_libxml2_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+	for dir in $with_libxml2_includedir /usr/include/libxml2 /usr/local/include/libxml2 /opt/local/include/libxml2 ; do
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml/tree.h in $dir" >&5
+$as_echo_n "checking for libxml/tree.h in $dir... " >&6; }
+       if  test -e $dir/libxml/tree.h ; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+         libxml2_h_dir=$dir
+         break
+       else
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+       fi
+     done
+     if  test "x$libxml2_h_dir" == "x" ; then
+       echo "Could not find libxml/tree.h."
+       echo "Try setting the location using --with-libxml2-includedir."
+       exit
+     fi
+     libxml2_nonpkg_cflags+="-I$libxml2_h_dir"
+     libxml2_CFLAGS="-I$libxml2_h_dir"
 
-fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlParseFile in -lxml2" >&5
-$as_echo_n "checking for xmlParseFile in -lxml2... " >&6; }
-if ${ac_cv_lib_xml2_xmlParseFile+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lxml2  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+     CFLAGS_SAVED=$CFLAGS
+     LIBS_SAVED=$LIBS
+     LDFLAGS_SAVED=$LDFLAGS
+     LIBS="-lxml2"
+     CFLAGS="-I$libxml2_h_dir"
+     for dir in $with_libxml2_libdir /usr/lib /usr/local/lib /opt/local/lib ; do
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 in $dir" >&5
+$as_echo_n "checking for libxml2 in $dir... " >&6; }
+       LDFLAGS="-L$dir"
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char xmlParseFile ();
+#include <libxml/tree.h>
 int
 main ()
 {
-return xmlParseFile ();
+xmlDocPtr doc;
+          doc = xmlNewDoc("1.0");
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_xml2_xmlParseFile=yes
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+          libxml2_l_dir=$dir
+          break
 else
-  ac_cv_lib_xml2_xmlParseFile=no
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xml2_xmlParseFile" >&5
-$as_echo "$ac_cv_lib_xml2_xmlParseFile" >&6; }
-if test "x$ac_cv_lib_xml2_xmlParseFile" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBXML2 1
+     done
+     if  test "x$libxml2_l_dir" == "x" ; then
+       echo "Could not find libxml2."
+       echo "Try setting the location using --with-libxml2-libdir."
+       exit
+     fi
+     LIBS=$LIBS_SAVED
+     LDFLAGS=$LDFLAGS_SAVED
+     CFLAGS=$CFLAGS_SAVED
+     libxml2_nonpkg_libs="-L$libxml2_l_dir -lxml2"
+     libxml2_LIBS="-L$libxml2_l_dir -lxml2"
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	for dir in $with_libxml2_includedir /usr/include/libxml2 /usr/local/include/libxml2 /opt/local/include/libxml2 ; do
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml/tree.h in $dir" >&5
+$as_echo_n "checking for libxml/tree.h in $dir... " >&6; }
+       if  test -e $dir/libxml/tree.h ; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+         libxml2_h_dir=$dir
+         break
+       else
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+       fi
+     done
+     if  test "x$libxml2_h_dir" == "x" ; then
+       echo "Could not find libxml/tree.h."
+       echo "Try setting the location using --with-libxml2-includedir."
+       exit
+     fi
+     libxml2_nonpkg_cflags+="-I$libxml2_h_dir"
+     libxml2_CFLAGS="-I$libxml2_h_dir"
+
+     CFLAGS_SAVED=$CFLAGS
+     LIBS_SAVED=$LIBS
+     LDFLAGS_SAVED=$LDFLAGS
+     LIBS="-lxml2"
+     CFLAGS="-I$libxml2_h_dir"
+     for dir in $with_libxml2_libdir /usr/lib /usr/local/lib /opt/local/lib ; do
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml2 in $dir" >&5
+$as_echo_n "checking for libxml2 in $dir... " >&6; }
+       LDFLAGS="-L$dir"
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <libxml/tree.h>
+int
+main ()
+{
+xmlDocPtr doc;
+          doc = xmlNewDoc("1.0");
+  ;
+  return 0;
+}
 _ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+          libxml2_l_dir=$dir
+          break
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+     done
+     if  test "x$libxml2_l_dir" == "x" ; then
+       echo "Could not find libxml2."
+       echo "Try setting the location using --with-libxml2-libdir."
+       exit
+     fi
+     LIBS=$LIBS_SAVED
+     LDFLAGS=$LDFLAGS_SAVED
+     CFLAGS=$CFLAGS_SAVED
+     libxml2_nonpkg_libs="-L$libxml2_l_dir -lxml2"
+     libxml2_LIBS="-L$libxml2_l_dir -lxml2"
 
-  LIBS="-lxml2 $LIBS"
-
+else
+	libxml2_CFLAGS=$pkg_cv_libxml2_CFLAGS
+	libxml2_LIBS=$pkg_cv_libxml2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	libfizmo_private_reqs=""
+     libxml2_nonpkg_cflags="$libxml2_CFLAGS"
+     libxml2_nonpkg_libs="$libxml2_LIBS"
 fi
 
-  libfizmo_reqs="libxml-2.0"
-
 fi
-
 
 
 am__api_version='1.15'
@@ -4694,7 +4774,11 @@ unknown)
 esac
 
 
-LIBFIZMO_REQS=$libfizmo_reqs
+LIBFIZMO_PRIVATE_REQS=$libfizmo_private_reqs
+
+LIBXML2_NONPKG_CFLAGS=$libxml2_nonpkg_cflags
+
+LIBXML2_NONPKG_LIBS=$libxml2_nonpkg_libs
 
 
  if test "x" = ""; then

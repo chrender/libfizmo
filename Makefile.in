@@ -117,8 +117,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/config-libs.m4 \
-	$(top_srcdir)/config-conds.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/config-flags.m4 \
+	$(top_srcdir)/config-libs.m4 $(top_srcdir)/config-conds.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
@@ -279,9 +280,11 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
-LIBFIZMO_REQS = @LIBFIZMO_REQS@
+LIBFIZMO_PRIVATE_REQS = @LIBFIZMO_PRIVATE_REQS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
+LIBXML2_NONPKG_CFLAGS = @LIBXML2_NONPKG_CFLAGS@
+LIBXML2_NONPKG_LIBS = @LIBXML2_NONPKG_LIBS@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
@@ -886,10 +889,11 @@ install-dev:: libfizmo.a
 	echo 'Name: libfizmo' >>"$(pkgfile)"
 	echo 'Description: libfizmo' >>"$(pkgfile)"
 	echo 'Version: 0.7.15' >>"$(pkgfile)"
-	echo "Requires: $(LIBFIZMO_REQS)" >>"$(pkgfile)"
-	echo 'Requires.private:' >>"$(pkgfile)"
-	echo 'Cflags: -I$(pkg_prefix)/include/fizmo $(LIBXML2_NONPKG_CFLAGS)' >>"$(pkgfile)"
-	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lfizmo $(LIBXML2_NONPKG_LIBS) -lm'  >>"$(pkgfile)"
+	echo 'Requires:' >>"$(pkgfile)"
+	echo "Requires.private: $(LIBFIZMO_PRIVATE_REQS)" >>"$(pkgfile)"
+	echo 'Cflags: -I$(pkg_prefix)/include/fizmo' >>"$(pkgfile)"
+	echo 'Libs: -L$(pkg_prefix)/lib/fizmo -lfizmo'  >>"$(pkgfile)"
+	echo 'Libs.private: $(LIBXML2_NONPKG_LIBS) -lm'  >>"$(pkgfile)"
 	echo >>"$(pkgfile)"
 
 install-data-local::
