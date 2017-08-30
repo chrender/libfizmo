@@ -97,6 +97,8 @@ AC_ARG_ENABLE([debugger],
  [],
  [enable_debugger=no])
 
+m4_include(config-flags.m4)
+
 AC_INIT(
  [libfizmo],
  [0.7.15],
@@ -112,7 +114,9 @@ AC_PROG_CC
 AC_PROG_RANLIB
 AM_PROG_AR
 
-AC_SUBST([LIBFIZMO_REQS], $libfizmo_reqs)
+AC_SUBST([LIBFIZMO_PRIVATE_REQS], $libfizmo_private_reqs)
+AC_SUBST([LIBXML2_NONPKG_CFLAGS], $libxml2_nonpkg_cflags)
+AC_SUBST([LIBXML2_NONPKG_LIBS], $libxml2_nonpkg_libs)
 
 AM_CONDITIONAL([FIZMO_DIST_BUILD], [test "x" = ""])
 
