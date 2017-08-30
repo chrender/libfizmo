@@ -616,7 +616,7 @@ FIZMO_DIST_BUILD_FALSE
 FIZMO_DIST_BUILD_TRUE
 LIBXML2_NONPKG_LIBS
 LIBXML2_NONPKG_CFLAGS
-LIBFIZMO_PRIVATE_REQS
+LIBFIZMO_REQS
 ac_ct_AR
 AR
 RANLIB
@@ -3131,7 +3131,7 @@ else
 	libxml2_LIBS=$pkg_cv_libxml2_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	libfizmo_private_reqs="libxml-2.0"
+	libfizmo_reqs="libxml-2.0"
 fi
 
 fi
@@ -4766,7 +4766,7 @@ unknown)
 esac
 
 
-LIBFIZMO_PRIVATE_REQS=$libfizmo_private_reqs
+LIBFIZMO_REQS=$libfizmo_reqs
 
 LIBXML2_NONPKG_CFLAGS=$libxml2_nonpkg_cflags
 
