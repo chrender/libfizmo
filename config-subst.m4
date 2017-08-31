@@ -6,6 +6,6 @@
 # The $build_prefix, $build_prefix_cflags and $build_prefix_libs are
 # pre-defined by fizmo-dist.
 
-AC_SUBST([libfizmo_CFLAGS], "-I$build_prefix_cflags $xml2_CFLAGS")
-AC_SUBST([libfizmo_LIBS], "-L$build_prefix_libs -lfizmo $xml2_LIBS -lm")
+AC_SUBST([libfizmo_CFLAGS], "-I$build_prefix_cflags $libxml2_CFLAGS")
+AC_SUBST([libfizmo_LIBS], "-L$build_prefix_libs -lfizmo $libxml2_LIBS -lm")
 
