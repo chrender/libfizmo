@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.7.15">
-    <datetime day-of-week="Mon" month="8" day="14" hour="22"
-      minute="26" second="14" timezone="CEST" year="2017"/>
+    <datetime day-of-week="Sun" month="9" day="3" hour="21"
+      minute="22" second="23" timezone="CEST" year="2017"/>
     <logentry>Fix superfluous libraries and includes during install when using $DESTDIR, addressing github issue #21.</logentry>
     <logentry>Made screen size functions use 16-bit instead of 8-bit values, allowing version 5+ games to work with screen dimensions > 255.</logentry>
     <logentry>In case of screen dimensions > 255, write 255 into the byte-sized header entries $20 and $21.</logentry>
     <logentry>Fix compile-time error which occurred when <tt>--disable-output-history</tt> was set. Thanks to Jared Reisinger for the patch.</logentry>
+    <logentry>Added missing contributor phrasing to BSD-3 clause. The resulting license now exactly matches the wording used on Github and so also makes the license detection work.</logentry>
   </change>
 
   <change version="0.7.14">
