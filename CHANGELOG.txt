@@ -1,5 +1,5 @@
 
-   Version 0.7.15 -- August 14, 2017
+   Version 0.7.15 -- September 3, 2017
  - Fix superfluous libraries and includes during install when using $DESTDIR,
    addressing github issue #21.
  - Made screen size functions use 16-bit instead of 8-bit values, allowing
@@ -8,6 +8,9 @@
    entries $20 and $21.
  - Fix compile-time error which occurred when --disable-output-history was
    set. Thanks to Jared Reisinger for the patch.
+ - Added missing contributor phrasing to BSD-3 clause. The resulting license
+   now exactly matches the wording used on Github and so also makes the
+   license detection work.
 
    Version 0.7.14 -- April 8, 2017
  - User input for read_char is now supported in stream 4. Thanks to Michael
