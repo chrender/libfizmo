@@ -4,7 +4,7 @@ libfizmo (0.7.15-1) unstable; urgency=low
   * Updated BSD-3 license to include contributors. License is now to 100%
     identical to the 3-Clause BSD License.
 
- -- Christoph Ender <christoph.ender@spellbreaker.org>  Thu, 17 Aug 2017 21:40:00 +0200
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Mon, 11 Sep 2017 17:40:00 +0200
 
 
 libfizmo (0.7.14-2) unstable; urgency=low
