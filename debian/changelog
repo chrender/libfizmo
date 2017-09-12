@@ -4,7 +4,7 @@ libfizmo (0.7.15-2) unstable; urgency=low
   * Updated standards version to 4.1.0.
   * Added "Vcs-Browser" and "Vcs-Git" fields to control file.
 
- -- Christoph Ender <christoph.ender@spellbreaker.org>  Mon, 12 Sep 2017 21:40:00 +0200
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Tue, 12 Sep 2017 21:40:00 +0200
 
 
 libfizmo (0.7.15-1) unstable; urgency=low
