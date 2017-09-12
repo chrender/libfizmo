@@ -1,6 +1,6 @@
 Source: libfizmo
 Section: libdevel
-Priority: extra
+Priority: optional
 Maintainer: Christoph Ender <christoph.ender@spellbreaker.org>
 Build-Depends: debhelper (>= 9.0.0),
  dh-autoreconf,
@@ -8,8 +8,10 @@ Build-Depends: debhelper (>= 9.0.0),
  autoconf,
  pkg-config,
  libxml2-dev
-Standards-Version: 4.0.0
+Standards-Version: 4.1.0
 Homepage: https://fizmo.spellbreaker.org/
+Vcs-Browser: https://github.com/chrender/libfizmo
+Vcs-Git: https://github.com/chrender/libfizmo
 
 Package: libfizmo-common
 Breaks: fizmo-common (<= 0.7.13)

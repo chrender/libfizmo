@@ -1,3 +1,11 @@
+libfizmo (0.7.15-2) unstable; urgency=low
+
+  * Switched priority from "extra" to "optional".
+  * Added "Vcs-Browser" and "Vcs-Git" fields to control file.
+
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Mon, 12 Sep 2017 20:20:00 +0200
+
+
 libfizmo (0.7.15-1) unstable; urgency=low
 
   * New upstream version.
