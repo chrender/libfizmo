@@ -1,3 +1,12 @@
+libfizmo (0.7.15-3) unstable; urgency=low
+
+  * Made fizmo-dev require at least version 0.7.14 of fizmo-common due
+    to requirement of the en_GB instead of the en_US hyphenation patterns.
+  * Removed "Vcs-Git" field from control file.
+
+ -- Christoph Ender <christoph.ender@spellbreaker.org>  Thu, 14 Sep 2017 21:25:00 +0200
+
+
 libfizmo (0.7.15-2) unstable; urgency=low
 
   * Switched priority from "extra" to "optional".

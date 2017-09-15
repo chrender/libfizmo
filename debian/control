@@ -25,7 +25,7 @@ Description: Provides localization data for libfizmo
 
 Package: libfizmo-dev
 Architecture: any
-Depends: libfizmo-common,
+Depends: libfizmo-common (>=0.7.14),
  libxml2-dev,
  ${misc:Depends}
 Description: Z-Machine interpreter developer library
