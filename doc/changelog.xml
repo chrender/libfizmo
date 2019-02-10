@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
+  <change version="0.7.16">
+    <datetime day-of-week="Sun" month="2" day="10" hour="11"
+      minute="54" second="35" timezone="CET" year="2019"/>
+    <logentry>Added parameter to <tt>init_sound</tt> to simplify testing.</logentry>
+    <logentry>Fixed underscores in markdown files.</logentry>
+  </change>
+
   <change version="0.7.15">
     <datetime day-of-week="Sun" month="9" day="3" hour="21"
       minute="22" second="23" timezone="CEST" year="2017"/>

@@ -103,7 +103,7 @@ m4_include(config-flags.m4)
 
 AC_INIT(
  [libfizmo],
- [0.7.15],
+ [0.7.16],
  fizmo@spellbreaker.org,
  libfizmo)
 

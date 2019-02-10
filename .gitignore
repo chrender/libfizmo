@@ -1,0 +1,17 @@
+.deps/
+Makefile
+Makefile.in
+aclocal.m4
+ar-lib
+autom4te.cache/
+compile
+config.log
+config.status
+configure
+depcomp
+install-sh
+libsndifsdl2.a
+missing
+.dirstamp
+*.o
+*.a

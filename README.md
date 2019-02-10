@@ -1,7 +1,7 @@
 
 
 
-libfizmo aims to provide a Z-Machine interpreter core library in plain C. The goal is to have an interpreter library with as little dependencies as possible to allow for easy portability. In order to use it stand-alone, you have to invoke the “fizmo_start” function in “src/interpreter/fizmo.c” with a screen interface. Check fizmo-console for an example.
+libfizmo aims to provide a Z-Machine interpreter core library in plain C. The goal is to have an interpreter library with as little dependencies as possible to allow for easy portability. In order to use it stand-alone, you have to invoke the “fizmo\_start” function in “src/interpreter/fizmo.c” with a screen interface. Check fizmo-console for an example.
 
 Currently the interpreter is in beta status, which means it seems to run all non-version-6 games quite well without any known bugs.
 

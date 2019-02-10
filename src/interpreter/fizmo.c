@@ -1297,7 +1297,7 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
      )
   {
     TRACE_LOG("Activating sound.\n");
-    active_sound_interface->init_sound();
+    active_sound_interface->init_sound(NULL);
   }
 
   write_interpreter_info_into_header();

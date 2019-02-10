@@ -44,7 +44,9 @@
 
 struct z_sound_interface
 {
-  void (*init_sound)();
+  // "absolute_story_file_name" only needs to be set during test cases, if
+  // it's NULL, "active_z_story->absolute_file_name" is used instead.
+  void (*init_sound)(char * absolute_story_file_name);
   void (*close_sound)();
   void (*prepare_sound)(int sound_nr, int volume, int repeats);
   void (*play_sound)(int sound_nr, int volume, int repeats, uint16_t routine);
