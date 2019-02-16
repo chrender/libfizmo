@@ -30,10 +30,12 @@ AS_IF([test "x$enable_babel" != "xno"], [
      for dir in $with_libxml2_libdir /usr/lib /usr/local/lib /opt/local/lib ; do
        AC_MSG_CHECKING(for libxml2 in $dir)
        LDFLAGS="-L$dir"
-       AC_TRY_LINK(
-         [#include <libxml/tree.h>],
-         [xmlDocPtr doc;
-          doc = xmlNewDoc("1.0");],
+       AC_LINK_IFELSE(
+         [AC_LANG_PROGRAM(
+           [[#include <libxml/tree.h>]],
+           [[xmlDocPtr doc;
+             xmlChar version[] = "1.0";
+             doc = xmlNewDoc(version);]])],
          [AC_MSG_RESULT(yes)
           libxml2_l_dir=$dir
           break],

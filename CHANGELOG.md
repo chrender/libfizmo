@@ -1,10 +1,11 @@
 
 
 
-   **Version 0.7.16 — Febuary 10, 2019**
+   **Version 0.7.16 — Febuary 16, 2019**
 
  - Added parameter to init\_sound to simplify testing.
  - Fixed underscores in markdown files.
+ - Replaced obsolete AC\_TRY\_LINK with AC\_LINK\_IFELSE, improve conftest-code.
 
 ---
 

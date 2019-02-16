@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.7.16">
-    <datetime day-of-week="Sun" month="2" day="10" hour="11"
-      minute="54" second="35" timezone="CET" year="2019"/>
+    <datetime day-of-week="Sat" month="2" day="16" hour="23"
+      minute="43" second="18" timezone="CET" year="2019"/>
     <logentry>Added parameter to <tt>init_sound</tt> to simplify testing.</logentry>
     <logentry>Fixed underscores in markdown files.</logentry>
+    <logentry>Replaced obsolete <tt>AC_TRY_LINK</tt> with <tt>AC_LINK_IFELSE</tt>, improve conftest-code.</logentry>
   </change>
 
   <change version="0.7.15">
