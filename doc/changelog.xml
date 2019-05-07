@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <changelog>
   <change version="0.7.16">
-    <datetime day-of-week="Wed" month="4" day="17" hour="8"
-      minute="56" second="57" timezone="CEST" year="2019"/>
+    <datetime day-of-week="Tue" month="5" day="7" hour="23"
+      minute="24" second="25" timezone="CEST" year="2019"/>
     <logentry>Fix throw opcode, make fizmo work for the Dialog sanity checks. Thanks to angstsmurf and Linus Åkesson.</logentry>
+    <logentry>Fixed number of stack frames evaluation during restore, addressing another issue with catch/throw. Thanks to angstsmurf for reporting this problem.</logentry>
     <logentry>Added parameter to <tt>init_sound</tt> to simplify testing.</logentry>
     <logentry>Fixed underscores in markdown files.</logentry>
     <logentry>Replaced obsolete <tt>AC_TRY_LINK</tt> with <tt>AC_LINK_IFELSE</tt>, improve conftest-code.</logentry>

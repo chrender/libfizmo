@@ -1,9 +1,10 @@
 
 
 
-   **Version 0.7.16 — April 17, 2019**
+   **Version 0.7.16 — May 7, 2019**
 
  - Fix throw opcode, make fizmo work for the Dialog sanity checks. Thanks to angstsmurf and Linus Åkesson.
+ - Fixed number of stack frames evaluation during restore, addressing another issue with catch/throw. Thanks to angstsmurf for reporting this problem.
  - Added parameter to init\_sound to simplify testing.
  - Fixed underscores in markdown files.
  - Replaced obsolete AC\_TRY\_LINK with AC\_LINK\_IFELSE, improve conftest-code.
