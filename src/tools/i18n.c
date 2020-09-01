@@ -543,14 +543,14 @@ static locale_module *create_locale_module(z_ucs *locale_name,
 
   if ((locale_dir_name = get_path_for_locale(locale_name)) == NULL)
   {
-    // No directory containing an entry named equal to local name was foudn.
+    // No directory containing an entry named equal to local name was found.
     TRACE_LOG("locale_dir_name is NULL.\n");
     return NULL;
   }
 
   // open-resource:
   module_name_utf8 = dup_zucs_string_to_utf8_string(module_name);
-  if ((ptr = realloc(module_name_utf8, strlen(module_name_utf8) + 9)) == NULL)
+  if ((ptr = realloc(module_name_utf8, strlen(module_name_utf8) + 10)) == NULL)
   {
     TRACE_LOG("realloc() returned NULL.\n");
     free(module_name_utf8);

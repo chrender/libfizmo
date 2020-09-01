@@ -1,7 +1,7 @@
 
 
 
-   **Version 0.7.16 — May 7, 2019**
+   **Version 0.7.16 — September 1, 2020**
 
  - Fix throw opcode, make fizmo work for the Dialog sanity checks. Thanks to angstsmurf and Linus Åkesson.
  - Fixed number of stack frames evaluation during restore, addressing another issue with catch/throw. Thanks to angstsmurf for reporting this problem.
@@ -9,6 +9,7 @@
  - Fixed underscores in markdown files.
  - Replaced obsolete AC\_TRY\_LINK with AC\_LINK\_IFELSE, improve conftest-code.
  - Fixed potential compile errors due to relative paths in autoconf parameters.
+ - Avoid string overflow when composing module's localization file name, refers to issue #27, thanks to Martin Sandsmark.
 
 ---
 
