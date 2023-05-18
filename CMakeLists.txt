@@ -1,13 +1,23 @@
 
 cmake_minimum_required(VERSION 3.10)
 
+include(ExternalProject)
+
 project(libfizmo
 LANGUAGES C
 HOMEPAGE_URL https://fizmo.spellbreaker.org
 DESCRIPTION "fizmo interpreter core library"
 VERSION 0.8.0)
 
-include(GNUInstallDirs)
+ExternalProject_Add(my_project
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns
+  BINARY_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns/build
+  CMAKE_ARGS
+  ${GLOBAL_DEFAULT_ARGS}
+  ${GLOBAL_THIRDPARTY_LIB_ARGS}
+  BUILD_COMMAND make
+  INSTALL_COMMAND cmake -E echo "Skipping install step."
+  )
 
 SET(BINARY_NAME fizmo)
 SET(LIBRARY_VERSION_MAJOR 0)
@@ -59,31 +69,4 @@ set(pc_libs_private)
 set(pc_req_private)
 #set(pc_req_public)
 configure_file(src/libfizmo.pc.in libfizmo.pc @ONLY)
-
-
-#add_executable(pattern_setup
-# src/hyph_patterns/pattern_setup.c
-# src/hyph_patterns/hyph_pattern_tools.c
-# src/tools/list.c
-# src/tools/z_ucs.c
-# src/tools/filesys_c.c
-# src/tools/filesys.c)
-
-#set_target_properties(pattern_setup
-#    PROPERTIES
-#    RUNTIME_OUTPUT_DIRECTORY "src/hyph_patterns"
-#)
-
-#add_custom_command(
-#  OUTPUT src/hyph_patterns/hyph_patterns.c
-#  COMMAND src/hyph_patterns/pattern_setup
-#  DEPENDS src/hyph_patterns/de_DE.txt src/hyph_patterns/en_GB.txt src/hyph_patterns/fr_FR.txt
-#  COMMENT "Preparing hyphenation patterns"
-#  VERBATIM
-#)
-
-#add_custom_target(
-#  HyphenationPatternPreparation ALL
-#  DEPENDS src/hyph_patterns/hyph_patterns.c
-#)
 
