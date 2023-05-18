@@ -81,7 +81,7 @@ int add_list_element(list *l, void *value)
 }
 
 
-int get_list_size(list *l)
+size_t get_list_size(list *l)
 {
   return l->nof_elements_stored;
 }
