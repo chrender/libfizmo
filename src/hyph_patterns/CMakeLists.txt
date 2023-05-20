@@ -9,7 +9,6 @@ SET(BINARY_NAME hyph_pattern_setup)
 SET(LIBRARY_VERSION_MAJOR 0)
 SET(LIBRARY_VERSION_STRING 1.0)
 
-
 set(pattern_setup_SOURCES
   ../tools/list.c
   ../tools/z_ucs.c
@@ -25,12 +24,14 @@ add_custom_target(dummy_target ALL
   DEPENDS ../hyph_patterns.c
   )
 
+file(GLOB hyph_pattern_sources ??_??.txt)
+
 # rebuild "../hyph_patterns.c" on demand
 add_custom_command(
   OUTPUT ../hyph_patterns.c
   COMMAND pattern_setup
   WORKING_DIRECTORY ..
-  DEPENDS ../de_DE.txt ../en_GB.txt ../fr_FR.txt
+  DEPENDS ${hyph_pattern_sources}
   COMMENT "Compiling hyphenation patterns"
   VERBATIM
   )
