@@ -20,9 +20,14 @@ set(pattern_setup_SOURCES
 
 add_executable(pattern_setup ${pattern_setup_SOURCES})
 
+# targets without output will always be built
+add_custom_target(dummy_target ALL
+  DEPENDS ../hyph_patterns.c
+  )
+
+# rebuild "../hyph_patterns.c" on demand
 add_custom_command(
-  TARGET pattern_setup
-  POST_BUILD
+  OUTPUT ../hyph_patterns.c
   COMMAND pattern_setup
   WORKING_DIRECTORY ..
   DEPENDS ../de_DE.txt ../en_GB.txt ../fr_FR.txt
