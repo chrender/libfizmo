@@ -35,6 +35,7 @@
 
 #include "../tools/z_ucs.h"
 #include "../tools/stringmap.h"
+#include "locale_data.h"
 
 static stringmap *locale_map = NULL;
 

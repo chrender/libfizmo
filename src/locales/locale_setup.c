@@ -47,7 +47,11 @@
 #include "locale_setup.h"
 
 
-static int load_locales(char *filename, FILE *output_file, char *locale_code) {
+size_t global_number_of_messages = 0;
+
+
+static size_t load_locales(char *filename, FILE *output_file,
+    char *locale_code) {
   z_file *locale_file;
   z_ucs input;
   list *message_indices = create_list();
@@ -159,8 +163,8 @@ int main(int argc, char *argv[]) {
   list *locale_code_list;
   int nof_locale_codes;
   char **locale_codes;
-  int *nof_strings_by_index;
   char input_filename[10];
+  size_t nof_messages_processed;
   int i, j;
 
   if ((dfd = opendir(".")) == NULL) {
@@ -189,7 +193,6 @@ int main(int argc, char *argv[]) {
     }
   }
   nof_locale_codes = get_list_size(locale_code_list);
-  nof_strings_by_index = (int*)malloc(sizeof(int) * nof_locale_codes);
   locale_codes = (char**)delete_list_and_get_ptrs(locale_code_list);
 
   output_file = fopen("locale_data.c", "w");
@@ -200,6 +203,7 @@ int main(int argc, char *argv[]) {
       "\n"
       "#include \"../tools/z_ucs.h\"\n"
       "#include \"../tools/stringmap.h\"\n"
+      "#include \"locale_data.h\"\n"
       "\n"
       "static stringmap *locale_map = NULL;\n"
       "\n");
@@ -209,7 +213,15 @@ int main(int argc, char *argv[]) {
     locale_code = locale_codes[i];
     sprintf(input_filename, "%s.txt", locale_code);
     printf("Processing \"%s\".\n", input_filename);
-    nof_strings_by_index[i] = load_locales(input_filename, output_file, locale_code);
+    nof_messages_processed
+      = load_locales(input_filename, output_file, locale_code);
+    if (i == 0) {
+      global_number_of_messages = nof_messages_processed;
+    }
+    else if (global_number_of_messages != nof_messages_processed) {
+      fputs("Unbalanced number of messages in locale files.", stderr);
+      exit(-1);
+    }
     i++;
   }
 
@@ -241,8 +253,26 @@ int main(int argc, char *argv[]) {
   fprintf(output_file, "}\n\n");
 
   fclose(output_file);
-  free(nof_strings_by_index);
   free(locale_codes);
+
+  output_file = fopen("locale_data.h", "w");
+  write_disclaimer_to_file(output_file, "locale_data.h");
+  fprintf(output_file,
+      "\n"
+      "#ifndef locale_data_h_INCLUDED\n"
+      "#define locale_data_h_INCLUDED\n"
+      "\n"
+      "#define NUMBER_OF_LOCALIZED_MESSAGES %zu\n"
+      "\n"
+      "#ifndef locale_data_c_INCLUDED\n"
+      "extern stringmap *locale_map;\n"
+      "#endif // locale_data_c_INCLUDED\n"
+      "\n"
+       "void init_locales();\n"
+      "\n"
+      "#endif // locale_data_h_INCLUDED\n\n",
+      global_number_of_messages);
+  fclose(output_file);
 
   exit(0);
 }
