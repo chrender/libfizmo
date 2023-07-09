@@ -75,7 +75,7 @@ add_executable(locale_setup ${locale_setup_SOURCES})
 
 # targets without output will always be built
 add_custom_target(dummy_target ALL
-  DEPENDS ../locale_setup.c
+  DEPENDS ../locale_setup.c ../locale_setup.h
   )
 
 file(GLOB locale_sources ??_??.txt)
