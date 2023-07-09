@@ -9,9 +9,19 @@ HOMEPAGE_URL https://fizmo.spellbreaker.org
 DESCRIPTION "fizmo interpreter core library"
 VERSION 0.8.0)
 
-ExternalProject_Add(my_project
+ExternalProject_Add(hyph_pattern_preparation
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns
   BINARY_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns/build
+  CMAKE_ARGS
+  ${GLOBAL_DEFAULT_ARGS}
+  ${GLOBAL_THIRDPARTY_LIB_ARGS}
+  BUILD_COMMAND make
+  INSTALL_COMMAND cmake -E echo "Skipping install step."
+  )
+
+ExternalProject_Add(locale_data_preparation
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/locales
+  BINARY_DIR ${CMAKE_SOURCE_DIR}/src/locales/build
   CMAKE_ARGS
   ${GLOBAL_DEFAULT_ARGS}
   ${GLOBAL_THIRDPARTY_LIB_ARGS}
