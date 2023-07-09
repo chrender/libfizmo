@@ -76,7 +76,7 @@ add_executable(pattern_setup ${pattern_setup_SOURCES})
 
 # targets without output will always be built
 add_custom_target(dummy_target ALL
-  DEPENDS ../hyph_patterns.c
+  DEPENDS ../hyph_patterns.c ../hyph_patterns.h
   )
 
 file(GLOB hyph_pattern_sources ??_??.txt)
