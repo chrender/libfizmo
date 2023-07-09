@@ -252,7 +252,7 @@ int main(int argc, char *argv[]) {
  list *locale_code_list;
  int nof_locale_codes;
  char **locale_codes;
- int *nof_patterns;
+ int *nof_patterns_by_index;
  char input_filename[10];
  int i, j;
 
@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
    }
  }
  nof_locale_codes = get_list_size(locale_code_list);
- nof_patterns = (int*)malloc(sizeof(int) * nof_locale_codes);
+ nof_patterns_by_index = (int*)malloc(sizeof(int) * nof_locale_codes);
  locale_codes = (char**)delete_list_and_get_ptrs(locale_code_list);
 
  output_file = fopen("hyph_patterns.c", "w");
@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
    locale_code = locale_codes[i];
    sprintf(input_filename, "%s.txt", locale_code);
    printf("Processing \"%s\".\n", input_filename);
-   nof_patterns[i] = load_patterns(input_filename, output_file, locale_code);
+   nof_patterns_by_index[i] = load_patterns(input_filename, output_file, locale_code);
    i++;
  }
 
@@ -322,7 +322,7 @@ int main(int argc, char *argv[]) {
    fprintf(output_file, "  hyph_patterns_%s->patterns = patterns_%s;\n",
        locale_code, locale_code);
    fprintf(output_file, "  hyph_patterns_%s->number_of_patterns = %d;\n\n",
-       locale_code, nof_patterns[i]);
+       locale_code, nof_patterns_by_index[i]);
    i++;
  }
 
@@ -349,7 +349,7 @@ int main(int argc, char *argv[]) {
  fprintf(output_file, "}\n\n");
 
  fclose(output_file);
- free(nof_patterns);
+ free(nof_patterns_by_index);
  free(locale_codes);
   
   exit(0);
