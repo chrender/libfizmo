@@ -139,6 +139,10 @@ void *get_stringmap_value(stringmap *map, z_ucs *name)
 }
 
 
+bool is_name_stored_in_stringmap(stringmap *map, z_ucs *name) {
+  return get_stringmap_value_index(map, name) >= 0 ? true : false;
+}
+
 z_ucs **get_names_in_stringmap(stringmap *map)
 {
   z_ucs **result;
