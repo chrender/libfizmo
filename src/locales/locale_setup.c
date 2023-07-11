@@ -44,7 +44,6 @@
 #include "../tools/list.h"
 #include "../tools/filesys.h"
 
-#include "locale_setup.h"
 
 
 size_t global_number_of_messages = 0;
