@@ -31,13 +31,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef locale_data_c_INCLUDED
+#define locale_data_c_INCLUDED
+
 #include <stdlib.h>
 
 #include "../tools/z_ucs.h"
 #include "../tools/stringmap.h"
+#include "../tools/i18n.h"
 #include "locale_data.h"
 
-static stringmap *locale_map = NULL;
+static stringmap *libfizmo_18n_messages = NULL;
 
 z_ucs locale_data_fr_FR[] = {
   0x00000043, 0x0000006f, 0x00000075, 0x0000006c, 0x00000064, 0x00000020,
@@ -599,7 +603,7 @@ z_ucs locale_data_fr_FR[] = {
   0x00000065, 0x0000002e, 0x00000000
 };
 
-z_ucs *locale_messages_fr_FR[] = {
+z_ucs *locale_message_ptrs_fr_FR[] = {
   locale_data_fr_FR+   0, locale_data_fr_FR+  35, locale_data_fr_FR+  67,
   locale_data_fr_FR+ 111, locale_data_fr_FR+ 160, locale_data_fr_FR+ 198,
   locale_data_fr_FR+ 250, locale_data_fr_FR+ 300, locale_data_fr_FR+ 347,
@@ -628,7 +632,12 @@ z_ucs *locale_messages_fr_FR[] = {
   locale_data_fr_FR+2993, locale_data_fr_FR+3035, locale_data_fr_FR+3069,
   locale_data_fr_FR+3105, locale_data_fr_FR+3151, locale_data_fr_FR+3185,
   locale_data_fr_FR+3227, locale_data_fr_FR+3248, locale_data_fr_FR+3294
-}
+};
+
+locale_messages locale_messages_fr_FR = {
+  84,
+  locale_message_ptrs_fr_FR
+};
 
 z_ucs locale_data_de_DE[] = {
   0x00000054, 0x00000072, 0x00000061, 0x00000063, 0x00000065, 0x00000066,
@@ -1265,7 +1274,7 @@ z_ucs locale_data_de_DE[] = {
   0x00000046, 0x00000069, 0x0000006c, 0x00000065, 0x0000002e, 0x00000000
 };
 
-z_ucs *locale_messages_de_DE[] = {
+z_ucs *locale_message_ptrs_de_DE[] = {
   locale_data_de_DE+   0, locale_data_de_DE+  48, locale_data_de_DE+  81,
   locale_data_de_DE+ 132, locale_data_de_DE+ 183, locale_data_de_DE+ 221,
   locale_data_de_DE+ 278, locale_data_de_DE+ 328, locale_data_de_DE+ 363,
@@ -1294,7 +1303,12 @@ z_ucs *locale_messages_de_DE[] = {
   locale_data_de_DE+3430, locale_data_de_DE+3480, locale_data_de_DE+3516,
   locale_data_de_DE+3557, locale_data_de_DE+3605, locale_data_de_DE+3639,
   locale_data_de_DE+3676, locale_data_de_DE+3697, locale_data_de_DE+3748
-}
+};
+
+locale_messages locale_messages_de_DE = {
+  84,
+  locale_message_ptrs_de_DE
+};
 
 z_ucs locale_data_en_GB[] = {
   0x00000043, 0x0000006f, 0x00000075, 0x0000006c, 0x00000064, 0x00000020,
@@ -1836,7 +1850,7 @@ z_ucs locale_data_en_GB[] = {
   0x0000006c, 0x00000065, 0x0000002e, 0x00000000
 };
 
-z_ucs *locale_messages_en_GB[] = {
+z_ucs *locale_message_ptrs_en_GB[] = {
   locale_data_en_GB+   0, locale_data_en_GB+  35, locale_data_en_GB+  67,
   locale_data_en_GB+ 111, locale_data_en_GB+ 160, locale_data_en_GB+ 198,
   locale_data_en_GB+ 250, locale_data_en_GB+ 300, locale_data_en_GB+ 335,
@@ -1865,21 +1879,43 @@ z_ucs *locale_messages_en_GB[] = {
   locale_data_en_GB+2873, locale_data_en_GB+2915, locale_data_en_GB+2949,
   locale_data_en_GB+2985, locale_data_en_GB+3031, locale_data_en_GB+3065,
   locale_data_en_GB+3108, locale_data_en_GB+3129, locale_data_en_GB+3175
-}
+};
+
+locale_messages locale_messages_en_GB = {
+  84,
+  locale_message_ptrs_en_GB
+};
+
+locale_module locale_module_libfizmo;
+
+z_ucs libfizmo_module_name[] = { 'l', 'i', 'b', 'f', 'i', 'z', 'm', 'o', 0 };
+
+  static z_ucs locale_code_fr_FR[] = {
+    (z_ucs)'f', (z_ucs)'r', (z_ucs)'_', (z_ucs)'F', (z_ucs)'R', (z_ucs)0 };
+  static z_ucs locale_code_de_DE[] = {
+    (z_ucs)'d', (z_ucs)'e', (z_ucs)'_', (z_ucs)'D', (z_ucs)'E', (z_ucs)0 };
+  static z_ucs locale_code_en_GB[] = {
+    (z_ucs)'e', (z_ucs)'n', (z_ucs)'_', (z_ucs)'G', (z_ucs)'B', (z_ucs)0 };
 
 
 void init_locales() {
-  locale_map = create_stringmap();
+  locale_module_libfizmo.messages_by_localcode = create_stringmap();
 
-  z_ucs locale_code_fr_FR[] = {
-    (z_ucs)'f', (z_ucs)'r', (z_ucs)'_', (z_ucs)'F', (z_ucs)'R', (z_ucs)0 };
-  z_ucs locale_code_de_DE[] = {
-    (z_ucs)'d', (z_ucs)'e', (z_ucs)'_', (z_ucs)'D', (z_ucs)'E', (z_ucs)0 };
-  z_ucs locale_code_en_GB[] = {
-    (z_ucs)'e', (z_ucs)'n', (z_ucs)'_', (z_ucs)'G', (z_ucs)'B', (z_ucs)0 };
+  add_stringmap_element(
+    locale_module_libfizmo.messages_by_localcode,
+    locale_code_fr_FR,
+    (void*)&locale_messages_fr_FR);
+  add_stringmap_element(
+    locale_module_libfizmo.messages_by_localcode,
+    locale_code_de_DE,
+    (void*)&locale_messages_de_DE);
+  add_stringmap_element(
+    locale_module_libfizmo.messages_by_localcode,
+    locale_code_en_GB,
+    (void*)&locale_messages_en_GB);
 
-  add_stringmap_element(locale_map, locale_code_fr_FR, locale_messages_fr_FR);
-  add_stringmap_element(locale_map, locale_code_de_DE, locale_messages_de_DE);
-  add_stringmap_element(locale_map, locale_code_en_GB, locale_messages_en_GB);
+  locale_module_libfizmo.module_name = libfizmo_module_name;
 }
+
+#endif // locale_data_c_INCLUDED
 

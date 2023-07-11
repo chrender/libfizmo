@@ -36,6 +36,7 @@
 #define i18n_h_INCLUDED
 
 #include "types.h"
+#include "stringmap.h"
 
 // 2^64 results in a number containing 20 digits.
 #define MAXIMUM_FORMATTED_PARAMTER_LENGTH 20
@@ -46,34 +47,34 @@
 
 #include <stdarg.h>
 
-typedef struct
-{
-  z_ucs *locale_data;
-  z_ucs *module_name;
+typedef struct {
+  size_t nof_messages;
   z_ucs **messages;
-  int nof_messages;
+} locale_messages;
+
+typedef struct {
+  stringmap *messages_by_localcode; // "locale_messages" by locale_code
+  z_ucs *module_name;
 } locale_module;
 
 
+
+int register_locale_module(z_ucs *module_name, locale_module *new_module);
 void register_i18n_stream_output_function(
     int (*new_stream_output_function)(z_ucs *output));
 void register_i18n_abort_function(
     void (*new_abort_function)(int exit_code, z_ucs *error_message));
-size_t _i18n_va_translate(z_ucs *module_name, int string_code, va_list ap);
+//size_t _i18n_va_translate(z_ucs *module_name, int string_code, va_list ap);
 size_t i18n_translate(z_ucs *module_name, int string_code, ...);
 void i18n_translate_and_exit(z_ucs *module_name, int string_code,
     int exit_code, ...);
 size_t i18n_message_length(z_ucs *module_name, int string_code, ...);
 z_ucs *i18n_translate_to_string(z_ucs *module_name, int string_code, ...);
 
-char *get_i18n_search_path();
-int set_i18n_search_path(char *path);
-
 z_ucs *get_current_locale_name();
 char *get_current_locale_name_in_utf8();
 int set_current_locale_name(char *new_locale_name);
 char **get_available_locale_names();
-char *get_i18n_default_search_path(void);
 void free_i18n_memory();
 
 #endif /* i18n_h_INCLUDED */

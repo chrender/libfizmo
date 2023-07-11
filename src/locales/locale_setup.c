@@ -41,8 +41,8 @@
 #include <sys/types.h>
 
 #include "../tools/z_ucs.h"
-#include "../tools/filesys.h"
 #include "../tools/list.h"
+#include "../tools/filesys.h"
 
 #include "locale_setup.h"
 
@@ -98,7 +98,7 @@ static size_t load_locales(char *filename, FILE *output_file,
   while (input != UEOF);
   fsi->closefile(locale_file);
 
-  fprintf(output_file, "z_ucs *locale_messages_%s[] = {\n  ", locale_code);
+  fprintf(output_file, "z_ucs *locale_message_ptrs_%s[] = {\n  ", locale_code);
   output_index = 0;
   for (message_index=0; message_index<get_list_size(message_indices);
       message_index++) {
@@ -113,7 +113,14 @@ static size_t load_locales(char *filename, FILE *output_file,
         (size_t)get_list_element(message_indices, message_index));
     output_index++;
   }
-  fprintf(output_file, "\n}\n\n");
+  fprintf(output_file, "\n};\n\n");
+
+  fprintf(output_file,
+      "locale_messages locale_messages_%s = {\n"
+      "  %zu,\n"
+      "  locale_message_ptrs_%s\n"
+      "};\n\n",
+      locale_code, number_of_messages, locale_code);
 
   return number_of_messages;
 }
@@ -167,6 +174,8 @@ int main(int argc, char *argv[]) {
   size_t nof_messages_processed;
   int i, j;
 
+  printf("Running locale_setup.\n");
+
   if ((dfd = opendir(".")) == NULL) {
     fputs("Can't open dir", stderr);
     return 0;
@@ -199,13 +208,17 @@ int main(int argc, char *argv[]) {
   write_disclaimer_to_file(output_file, "locale_data.c");
   fprintf(output_file,
       "\n"
+      "#ifndef locale_data_c_INCLUDED\n"
+      "#define locale_data_c_INCLUDED\n"
+      "\n"
       "#include <stdlib.h>\n"
       "\n"
       "#include \"../tools/z_ucs.h\"\n"
       "#include \"../tools/stringmap.h\"\n"
+      "#include \"../tools/i18n.h\"\n"
       "#include \"locale_data.h\"\n"
       "\n"
-      "static stringmap *locale_map = NULL;\n"
+      "static stringmap *libfizmo_18n_messages = NULL;\n"
       "\n");
 
   i=0;
@@ -226,14 +239,17 @@ int main(int argc, char *argv[]) {
   }
 
   fprintf(output_file,
-      "\n"
-      "void init_locales() {\n"
-      "  locale_map = create_stringmap();\n\n");
+    "locale_module locale_module_libfizmo;\n\n");
+
+  fprintf(output_file,
+    "z_ucs libfizmo_module_name[]"
+    " = { 'l', 'i', 'b', 'f', 'i', 'z', 'm', 'o', 0 };\n\n");
 
   i=0;
   while (i < nof_locale_codes) {
     locale_code = locale_codes[i];
-    fprintf(output_file, "  z_ucs locale_code_%s[] = {\n    ", locale_code);
+    fprintf(output_file,
+      "static z_ucs locale_code_%s[] = {\n  ", locale_code);
     for (j=0; j<5; j++) {
       fprintf(output_file, "(z_ucs)'%c', ", locale_code[j]);
     }
@@ -242,15 +258,30 @@ int main(int argc, char *argv[]) {
   }
   fputs("\n", output_file);
 
+  fprintf(output_file,
+      "\n"
+      "void init_locales() {\n"
+      "  locale_module_libfizmo.messages_by_localcode = create_stringmap();\n"
+      "\n");
+
   i=0;
   while (i < nof_locale_codes) {
     locale_code = locale_codes[i];
     fprintf(output_file,
-        "  add_stringmap_element(locale_map, locale_code_%s, locale_messages_%s);\n",
+        "  add_stringmap_element(\n"
+        "    locale_module_libfizmo.messages_by_localcode,\n"
+        "    locale_code_%s,\n"
+        "    (void*)&locale_messages_%s);\n",
         locale_code, locale_code);
     i++;
   }
-  fprintf(output_file, "}\n\n");
+
+  fprintf(output_file,
+      "\n"
+      "  locale_module_libfizmo.module_name = libfizmo_module_name;\n"
+      "}\n"
+      "\n"
+      "#endif // locale_data_c_INCLUDED\n\n");
 
   fclose(output_file);
   free(locale_codes);
@@ -262,16 +293,13 @@ int main(int argc, char *argv[]) {
       "#ifndef locale_data_h_INCLUDED\n"
       "#define locale_data_h_INCLUDED\n"
       "\n"
-      "#define NUMBER_OF_LOCALIZED_MESSAGES %zu\n"
-      "\n"
       "#ifndef locale_data_c_INCLUDED\n"
-      "extern stringmap *locale_map;\n"
+      "extern locale_module locale_module_libfizmo;\n"
       "#endif // locale_data_c_INCLUDED\n"
       "\n"
-       "void init_locales();\n"
+      "void init_locales();\n"
       "\n"
-      "#endif // locale_data_h_INCLUDED\n\n",
-      global_number_of_messages);
+      "#endif // locale_data_h_INCLUDED\n\n");
   fclose(output_file);
 
   exit(0);

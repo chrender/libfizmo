@@ -34,10 +34,8 @@
 #ifndef locale_data_h_INCLUDED
 #define locale_data_h_INCLUDED
 
-#define NUMBER_OF_LOCALIZED_MESSAGES 84
-
 #ifndef locale_data_c_INCLUDED
-extern stringmap *locale_map;
+extern locale_module locale_module_libfizmo;
 #endif // locale_data_c_INCLUDED
 
 void init_locales();
