@@ -69,7 +69,11 @@ set(locale_setup_SOURCES
   ../tools/filesys.c
   ../tools/filesys_c.c
   ../tools/list.c
-  locale_setup.c)
+  de_DE.txt
+  en_GB.txt
+  fr_FR.txt
+  locale_setup.c
+  locale_setup.h)
 
 add_executable(locale_setup ${locale_setup_SOURCES})
 
@@ -82,7 +86,7 @@ file(GLOB locale_sources ??_??.txt)
 
 # rebuild "../locale_data.c" on demand
 add_custom_command(
-  OUTPUT ../locale_data.c
+  OUTPUT dummy_target ../locale_data.c ../locale_data.h
   COMMAND locale_setup
   WORKING_DIRECTORY ..
   DEPENDS ${locale_sources}
