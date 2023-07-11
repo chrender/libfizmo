@@ -36,6 +36,7 @@
 #define list_c_INCLUDED
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "list.h"
 
@@ -103,6 +104,22 @@ bool list_contains_element(list *haystack, void *needle)
     index++;
   }
   return false;
+}
+
+
+int delete_list_element(list *l, int list_index) {
+  if (list_index >= l->nof_elements_stored) {
+    return -1;
+  }
+
+  memmove(l->elements + list_index,
+      l->elements + (list_index + 1),
+      sizeof(void*)*(l->nof_elements_stored - list_index - 1));
+
+  l->nof_elements_stored--;
+  l->space_available++;
+
+  return 0;
 }
 
 
