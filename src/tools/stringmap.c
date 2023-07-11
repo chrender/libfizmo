@@ -86,6 +86,7 @@ static int get_stringmap_value_index(stringmap *map, z_ucs *name)
 }
 
 
+// Returns 0 on success, non-zero otherwise.
 int add_stringmap_element(stringmap *map, z_ucs *name, void *value)
 {
   stringmap_element *element_ptr;
