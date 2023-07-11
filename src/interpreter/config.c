@@ -17,7 +17,7 @@
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -32,7 +32,7 @@
  */
 
 
-#ifndef config_c_INCLUDED 
+#ifndef config_c_INCLUDED
 #define config_c_INCLUDED
 
 #include <string.h>
@@ -72,7 +72,6 @@ struct configuration_option configuration_options[] = {
   { "autosave-filename", NULL },
   { "background-color", NULL },
   { "foreground-color", NULL },
-  { "i18n-search-path", NULL },
   { "input-command-filename", NULL },
   { "locale", NULL },
   { "max-undo-steps", NULL },
@@ -315,14 +314,6 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
         else
           return -1;
       }
-      else if (strcmp(key, "i18n-search-path") == 0)
-      {
-        // Forward to i18n, since this is in tools and cannot access the
-        // "config.c" file.
-        return_code = set_i18n_search_path(new_value);
-        free(new_value);
-        return return_code;
-      }
 
       // Options for values which can simply be copied.
       else if (
@@ -489,7 +480,7 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
             i18n_libfizmo_UNKNOWN_CONFIGURATION_OPTION_P0S,
             -0x0101,
             key);
-      } 
+      }
     }
 
     i++;
@@ -540,13 +531,7 @@ char *get_configuration_value(char *key)
 
   TRACE_LOG("Retrieving config value: %s.\n", key);
 
-  if (strcmp(key, "i18n-search-path") == 0)
-  {
-    // Forward to i18n, since this is in tools and cannot access the
-    // "config.c" file.
-    return get_i18n_search_path();
-  }
-  else if (strcmp(key, "locale") == 0)
+  if (strcmp(key, "locale") == 0)
   {
     return get_current_locale_name_in_utf8();
   }
