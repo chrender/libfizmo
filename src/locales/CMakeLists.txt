@@ -69,26 +69,26 @@ set(locale_setup_SOURCES
   ../tools/filesys.c
   ../tools/filesys_c.c
   ../tools/list.c
-  de_DE.txt
-  en_GB.txt
-  fr_FR.txt
-  locale_setup.c
-  locale_setup.h)
+  locale_setup.c)
 
 add_executable(locale_setup ${locale_setup_SOURCES})
 
 # targets without output will always be built
 add_custom_target(dummy_target ALL
-  DEPENDS ../locale_setup.c ../locale_setup.h
+  DEPENDS _non_existent_file_forcing_custom_command_execution
+    ../en_GB.txt
+    ../de_DE.txt
+    ../fr_FR.txt
   )
-
-file(GLOB locale_sources ??_??.txt)
 
 # rebuild "../locale_data.c" on demand
 add_custom_command(
-  OUTPUT dummy_target ../locale_data.c ../locale_data.h
+  OUTPUT
+    _non_existent_file_forcing_custom_command_execution
+    src/tools/locale_data.c
+    src/tools/locale_data.h
   COMMAND locale_setup
-  WORKING_DIRECTORY ..
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
   DEPENDS ${locale_sources}
   COMMENT "Compiling locale data"
   VERBATIM
