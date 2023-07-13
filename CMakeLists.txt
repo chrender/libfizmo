@@ -11,7 +11,7 @@ VERSION 0.8.0)
 
 ExternalProject_Add(hyph_pattern_preparation
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns
-  BINARY_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns/build
+  BINARY_DIR ${CMAKE_BINARY_DIR}/hyph_patterns_build
   CMAKE_ARGS
   ${GLOBAL_DEFAULT_ARGS}
   ${GLOBAL_THIRDPARTY_LIB_ARGS}
@@ -21,7 +21,7 @@ ExternalProject_Add(hyph_pattern_preparation
 
 ExternalProject_Add(locale_data_preparation
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/locales
-  BINARY_DIR ${CMAKE_SOURCE_DIR}/src/locales/build
+  BINARY_DIR ${CMAKE_BINARY_DIR}/loacles_build
   CMAKE_ARGS
   ${GLOBAL_DEFAULT_ARGS}
   ${GLOBAL_THIRDPARTY_LIB_ARGS}

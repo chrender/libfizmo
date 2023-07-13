@@ -65,21 +65,21 @@ SET(LIBRARY_VERSION_MAJOR 0)
 SET(LIBRARY_VERSION_STRING 1.0)
 
 set(locale_setup_SOURCES
-  ../tools/z_ucs.c
-  ../tools/filesys.c
-  ../tools/filesys_c.c
-  ../tools/list.c
-  locale_setup.c)
+  ${CMAKE_SOURCE_DIR}/../tools/z_ucs.c
+  ${CMAKE_SOURCE_DIR}/../tools/filesys.c
+  ${CMAKE_SOURCE_DIR}/../tools/filesys_c.c
+  ${CMAKE_SOURCE_DIR}/../tools/list.c
+  ${CMAKE_SOURCE_DIR}/locale_setup.c)
 
 add_executable(locale_setup ${locale_setup_SOURCES})
 
 # targets without output will always be built
 add_custom_target(dummy_target ALL
-  DEPENDS _non_existent_file_forcing_custom_command_execution
-    ../en_GB.txt
-    ../de_DE.txt
-    ../fr_FR.txt
-  )
+  DEPENDS
+    _non_existent_file_forcing_custom_command_execution
+    ${CMAKE_SOURCE_DIR}/en_GB.txt
+    ${CMAKE_SOURCE_DIR}/de_DE.txt
+    ${CMAKE_SOURCE_DIR}/fr_FR.txt)
 
 # rebuild "../locale_data.c" on demand
 add_custom_command(
