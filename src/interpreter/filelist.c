@@ -1108,7 +1108,7 @@ static int count_files(char *abs_dir_name, bool recursive)
   int dirname_size = 0;
   int len;
   int result = 0;
-  char *cwd = fsi->get_cwd(NULL, 0);
+  char *cwd = fsi->get_cwd();
 
   if ((fsi->ch_dir(abs_dir_name)) == -1)
   {
@@ -1266,7 +1266,7 @@ void build_filelist(char *root_dir, struct z_story_list *story_list,
     else
     {
       // Avoid relative names like "./zork1.z3".
-      absrootdir = fsi->get_cwd(NULL, 0);
+      absrootdir = fsi->get_cwd();
       search_dir(absrootdir, &new_file_searched, story_list, recursive, babel);
       free(absrootdir);
     }
