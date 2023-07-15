@@ -16,5 +16,3 @@ missing
 *.o
 *.a
 /build
-src/locales/build
-src/hyph_patterns/build
