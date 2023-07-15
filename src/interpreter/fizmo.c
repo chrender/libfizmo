@@ -68,6 +68,7 @@
 #include "../tools/filesys.h"
 #include "../tools/unused.h"
 #include "../locales/libfizmo_locales.h"
+#include "../locales/locale_data.h"
 
 #ifndef DISABLE_OUTPUT_HISTORY
 #include "history.h"
@@ -1208,11 +1209,16 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 
   init_config_default_values();
 
+  init_libfizmo_locales();
+
   register_i18n_stream_output_function(
       streams_z_ucs_output);
 
   register_i18n_abort_function(
       abort_interpreter);
+
+  register_locale_module(
+      locale_module_libfizmo.module_name, &locale_module_libfizmo);
 
 #ifndef DISABLE_CONFIGFILES
   ensure_dot_fizmo_dir_exists();

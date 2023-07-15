@@ -216,6 +216,7 @@ int main(int argc, char *argv[]) {
       "#include \"../tools/stringmap.h\"\n"
       "#include \"../tools/i18n.h\"\n"
       "#include \"locale_data.h\"\n"
+      "#include \"libfizmo_locales.h\"\n"
       "\n"
       "static stringmap *libfizmo_18n_messages = NULL;\n"
       "\n");
@@ -240,10 +241,6 @@ int main(int argc, char *argv[]) {
   fprintf(output_file,
     "locale_module locale_module_libfizmo;\n\n");
 
-  fprintf(output_file,
-    "z_ucs libfizmo_module_name[]"
-    " = { 'l', 'i', 'b', 'f', 'i', 'z', 'm', 'o', 0 };\n\n");
-
   i=0;
   while (i < nof_locale_codes) {
     locale_code = locale_codes[i];
@@ -259,7 +256,7 @@ int main(int argc, char *argv[]) {
 
   fprintf(output_file,
       "\n"
-      "void init_locales() {\n"
+      "void init_libfizmo_locales() {\n"
       "  locale_module_libfizmo.messages_by_localcode = create_stringmap();\n"
       "\n");
 
@@ -296,7 +293,7 @@ int main(int argc, char *argv[]) {
       "extern locale_module locale_module_libfizmo;\n"
       "#endif // locale_data_c_INCLUDED\n"
       "\n"
-      "void init_locales();\n"
+      "void init_libfizmo_locales();\n"
       "\n"
       "#endif // locale_data_h_INCLUDED\n\n");
   fclose(output_file);
