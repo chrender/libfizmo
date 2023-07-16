@@ -74,7 +74,7 @@ z_ucs *i18n_translate_to_string(z_ucs *module_name, int string_code, ...);
 z_ucs *get_current_locale_name();
 char *get_current_locale_name_in_utf8();
 int set_current_locale_name(char *new_locale_name);
-char **get_available_locale_names();
+z_ucs **get_available_locale_names();
 void free_i18n_memory();
 
 #endif /* i18n_h_INCLUDED */

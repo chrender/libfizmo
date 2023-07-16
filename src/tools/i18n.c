@@ -731,7 +731,9 @@ z_ucs *i18n_translate_to_string(z_ucs* module_name, int string_code, ...)
 }
 
 
-char **get_available_locale_names() {
+z_ucs **get_available_locale_names() {
+  return (z_ucs**)get_list_null_terminated_ptrs(
+      list_of_avaialable_locales_codes);
 }
 
 
