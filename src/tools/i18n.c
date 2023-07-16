@@ -70,10 +70,16 @@ static char *default_locale_name_in_utf8 = NULL;
 static int (*stream_output_function)(z_ucs *output) = NULL;
 static void (*abort_function)(int exit_code, z_ucs *error_message) = NULL;
 static stringmap *locale_modules = NULL; // "locale_module"s by module_name
+static list *list_of_avaialable_locales_codes = NULL;
 
 
 // Returns 0 on success, non-zero otherwise.
 int register_locale_module(z_ucs *module_name, locale_module *new_module) {
+  z_ucs **new_locale_names;
+  z_ucs *locale_name;
+  int i, j;
+  bool locale_name_found;
+
   if (locale_modules == NULL) {
     locale_modules = create_stringmap();
   }
@@ -85,8 +91,46 @@ int register_locale_module(z_ucs *module_name, locale_module *new_module) {
     return -1;
   }
 
-  return add_stringmap_element(
-      locale_modules, new_module->module_name, new_module);
+  if ((add_stringmap_element(
+      locale_modules, new_module->module_name, new_module)) != 0) {
+    return -1;
+  }
+
+  if (list_of_avaialable_locales_codes == NULL) {
+    TRACE_LOG("Initializing list_of_avaialable_locales_codes.");
+    list_of_avaialable_locales_codes = create_list();
+  }
+
+  TRACE_LOG("Updating list_of_avaialable_locales_codes.\n");
+  new_locale_names = get_names_in_stringmap(new_module->messages_by_localcode);
+  i = 0;
+  while (new_locale_names[i] != NULL) {
+    TRACE_LOG("Checking for new locale name \"");
+    TRACE_LOG_Z_UCS(new_locale_names[i]);
+    TRACE_LOG("\n.");
+    locale_name_found = false;
+    for (j=0; j<get_list_size(list_of_avaialable_locales_codes); j++) {
+      locale_name = (z_ucs*)get_list_element(
+          list_of_avaialable_locales_codes, j);
+      TRACE_LOG("Testing against already known locale name \"");
+      TRACE_LOG_Z_UCS(locale_name);
+      TRACE_LOG("\".");
+      if (z_ucs_cmp(locale_name, new_locale_names[i]) == 0) {
+        TRACE_LOG("Match found.\n");
+        locale_name_found = true;
+        break;
+      }
+    }
+    if (locale_name_found != true) {
+      TRACE_LOG("No match found, adding to list.\n");
+      add_list_element(list_of_avaialable_locales_codes, new_locale_names[i]);
+    }
+    i++;
+  }
+  TRACE_LOG("Finished updating list_of_avaialable_locales_codes.\n");
+  free (new_locale_names);
+
+  return 0;
 }
 
 
