@@ -44,20 +44,53 @@ if (NOT(DISABLE_BABEL))
   set(pc_req_public "libxml-2.0")
 endif()
 
-file(GLOB_RECURSE MyCSources "*.c")
-file(GLOB ${PROJECT_NAME}_headers ${PROJECT_SOURCE_DIR}/src/interpreter/*.h)
-#message(${${PROJECT_NAME}_headers})
-#message("${MyCSources}")
-list(FILTER MyCSources EXCLUDE REGEX "src/tools/tools_test.c")
-list(FILTER MyCSources EXCLUDE REGEX "src/hyph_patterns/pattern_setup.c")
+set (MyCSources
+  src/interpreter/babel.c
+  src/interpreter/blockbuf.c
+  src/interpreter/blorb.c
+  src/interpreter/cmd_hst.c
+  src/interpreter/config.c
+  src/interpreter/debugger.c
+  src/interpreter/filelist.c
+  src/interpreter/fizmo.c
+  src/interpreter/history.c
+  src/interpreter/hyphenation.c
+  src/interpreter/iff.c
+  src/interpreter/mathemat.c
+  src/interpreter/misc.c
+  src/interpreter/mt19937ar.c
+  src/interpreter/object.c
+  src/interpreter/output.c
+  src/interpreter/property.c
+  src/interpreter/routine.c
+  src/interpreter/savegame.c
+  src/interpreter/sound.c
+  src/interpreter/stack.c
+  src/interpreter/streams.c
+  src/interpreter/table.c
+  src/interpreter/text.c
+  src/interpreter/undo.c
+  src/interpreter/variable.c
+  src/interpreter/wordwrap.c
+  src/interpreter/zpu.c
+  src/tools/filesys.c
+  src/tools/filesys_c.c
+  src/tools/i18n.c
+  src/tools/list.c
+  src/tools/stringmap.c
+  src/tools/tracelog.c
+  src/tools/types.c
+  src/tools/z_ucs.c
+  src/hyph_patterns/hyph_pattern_tools.c
+  src/hyph_patterns/hyph_patterns.c
+  src/locales/libfizmo_locales.c
+  src/locales/locale_data.c)
 add_library (fizmo ${MyCSources})
-#add_dependencies(fizmo src/hyph_patterns/hyph_patterns.c)
 
 SET_TARGET_PROPERTIES (
 	${BINARY_NAME} PROPERTIES
 	VERSION		${LIBRARY_VERSION_STRING}
 	SOVERSION	${LIBRARY_VERSION_MAJOR})
-      #PUBLIC_HEADER  "${libfizmo_headers}")
 
 install(TARGETS fizmo)
 # PUBLIC_HEADER cannot be used for TARGETS fizmo, since it doesn't keep
