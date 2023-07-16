@@ -144,6 +144,19 @@ void **delete_list_and_get_ptrs(list *l)
 }
 
 
+void **get_list_null_terminated_ptrs(list *l) {
+  void **result;
+
+  if ((result = malloc(sizeof(void*) * l->nof_elements_stored + 1)) == NULL) {
+    return NULL;
+  }
+
+  memcpy(result, l->elements, sizeof(void*) * l->nof_elements_stored);
+  result[l->nof_elements_stored] = NULL;
+  return result;
+}
+
+
 void **delete_list_and_get_null_terminated_ptrs(list *l)
 {
   void **result = l->elements;

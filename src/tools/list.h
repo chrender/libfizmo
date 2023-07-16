@@ -66,6 +66,7 @@ bool list_contains_element(list *haystack, void *needle);
 int delete_list_element(list *l, int list_index);
 void delete_list(list *l);
 void **delete_list_and_get_ptrs(list *l);
+void **get_list_null_terminated_ptrs(list *l);
 void **delete_list_and_get_null_terminated_ptrs(list *l);
 
 
