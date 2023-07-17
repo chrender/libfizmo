@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
      "#include \"../tools/stringmap.h\"\n"
      "#include \"hyph_pattern_tools.h\"\n"
      "\n"
-     "static stringmap *pattern_map = NULL;\n"
+     "stringmap *pattern_map = NULL;\n"
      "\n");
 
  i=0;
