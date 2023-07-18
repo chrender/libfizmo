@@ -32,6 +32,10 @@ ExternalProject_Add(locale_data_preparation
   )
 
 option(ENABLE_TRACING "Enable tracing" OFF)
+if (ENABLE_TRACING)
+  add_definitions(-DENABLE_TRACING)
+endif()
+
 #set(FIZMO_DIST_VERSION "" CACHE STRING "Fizmo's dist version")
 if (NOT(DISABLE_BABEL))
   #FindLibXml2
