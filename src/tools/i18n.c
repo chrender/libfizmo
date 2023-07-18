@@ -299,7 +299,7 @@ static long i18n_translate_from_va_list(z_ucs *module_name, int string_code,
   }
 
   TRACE_LOG("Got messages at %p with %d messages.\n",
-      module, messages->nof_messages, module->messages);
+      messages, messages->nof_messages);
 
   if (string_code >= messages->nof_messages) {
     TRACE_LOG("String %d code too large, exiting.\n", string_code);
