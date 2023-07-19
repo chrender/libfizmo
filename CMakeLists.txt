@@ -89,7 +89,8 @@ set (MyCSources
   src/hyph_patterns/hyph_pattern_tools.c
   src/hyph_patterns/hyph_patterns.c
   src/locales/libfizmo_locales.c
-  src/locales/locale_data.c)
+  src/locales/locale_data.c
+  src/locales/locale_data.h)
 
 add_library(fizmo ${MyCSources})
 
