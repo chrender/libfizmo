@@ -17,7 +17,7 @@
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -92,7 +92,8 @@ static void sort_patterndata(z_ucs **patterns, int start, int end) {
 }
 
 
-static int load_patterns(char *filename, FILE *output_file, char *locale_code) {
+static int load_patterns(char *filename, FILE *output_file, char *locale_code,
+    bool dump_sorted_patterns) {
   z_file *patternfile;
   z_ucs input;
   z_ucs *pattern_input_buffer = NULL;
@@ -108,6 +109,9 @@ static int load_patterns(char *filename, FILE *output_file, char *locale_code) {
   size_t pattern_data_index = 0;
   size_t output_index;
   size_t i;
+  FILE *dump_file = NULL;
+  size_t dump_file_name_length = 0;
+  char *dump_file_name = NULL;
 
   patternfile = fsi->openfile(filename, FILETYPE_DATA, FILEACCESS_READ);
 
@@ -154,6 +158,26 @@ static int load_patterns(char *filename, FILE *output_file, char *locale_code) {
   parsed_patterns = (z_ucs**)delete_list_and_get_ptrs(input_patterns);
 
   sort_patterndata(parsed_patterns, 0, parsed_patterns_size - 1);
+
+  if (dump_sorted_patterns == true) {
+    dump_file_name_length
+      = snprintf(NULL, 0, "%s_sorted_dump.txt", locale_code);
+    dump_file_name = malloc(dump_file_name_length);
+    sprintf(dump_file_name, "%s_sorted_dump.txt", locale_code);
+    dump_file = fopen(dump_file_name, "w");
+    parsed_patterns_index = 0;
+    while (parsed_patterns_index < parsed_patterns_size) {
+      i = 0;
+      do {
+        fputc(parsed_patterns[parsed_patterns_index][i], dump_file);
+      }
+      while (parsed_patterns[parsed_patterns_index][++i] != 0);
+      fputc('\n', dump_file);
+      parsed_patterns_index++;
+    }
+    fclose(dump_file);
+    free(dump_file_name);
+  }
 
   pattern_indices_index = 0;
   pattern_indices_size = parsed_patterns_size;
@@ -244,6 +268,12 @@ void write_disclaimer_to_file(FILE *output_file, char *filename) {
 }
 
 
+void print_syntax_and_exit() {
+  printf("Syntax: pattern_setup [--dump-sorted-patterns]\n");
+  exit(1);
+}
+
+
 int main(int argc, char *argv[]) {
  struct dirent *dp;
  DIR *dfd;
@@ -255,6 +285,20 @@ int main(int argc, char *argv[]) {
  int *nof_patterns_by_index;
  char input_filename[10];
  int i, j;
+ bool dump_sorted_patterns = false;
+
+ if (argc > 2) {
+   print_syntax_and_exit();
+ }
+
+ if (argc == 2) {
+   if (strcmp(argv[1], "--dump-sorted-patterns") != 0) {
+     print_syntax_and_exit();
+   }
+   else {
+     dump_sorted_patterns = true;
+   }
+ }
 
  if ((dfd = opendir(".")) == NULL) {
    fputs("Can't open dir", stderr);
@@ -305,7 +349,7 @@ int main(int argc, char *argv[]) {
    locale_code = locale_codes[i];
    sprintf(input_filename, "%s.txt", locale_code);
    printf("Processing \"%s\".\n", input_filename);
-   nof_patterns_by_index[i] = load_patterns(input_filename, output_file, locale_code);
+   nof_patterns_by_index[i] = load_patterns(input_filename, output_file, locale_code, dump_sorted_patterns);
    i++;
  }
 
@@ -351,7 +395,7 @@ int main(int argc, char *argv[]) {
  fclose(output_file);
  free(nof_patterns_by_index);
  free(locale_codes);
-  
-  exit(0);
+
+ exit(0);
 }
 
