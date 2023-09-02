@@ -36,17 +36,63 @@ if (ENABLE_TRACING)
   add_definitions(-DENABLE_TRACING)
 endif()
 
-#set(FIZMO_DIST_VERSION "" CACHE STRING "Fizmo's dist version")
-if (NOT(DISABLE_BABEL))
-  #FindLibXml2
+option(ENABLE_BABEL "Enable babel" ON)
+if (ENABLE_BABEL)
+  add_definitions(-DENABLE_BABEL)
   find_package(LibXml2 REQUIRED)
-  #CPPFLAGS += -DUSE_LIBXML2
-  #CFLAGS += "-I${LIBXML2_INCLUDE_DIR}"
-  #LDADD += "-L${LIBXML2_LIBRARY} -l${LIBXML2_LIBRARIES}"
   set(pc_req_public "libxml-2.0")
-  #set(pc_req_public "LibXml2")
 else()
   set(pc_req_public)
+endif()
+
+option(ENABLE_STRICT_Z "Enable strict Z-machine behavior" OFF)
+if (ENABLE_STRICT_Z)
+  add_definitions(-DENABLE_STRICT_Z)
+endif()
+
+option(ENABLE_SEGFAULT_ON_ERROR "Enable segfault on error" OFF)
+if (ENABLE_SEGFAULT_ON_ERROR)
+  add_definitions(-DENABLE_SEGFAULT_ON_ERROR)
+endif()
+
+option(ENABLE_FILELIST "Enable filelist" ON)
+if (ENABLE_FILELIST)
+  add_definitions(-DENABLE_FILELIST)
+endif()
+
+option(ENABLE_BLOCKBUFFER "Enable blockbuffer" ON)
+if (ENABLE_BLOCKBUFFER)
+  add_definitions(-DENABLE_BLOCKBUFFER)
+endif()
+
+option(ENABLE_COMMAND_HISTORY "Enable command history" ON)
+if (ENABLE_COMMAND_HISTORY)
+  add_definitions(-DENABLE_COMMAND_HISTORY)
+endif()
+
+option(ENABLE_OUTPUT_HISTORY "Enable output history" ON)
+if (ENABLE_OUTPUT_HISTORY)
+  add_definitions(-DENABLE_OUTPUT_HISTORY)
+endif()
+
+option(ENABLE_CONFIG_FILES "Enable config files" ON)
+if (ENABLE_CONFIG_FILES)
+  add_definitions(-DENABLE_CONFIG_FILES)
+endif()
+
+option(ENABLE_PREFIX_COMMANDS "Enable prefix commands" ON)
+if (ENABLE_PREFIX_COMMANDS)
+  add_definitions(-DENABLE_PREFIX_COMMANDS)
+endif()
+
+option(ENABLE_DEBUGGER "Enable debugger" OFF)
+if (ENABLE_DEBUGGER)
+  add_definitions(-DENABLE_DEBUGGER)
+endif()
+
+option(FIZMO_DIST_VERSION "Set fizmo-dist version" OFF)
+if (FIZMO_DIST_VERSION)
+  add_definitions(-DFIZMO_DIST_VERSION=${FIZMO_DIST_VERSION})
 endif()
 
 set (MyCSources
