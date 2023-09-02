@@ -19,4 +19,7 @@ missing
 /src/hyph_patterns/hyph_patterns.c
 /src/locales/locale_data.c
 /src/locales/locale_data.h
+/src/hyph_patterns/de_DE_sorted_dump.txt
+/src/hyph_patterns/en_GB_sorted_dump.txt
+/src/hyph_patterns/fr_FR_sorted_dump.txt
 .DS_Store
