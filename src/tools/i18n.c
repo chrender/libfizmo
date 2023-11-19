@@ -97,7 +97,7 @@ int register_locale_module(z_ucs *module_name, locale_module *new_module) {
   }
 
   if (list_of_avaialable_locales_codes == NULL) {
-    TRACE_LOG("Initializing list_of_avaialable_locales_codes.");
+    TRACE_LOG("Initializing list_of_avaialable_locales_codes.\n");
     list_of_avaialable_locales_codes = create_list();
   }
 
@@ -107,14 +107,14 @@ int register_locale_module(z_ucs *module_name, locale_module *new_module) {
   while (new_locale_names[i] != NULL) {
     TRACE_LOG("Checking for new locale name \"");
     TRACE_LOG_Z_UCS(new_locale_names[i]);
-    TRACE_LOG("\n.");
+    TRACE_LOG("\".\n");
     locale_name_found = false;
     for (j=0; j<get_list_size(list_of_avaialable_locales_codes); j++) {
       locale_name = (z_ucs*)get_list_element(
           list_of_avaialable_locales_codes, j);
       TRACE_LOG("Testing against already known locale name \"");
       TRACE_LOG_Z_UCS(locale_name);
-      TRACE_LOG("\".");
+      TRACE_LOG("\".\n");
       if (z_ucs_cmp(locale_name, new_locale_names[i]) == 0) {
         TRACE_LOG("Match found.\n");
         locale_name_found = true;
@@ -280,6 +280,13 @@ static long i18n_translate_from_va_list(z_ucs *module_name, int string_code,
   char index_char;
   z_ucs z_ucs_buffer[LATIN1_TO_Z_UCS_BUFFER_SIZE];
   char *ptr;
+
+  if (current_locale_name != NULL) {
+    TRACE_LOG("Using current_locale_name.\n")
+  }
+  else {
+    TRACE_LOG("Using default_locale_name.\n")
+  }
 
   locale_name
     = current_locale_name != NULL
@@ -734,6 +741,11 @@ z_ucs *i18n_translate_to_string(z_ucs* module_name, int string_code, ...)
 z_ucs **get_available_locale_names() {
   return (z_ucs**)get_list_null_terminated_ptrs(
       list_of_avaialable_locales_codes);
+}
+
+
+bool is_locale_name_available(z_ucs *locale_name) {
+  return list_contains_element(list_of_avaialable_locales_codes, locale_name);
 }
 
 
