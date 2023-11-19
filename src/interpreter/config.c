@@ -282,11 +282,18 @@ int set_configuration_value(char *key, char* new_unexpanded_value)
       if (strcmp(key, "locale") == 0)
       {
         TRACE_LOG("Trying to set locale to \"%s\".\n", new_value);
-        return_code
-          = (strcmp(get_configuration_value(
-                  "dont-set-locale-from-config"), "true") == 0)
-          ? 0
-          : set_current_locale_name(new_value);
+        if (is_locale_name_available(new_value) == false) {
+          TRACE_LOG("Locale \"%s\" is not available.\n", new_value);
+          return_code = -1;
+        }
+        else {
+          TRACE_LOG("Locale \"%s\" is available.\n", new_value);
+          return_code
+            = (strcmp(get_configuration_value(
+                    "dont-set-locale-from-config"), "true") == 0)
+            ? 0
+            : set_current_locale_name(new_value);
+        }
         free(new_value);
         return return_code;
       }
