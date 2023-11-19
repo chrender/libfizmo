@@ -75,6 +75,7 @@ z_ucs *get_current_locale_name();
 char *get_current_locale_name_in_utf8();
 int set_current_locale_name(char *new_locale_name);
 z_ucs **get_available_locale_names();
+bool is_locale_name_available(z_ucs *locale_name);
 void free_i18n_memory();
 
 #endif /* i18n_h_INCLUDED */
