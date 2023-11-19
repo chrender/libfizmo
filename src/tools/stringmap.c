@@ -43,12 +43,12 @@
 #include "tracelog.h"
 
 
-stringmap *create_stringmap()
-{
+stringmap *create_stringmap() {
   stringmap *result;
 
-  if ((result = malloc(sizeof(stringmap))) == NULL)
+  if ((result = malloc(sizeof(stringmap))) == NULL) {
     return NULL;
+  }
 
   result->elements = NULL;
   result->nof_elements_stored = 0;
@@ -66,17 +66,16 @@ static int get_stringmap_value_index(stringmap *map, z_ucs *name)
   TRACE_LOG_Z_UCS(name);
   TRACE_LOG("'.\n");
 
-  if ( (map == NULL) || (name == NULL) )
+  if ( (map == NULL) || (name == NULL) ) {
     return -1;
+  }
 
-  for (i=0; i<map->nof_elements_stored; i++)
-  {
+  for (i=0; i<map->nof_elements_stored; i++) {
     TRACE_LOG("Found '");
     TRACE_LOG_Z_UCS(map->elements[i]->name);
     TRACE_LOG("'.\n");
 
-    if (z_ucs_cmp(map->elements[i]->name, name) == 0)
-    {
+    if (z_ucs_cmp(map->elements[i]->name, name) == 0) {
       TRACE_LOG("Successfully found key at index %ld.\n", (long int)i);
       return i;
     }
@@ -87,16 +86,15 @@ static int get_stringmap_value_index(stringmap *map, z_ucs *name)
 
 
 // Returns 0 on success, non-zero otherwise.
-int add_stringmap_element(stringmap *map, z_ucs *name, void *value)
-{
+int add_stringmap_element(stringmap *map, z_ucs *name, void *value) {
   stringmap_element *element_ptr;
   stringmap_element **element_ptr_ptr;
 
-  if (get_stringmap_value_index(map, name) >= 0)
+  if (get_stringmap_value_index(map, name) >= 0) {
     return -1;
+  }
 
-  if (map->nof_elements_stored == map->space_available)
-  {
+  if (map->nof_elements_stored == map->space_available) {
     if ((element_ptr_ptr = realloc(
             map->elements,
             sizeof(stringmap_element) * map->space_available + MAP_INC_SIZE))
@@ -107,11 +105,11 @@ int add_stringmap_element(stringmap *map, z_ucs *name, void *value)
     map->space_available += MAP_INC_SIZE;
   }
 
-  if ((element_ptr = malloc(sizeof(stringmap_element))) == NULL)
+  if ((element_ptr = malloc(sizeof(stringmap_element))) == NULL) {
     return -1;
+  }
 
-  if ((element_ptr->name = z_ucs_dup(name)) == NULL)
-  {
+  if ((element_ptr->name = z_ucs_dup(name)) == NULL) {
     free(element_ptr);
     return -1;
   }
@@ -130,8 +128,7 @@ int add_stringmap_element(stringmap *map, z_ucs *name, void *value)
 }
 
 
-void *get_stringmap_value(stringmap *map, z_ucs *name)
-{
+void *get_stringmap_value(stringmap *map, z_ucs *name) {
   int result_index = get_stringmap_value_index(map, name);
 
   return result_index >= 0
@@ -144,19 +141,23 @@ bool is_name_stored_in_stringmap(stringmap *map, z_ucs *name) {
   return get_stringmap_value_index(map, name) >= 0 ? true : false;
 }
 
-z_ucs **get_names_in_stringmap(stringmap *map)
-{
+
+z_ucs **get_names_in_stringmap(stringmap *map) {
   z_ucs **result;
   size_t i;
 
-  if (map->nof_elements_stored == 0)
+  if (map->nof_elements_stored == 0) {
     return NULL;
+  }
 
-  if ((result = malloc(sizeof(z_ucs*) * (map->nof_elements_stored+1))) == NULL)
+  if ((result = malloc(sizeof(z_ucs*) * (map->nof_elements_stored+1)))
+      == NULL) {
     return NULL;
+  }
 
-  for (i=0; i<map->nof_elements_stored; i++)
+  for (i=0; i<map->nof_elements_stored; i++) {
     result[i] = map->elements[i]->name;
+  }
   result[i] = NULL;
 
   return result;
