@@ -132,7 +132,7 @@ static int load_patterns(char *filename, FILE *output_file, char *locale_code,
         if (pattern_input_buffer_index + 1 >= pattern_input_buffer_size) {
           pattern_input_buffer_size += 128;
           if ((pattern_input_buffer = realloc(
-                  pattern_input_buffer, pattern_input_buffer_size * sizeof(z_ucs)))
+             pattern_input_buffer, pattern_input_buffer_size * sizeof(z_ucs)))
               == NULL) {
             fputs("Couldn't allocate memory.", stderr);
             exit(-1);
@@ -204,6 +204,16 @@ static int load_patterns(char *filename, FILE *output_file, char *locale_code,
       i++;
     }
     while (parsed_patterns[parsed_patterns_index][i] != 0);
+    if (output_index == 6) {
+      output_index  = 0;
+      fprintf(output_file, ",\n  ");
+    }
+    else if (output_index  != 0) {
+      fprintf(output_file, ", ");
+    }
+    fprintf(output_file, "0x%08x", 0);
+    output_index++;
+    pattern_data_index++;
     parsed_patterns_index++;
     pattern_indices_index++;
   }
