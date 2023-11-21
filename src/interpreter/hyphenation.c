@@ -60,28 +60,41 @@ static int nof_patterns = 0;
 
 
 
-static int load_patterns()
-{
+static int load_patterns() {
   z_ucs *current_locale;
   hyph_patterns *pattern_data;
+#ifdef ENABLE_TRACING
+  size_t i;
+#endif // ENABLE_TRACING
 
   current_locale = get_current_locale_name();
-  if (last_pattern_locale != NULL)
+  TRACE_LOG("Loading patterns for locale \"");
+  TRACE_LOG_Z_UCS(current_locale);
+  TRACE_LOG("\".\n");
+  if (last_pattern_locale != NULL) {
     free(last_pattern_locale);
+  }
   last_pattern_locale = z_ucs_dup(current_locale);
 
   pattern_data = (hyph_patterns*)get_stringmap_value(
       pattern_map, current_locale);
 
-  if (pattern_data != NULL)
-  {
+  if (pattern_data != NULL) {
+    TRACE_LOG("Found requested hyphenation patterns.\n");
     nof_patterns = pattern_data->number_of_patterns;
     patterns = pattern_data->patterns;
+    i = 0;
+    while (i < nof_patterns) {
+      TRACE_LOG("Pattern %d: ", i);
+      TRACE_LOG_Z_UCS(patterns[i]);
+      TRACE_LOG("\n");
+      i++;
+    }
     TRACE_LOG("Read %d patterns.\n", nof_patterns);
     return 0;
   }
-  else
-  {
+  else {
+    TRACE_LOG("Couldn't find hyphenation patterns.\n");
     nof_patterns = -1;
     return -1;
   }
