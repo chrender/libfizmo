@@ -69,6 +69,7 @@
 #include "../tools/unused.h"
 #include "../locales/libfizmo_locales.h"
 #include "../locales/locale_data.h"
+#include "../hyph_patterns/hyph_patterns.h"
 
 #ifndef DISABLE_OUTPUT_HISTORY
 #include "history.h"
@@ -1210,6 +1211,8 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
   init_config_default_values();
 
   init_libfizmo_locales();
+
+  init_patterns();
 
   register_i18n_stream_output_function(
       streams_z_ucs_output);
