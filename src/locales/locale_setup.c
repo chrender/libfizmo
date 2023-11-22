@@ -62,7 +62,7 @@ static size_t load_locales(char *filename, FILE *output_file,
 
   locale_file = fsi->openfile(filename, FILETYPE_DATA, FILEACCESS_READ);
 
-  fprintf(output_file, "z_ucs locale_data_%s[] = {\n  ", locale_code);
+  fprintf(output_file, "static z_ucs locale_data_%s[] = {\n  ", locale_code);
   do {
     input = parse_utf8_char_from_file(locale_file);
     if (input != UEOF) {
@@ -97,7 +97,8 @@ static size_t load_locales(char *filename, FILE *output_file,
   while (input != UEOF);
   fsi->closefile(locale_file);
 
-  fprintf(output_file, "z_ucs *locale_message_ptrs_%s[] = {\n  ", locale_code);
+  fprintf(output_file, "static z_ucs *locale_message_ptrs_%s[] = {\n  ",
+    locale_code);
   output_index = 0;
   for (message_index=0; message_index<get_list_size(message_indices);
       message_index++) {
@@ -115,7 +116,7 @@ static size_t load_locales(char *filename, FILE *output_file,
   fprintf(output_file, "\n};\n\n");
 
   fprintf(output_file,
-      "locale_messages locale_messages_%s = {\n"
+      "static locale_messages locale_messages_%s = {\n"
       "  %zu,\n"
       "  locale_message_ptrs_%s\n"
       "};\n\n",
