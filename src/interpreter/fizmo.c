@@ -892,6 +892,11 @@ int fizmo_register_screen_interface(struct z_screen_interface
   if (active_interface != NULL)
     return -1;
 
+  init_libfizmo_locales();
+
+  register_locale_module(
+      locale_module_libfizmo.module_name, &locale_module_libfizmo);
+
   default_colour = screen_interface->get_default_foreground_colour();
   if (is_regular_z_colour(default_colour) == false)
     return -2;
@@ -1210,8 +1215,6 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 
   init_config_default_values();
 
-  init_libfizmo_locales();
-
   init_patterns();
 
   register_i18n_stream_output_function(
@@ -1219,9 +1222,6 @@ void fizmo_start(z_file* story_stream, z_file *blorb_stream,
 
   register_i18n_abort_function(
       abort_interpreter);
-
-  register_locale_module(
-      locale_module_libfizmo.module_name, &locale_module_libfizmo);
 
 #ifndef DISABLE_CONFIGFILES
   ensure_dot_fizmo_dir_exists();
