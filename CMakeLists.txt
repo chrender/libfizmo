@@ -53,7 +53,7 @@ project(libfizmo
   LANGUAGES C
   HOMEPAGE_URL https://fizmo.spellbreaker.org
   DESCRIPTION "fizmo interpreter core library"
-  VERSION 0.8.0)
+  VERSION 0.9.0)
 
 ExternalProject_Add(hyph_pattern_preparation
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/hyph_patterns
