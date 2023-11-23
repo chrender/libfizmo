@@ -80,6 +80,10 @@ int register_locale_module(z_ucs *module_name, locale_module *new_module) {
   int i, j;
   bool locale_name_found;
 
+  TRACE_LOG("Starting to register locale module \"");
+  TRACE_LOG_Z_UCS(module_name);
+  TRACE_LOG("\".\n");
+
   if (locale_modules == NULL) {
     locale_modules = create_stringmap();
   }
