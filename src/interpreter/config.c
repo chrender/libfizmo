@@ -40,9 +40,9 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
-#if !defined (__WIN32__)
+#if !defined(__WIN32__) && !defined(__wasi__)
 #include <pwd.h>
-#endif // !defined (__WIN32__)
+#endif // !defined(__WIN32__) && !defined(__wasi__)
 
 #include "../tools/tracelog.h"
 #include "config.h"
@@ -749,13 +749,13 @@ bool is_valid_libfizmo_config_key(char *key)
 
 char *get_user_homedir()
 {
-#if !defined (__WIN32__)
+#if !defined(__WIN32__) && !defined(__wasi__)
   struct passwd *pw_entry;
-#endif // !defined (__WIN32__)
+#endif // !defined(__WIN32__) && !defined(__wasi__)
 
   if (user_homedir_initialized == false)
   {
-#if !defined (__WIN32__)
+#if !defined(__WIN32__) && !defined(__wasi__)
     pw_entry = getpwuid(getuid());
     if (pw_entry->pw_dir == NULL)
       user_homedir = NULL;
@@ -764,7 +764,7 @@ char *get_user_homedir()
 #else
     if ((user_homedir = getenv("HOME")) == NULL)
       user_homedir = getenv("HOMEPATH");
-#endif // !defined (__WIN32__)
+#endif // !defined(__WIN32__) && !defined(__wasi__)
     user_homedir_initialized = true;
   }
 

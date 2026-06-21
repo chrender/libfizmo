@@ -32,8 +32,10 @@
  */
 
 
-#ifndef debugger_c_INCLUDED 
+#ifndef debugger_c_INCLUDED
 #define debugger_c_INCLUDED
+
+#if !defined(__wasi__) && !defined(DISABLE_DEBUGGER)
 
 #define DEBUGGER_INPUT_BUFFER_SIZE 1024
 
@@ -341,6 +343,8 @@ void debugger_interpreter_stopped()
       free(elements[i]);
   }
 }
+
+#endif /* !defined(__wasi__) && !defined(DISABLE_DEBUGGER) */
 
 #endif /* debugger_c_INCLUDED */
 
